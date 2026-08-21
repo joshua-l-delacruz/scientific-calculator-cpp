@@ -83,11 +83,12 @@ int getServerPort()
             portEnvironment
         );
     }
+
     catch (...)
     {
         std::cerr
             << "Invalid PORT environment variable. "
-            << "Using 8080 instead."
+            << "Using port 8080."
             << std::endl;
 
         return 8080;
@@ -96,14 +97,14 @@ int getServerPort()
 
 
 // ============================================================
-// MAIN APPLICATION
+// MAIN
 // ============================================================
 
 int main()
 {
-    // --------------------------------------------------------
-    // FRONTEND
-    // --------------------------------------------------------
+    // ========================================================
+    // FRONTEND — INDEX.HTML
+    // ========================================================
 
     app().registerHandler(
         "/",
@@ -125,6 +126,10 @@ int main()
     );
 
 
+    // ========================================================
+    // FRONTEND — STYLE.CSS
+    // ========================================================
+
     app().registerHandler(
         "/style.css",
 
@@ -136,10 +141,6 @@ int main()
                     "/app/frontend/style.css"
                 );
 
-            response->setContentTypeCode(
-                CT_TEXT_CSS
-            );
-
             callback(response);
         },
 
@@ -148,6 +149,10 @@ int main()
         }
     );
 
+
+    // ========================================================
+    // FRONTEND — APP.JS
+    // ========================================================
 
     app().registerHandler(
         "/app.js",
@@ -160,10 +165,6 @@ int main()
                     "/app/frontend/app.js"
                 );
 
-            response->setContentTypeCode(
-                CT_APPLICATION_JAVASCRIPT
-            );
-
             callback(response);
         },
 
@@ -173,9 +174,9 @@ int main()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // HEALTH CHECK
-    // --------------------------------------------------------
+    // ========================================================
 
     app().registerHandler(
         "/health",
@@ -207,9 +208,9 @@ int main()
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // CALCULATOR API
-    // --------------------------------------------------------
+    // ========================================================
 
     app().registerHandler(
         "/api/calculate",
@@ -217,9 +218,9 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            // ------------------------------------------------
-            // CORS PREFLIGHT
-            // ------------------------------------------------
+            // =================================================
+            // OPTIONS / CORS
+            // =================================================
 
             if (req->method() == Options)
             {
@@ -238,9 +239,9 @@ int main()
             }
 
 
-            // ------------------------------------------------
-            // PARSE JSON
-            // ------------------------------------------------
+            // =================================================
+            // READ JSON REQUEST
+            // =================================================
 
             auto json =
                 req->getJsonObject();
@@ -269,8 +270,9 @@ int main()
             }
 
 
-            std::string operation =
+            const std::string operation =
                 (*json)["operation"].asString();
+
 
             double result =
                 0.0;
@@ -302,12 +304,17 @@ int main()
                 }
 
 
-                double left =
+                const double left =
                     (*json)["left"].asDouble();
 
-                double right =
+
+                const double right =
                     (*json)["right"].asDouble();
 
+
+                // ---------------------------------------------
+                // ADDITION
+                // ---------------------------------------------
 
                 if (operation == "add")
                 {
@@ -316,6 +323,10 @@ int main()
                 }
 
 
+                // ---------------------------------------------
+                // SUBTRACTION
+                // ---------------------------------------------
+
                 else if (operation == "subtract")
                 {
                     result =
@@ -323,12 +334,20 @@ int main()
                 }
 
 
+                // ---------------------------------------------
+                // MULTIPLICATION
+                // ---------------------------------------------
+
                 else if (operation == "multiply")
                 {
                     result =
                         left * right;
                 }
 
+
+                // ---------------------------------------------
+                // DIVISION
+                // ---------------------------------------------
 
                 else if (operation == "divide")
                 {
@@ -342,6 +361,7 @@ int main()
 
                         return;
                     }
+
 
                     result =
                         left / right;
@@ -367,7 +387,7 @@ int main()
                 }
 
 
-                double value =
+                const double value =
                     (*json)["value"].asDouble();
 
 
@@ -388,6 +408,7 @@ int main()
                         return;
                     }
 
+
                     result =
                         std::sqrt(value);
                 }
@@ -399,8 +420,9 @@ int main()
 
                 else if (operation == "sin")
                 {
-                    double radians =
+                    const double radians =
                         value * PI / 180.0;
+
 
                     result =
                         std::sin(radians);
@@ -413,8 +435,9 @@ int main()
 
                 else if (operation == "cos")
                 {
-                    double radians =
+                    const double radians =
                         value * PI / 180.0;
+
 
                     result =
                         std::cos(radians);
@@ -427,11 +450,13 @@ int main()
 
                 else if (operation == "tan")
                 {
-                    double radians =
+                    const double radians =
                         value * PI / 180.0;
 
-                    double cosine =
+
+                    const double cosine =
                         std::cos(radians);
+
 
                     if (
                         std::abs(cosine) <
@@ -447,13 +472,14 @@ int main()
                         return;
                     }
 
+
                     result =
                         std::tan(radians);
                 }
 
 
                 // ---------------------------------------------
-                // BASE-10 LOG
+                // LOG BASE 10
                 // ---------------------------------------------
 
                 else if (operation == "log")
@@ -468,6 +494,7 @@ int main()
 
                         return;
                     }
+
 
                     result =
                         std::log10(value);
@@ -490,6 +517,7 @@ int main()
 
                         return;
                     }
+
 
                     result =
                         std::log(value);
@@ -525,7 +553,7 @@ int main()
 
 
             // =================================================
-            // RESULT VALIDATION
+            // VALIDATE RESULT
             // =================================================
 
             if (!std::isfinite(result))
@@ -541,7 +569,7 @@ int main()
 
 
             // =================================================
-            // SUCCESSFUL RESPONSE
+            // SUCCESS RESPONSE
             // =================================================
 
             Json::Value responseJson;
@@ -551,6 +579,7 @@ int main()
 
             responseJson["result"] =
                 result;
+
 
             callback(
                 jsonResponse(
@@ -566,20 +595,29 @@ int main()
     );
 
 
-    // =========================================================
-    // SERVER CONFIGURATION
-    // =========================================================
+    // ========================================================
+    // START SERVER
+    // ========================================================
 
     const int port =
         getServerPort();
 
+
     std::cout
-        << "Starting C++ Scientific Calculator"
+        << "============================================"
         << std::endl;
 
     std::cout
-        << "Listening on port "
+        << "C++ Scientific Calculator"
+        << std::endl;
+
+    std::cout
+        << "Drogon server starting on port "
         << port
+        << std::endl;
+
+    std::cout
+        << "============================================"
         << std::endl;
 
 
