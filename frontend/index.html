@@ -12,7 +12,7 @@
 
     <meta
         name="description"
-        content="Scientific calculator powered by C++, Drogon and a custom expression parser."
+        content="C++ scientific and programmer calculator powered by Drogon."
     >
 
     <title>
@@ -33,16 +33,20 @@
 
         <section class="calculator">
 
+            <!-- ==================================================
+                 HEADER
+            =================================================== -->
+
             <header class="calculator-header">
 
                 <div class="title-group">
 
                     <h1>
-                        Scientific Calculator
+                        C++ Calculator
                     </h1>
 
-                    <p>
-                        C++ Expression Engine
+                    <p id="engineSubtitle">
+                        Scientific Expression Engine
                     </p>
 
                 </div>
@@ -55,8 +59,7 @@
                         class="small-header-button"
                         type="button"
                         onclick="toggleTheme()"
-                        aria-label="Toggle light or dark theme"
-                        title="Toggle theme"
+                        aria-label="Toggle theme"
                     >
                         ☾
                     </button>
@@ -67,7 +70,7 @@
                         class="mode-button"
                         type="button"
                         onclick="toggleAngleMode()"
-                        aria-label="Switch between degrees and radians"
+                        aria-label="Switch DEG or RAD"
                     >
                         DEG
                     </button>
@@ -77,512 +80,624 @@
             </header>
 
 
-            <section
-                class="display"
-                aria-live="polite"
-            >
+            <!-- ==================================================
+                 CALCULATOR TYPE SWITCH
+            =================================================== -->
 
-                <div class="display-meta">
-
-                    <span
-                        id="memoryIndicator"
-                        class="memory-indicator"
-                    ></span>
-
-                    <span
-                        id="displayMode"
-                        class="display-mode"
-                    >
-                        DEG
-                    </span>
-
-                </div>
-
-
-                <div
-                    id="expressionPreview"
-                    class="expression"
-                >
-                    Ready
-                </div>
-
-
-                <div
-                    id="display"
-                    class="display-value"
-                >
-                    0
-                </div>
-
-            </section>
-
-
-            <div
-                id="statusMessage"
-                class="status-message"
-                role="status"
-                aria-live="polite"
-            ></div>
-
-
-            <div
-                id="error"
-                class="error"
-                role="alert"
-            ></div>
-
-
-            <section
-                class="memory-grid"
-                aria-label="Calculator memory controls"
+            <nav
+                class="calculator-mode-switch"
+                aria-label="Calculator mode"
             >
 
                 <button
-                    class="memory-button"
+                    id="scientificModeButton"
+                    class="calculator-mode-button active"
                     type="button"
-                    onclick="memoryClear()"
+                    onclick="switchCalculatorMode('scientific')"
                 >
-                    MC
+                    Scientific
                 </button>
 
 
                 <button
-                    class="memory-button"
+                    id="programmerModeButton"
+                    class="calculator-mode-button"
                     type="button"
-                    onclick="memoryRecall()"
+                    onclick="switchCalculatorMode('programmer')"
                 >
-                    MR
+                    Programmer
                 </button>
 
+            </nav>
 
-                <button
-                    class="memory-button"
-                    type="button"
-                    onclick="memoryAdd()"
-                >
-                    M+
-                </button>
 
+            <!-- ==================================================
+                 SCIENTIFIC MODE
+            =================================================== -->
 
-                <button
-                    class="memory-button"
-                    type="button"
-                    onclick="memorySubtract()"
-                >
-                    M−
-                </button>
+            <div id="scientificMode">
 
-
-                <button
-                    class="memory-button ans-button"
-                    type="button"
-                    onclick="appendAnswer()"
-                >
-                    Ans
-                </button>
-
-            </section>
-
-
-            <section class="expression-controls">
-
-                <button
-                    class="button expression-button"
-                    type="button"
-                    onclick="appendToken('(')"
-                >
-                    (
-                </button>
-
-
-                <button
-                    class="button expression-button"
-                    type="button"
-                    onclick="appendToken(')')"
-                >
-                    )
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendConstant('pi')"
-                >
-                    π
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendConstant('e')"
-                >
-                    e
-                </button>
-
-            </section>
-
-
-            <section class="scientific-grid">
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('sin')"
-                >
-                    sin
-                </button>
-
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('cos')"
-                >
-                    cos
-                </button>
-
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('tan')"
-                >
-                    tan
-                </button>
-
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('log')"
-                >
-                    log
-                </button>
-
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('ln')"
-                >
-                    ln
-                </button>
-
-
-                <button
-                    class="button scientific"
-                    type="button"
-                    onclick="appendFunction('sqrt')"
-                >
-                    √
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendSquare()"
-                >
-                    x²
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendCube()"
-                >
-                    x³
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendToken('^')"
-                >
-                    xʸ
-                </button>
-
-
-                <button
-                    class="button advanced"
-                    type="button"
-                    onclick="appendFactorial()"
-                >
-                    x!
-                </button>
-
-
-                <button
-                    class="button control"
-                    type="button"
-                    onclick="toggleSignExpression()"
-                >
-                    +/−
-                </button>
-
-
-                <button
-                    class="button danger"
-                    type="button"
-                    onclick="clearCalculator()"
-                >
-                    C
-                </button>
-
-            </section>
-
-
-            <section class="keypad">
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('7')"
-                >
-                    7
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('8')"
-                >
-                    8
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('9')"
-                >
-                    9
-                </button>
-
-                <button
-                    class="button operator"
-                    type="button"
-                    onclick="appendOperator('/')"
-                >
-                    ÷
-                </button>
-
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('4')"
-                >
-                    4
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('5')"
-                >
-                    5
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('6')"
-                >
-                    6
-                </button>
-
-                <button
-                    class="button operator"
-                    type="button"
-                    onclick="appendOperator('*')"
-                >
-                    ×
-                </button>
-
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('1')"
-                >
-                    1
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('2')"
-                >
-                    2
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendNumber('3')"
-                >
-                    3
-                </button>
-
-                <button
-                    class="button operator"
-                    type="button"
-                    onclick="appendOperator('-')"
-                >
-                    −
-                </button>
-
-
-                <button
-                    class="button number zero"
-                    type="button"
-                    onclick="appendNumber('0')"
-                >
-                    0
-                </button>
-
-                <button
-                    class="button number"
-                    type="button"
-                    onclick="appendDecimal()"
-                >
-                    .
-                </button>
-
-                <button
-                    class="button operator"
-                    type="button"
-                    onclick="appendOperator('+')"
-                >
-                    +
-                </button>
-
-
-                <button
-                    class="button backspace"
-                    type="button"
-                    onclick="backspace()"
-                >
-                    ⌫
-                </button>
-
-                <button
-                    id="equalsButton"
-                    class="button equals"
-                    type="button"
-                    onclick="evaluateExpression()"
-                >
-                    =
-                </button>
-
-            </section>
-
-
-            <section class="raw-expression-section">
-
-                <div class="expression-label-row">
-
-                    <label for="expressionInput">
-                        Expression
-                    </label>
-
-                    <span
-                        id="expressionModeLabel"
-                        class="expression-mode-label"
-                    >
-                        Trigonometry: Degrees
-                    </span>
-
-                </div>
-
-
-                <input
-                    id="expressionInput"
-                    class="expression-input"
-                    type="text"
-                    autocomplete="off"
-                    spellcheck="false"
-                    placeholder="Example: sin(30) + sqrt(144)"
+                <section
+                    class="display"
+                    aria-live="polite"
                 >
 
+                    <div class="display-meta">
 
-                <div class="expression-actions">
-
-                    <button
-                        class="secondary-action"
-                        type="button"
-                        onclick="copyExpression()"
-                    >
-                        Copy expression
-                    </button>
+                        <span
+                            id="memoryIndicator"
+                            class="memory-indicator"
+                        ></span>
 
 
-                    <button
-                        class="secondary-action"
-                        type="button"
-                        onclick="copyResult()"
-                    >
-                        Copy result
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <section class="history-section">
-
-                <div class="history-header">
-
-                    <div>
-
-                        <h2>
-                            History
-                        </h2>
-
-                        <span id="historyCount">
-                            0 calculations
+                        <span
+                            id="displayMode"
+                            class="display-mode"
+                        >
+                            DEG
                         </span>
 
                     </div>
 
 
-                    <div class="history-actions">
+                    <div
+                        id="expressionPreview"
+                        class="expression"
+                    >
+                        Ready
+                    </div>
+
+
+                    <div
+                        id="display"
+                        class="display-value"
+                    >
+                        0
+                    </div>
+
+                </section>
+
+
+                <div
+                    id="statusMessage"
+                    class="status-message"
+                    role="status"
+                ></div>
+
+
+                <div
+                    id="error"
+                    class="error"
+                    role="alert"
+                ></div>
+
+
+                <section class="memory-grid">
+
+                    <button
+                        class="memory-button"
+                        onclick="memoryClear()"
+                    >
+                        MC
+                    </button>
+
+                    <button
+                        class="memory-button"
+                        onclick="memoryRecall()"
+                    >
+                        MR
+                    </button>
+
+                    <button
+                        class="memory-button"
+                        onclick="memoryAdd()"
+                    >
+                        M+
+                    </button>
+
+                    <button
+                        class="memory-button"
+                        onclick="memorySubtract()"
+                    >
+                        M−
+                    </button>
+
+                    <button
+                        class="memory-button ans-button"
+                        onclick="appendAnswer()"
+                    >
+                        Ans
+                    </button>
+
+                </section>
+
+
+                <section class="expression-controls">
+
+                    <button
+                        class="button expression-button"
+                        onclick="appendToken('(')"
+                    >
+                        (
+                    </button>
+
+                    <button
+                        class="button expression-button"
+                        onclick="appendToken(')')"
+                    >
+                        )
+                    </button>
+
+                    <button
+                        class="button advanced"
+                        onclick="appendConstant('pi')"
+                    >
+                        π
+                    </button>
+
+                    <button
+                        class="button advanced"
+                        onclick="appendConstant('e')"
+                    >
+                        e
+                    </button>
+
+                </section>
+
+
+                <section class="scientific-grid">
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('sin')"
+                    >
+                        sin
+                    </button>
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('cos')"
+                    >
+                        cos
+                    </button>
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('tan')"
+                    >
+                        tan
+                    </button>
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('log')"
+                    >
+                        log
+                    </button>
+
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('ln')"
+                    >
+                        ln
+                    </button>
+
+                    <button
+                        class="button scientific"
+                        onclick="appendFunction('sqrt')"
+                    >
+                        √
+                    </button>
+
+                    <button
+                        class="button advanced"
+                        onclick="appendSquare()"
+                    >
+                        x²
+                    </button>
+
+                    <button
+                        class="button advanced"
+                        onclick="appendCube()"
+                    >
+                        x³
+                    </button>
+
+
+                    <button
+                        class="button advanced"
+                        onclick="appendToken('^')"
+                    >
+                        xʸ
+                    </button>
+
+                    <button
+                        class="button advanced"
+                        onclick="appendFactorial()"
+                    >
+                        x!
+                    </button>
+
+                    <button
+                        class="button control"
+                        onclick="toggleSignExpression()"
+                    >
+                        +/−
+                    </button>
+
+                    <button
+                        class="button danger"
+                        onclick="clearCalculator()"
+                    >
+                        C
+                    </button>
+
+                </section>
+
+
+                <section class="keypad">
+
+                    <button class="button number" onclick="appendNumber('7')">7</button>
+                    <button class="button number" onclick="appendNumber('8')">8</button>
+                    <button class="button number" onclick="appendNumber('9')">9</button>
+                    <button class="button operator" onclick="appendOperator('/')">÷</button>
+
+                    <button class="button number" onclick="appendNumber('4')">4</button>
+                    <button class="button number" onclick="appendNumber('5')">5</button>
+                    <button class="button number" onclick="appendNumber('6')">6</button>
+                    <button class="button operator" onclick="appendOperator('*')">×</button>
+
+                    <button class="button number" onclick="appendNumber('1')">1</button>
+                    <button class="button number" onclick="appendNumber('2')">2</button>
+                    <button class="button number" onclick="appendNumber('3')">3</button>
+                    <button class="button operator" onclick="appendOperator('-')">−</button>
+
+                    <button class="button number zero" onclick="appendNumber('0')">0</button>
+                    <button class="button number" onclick="appendDecimal()">.</button>
+                    <button class="button operator" onclick="appendOperator('+')">+</button>
+
+                    <button class="button backspace" onclick="backspace()">⌫</button>
+
+                    <button
+                        id="equalsButton"
+                        class="button equals"
+                        onclick="evaluateExpression()"
+                    >
+                        =
+                    </button>
+
+                </section>
+
+
+                <section class="raw-expression-section">
+
+                    <div class="expression-label-row">
+
+                        <label for="expressionInput">
+                            Expression
+                        </label>
+
+
+                        <span
+                            id="expressionModeLabel"
+                            class="expression-mode-label"
+                        >
+                            Trigonometry: Degrees
+                        </span>
+
+                    </div>
+
+
+                    <input
+                        id="expressionInput"
+                        class="expression-input"
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Example: sin(30) + sqrt(144)"
+                    >
+
+
+                    <div class="expression-actions">
 
                         <button
-                            id="toggleHistoryButton"
-                            class="history-control-button"
-                            type="button"
-                            onclick="toggleHistory()"
+                            class="secondary-action"
+                            onclick="copyExpression()"
                         >
-                            Collapse
+                            Copy expression
                         </button>
 
-
                         <button
-                            class="history-control-button"
-                            type="button"
-                            onclick="clearHistory()"
+                            class="secondary-action"
+                            onclick="copyResult()"
                         >
-                            Clear
+                            Copy result
                         </button>
 
                     </div>
 
-                </div>
+                </section>
+
+
+                <section class="history-section">
+
+                    <div class="history-header">
+
+                        <div>
+
+                            <h2>
+                                History
+                            </h2>
+
+                            <span id="historyCount">
+                                0 calculations
+                            </span>
+
+                        </div>
+
+
+                        <div class="history-actions">
+
+                            <button
+                                id="toggleHistoryButton"
+                                class="history-control-button"
+                                onclick="toggleHistory()"
+                            >
+                                Collapse
+                            </button>
+
+                            <button
+                                class="history-control-button"
+                                onclick="clearHistory()"
+                            >
+                                Clear
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="historyList"
+                        class="history-list"
+                    ></div>
+
+                </section>
+
+            </div>
+
+
+            <!-- ==================================================
+                 PROGRAMMER MODE
+            =================================================== -->
+
+            <div
+                id="programmerMode"
+                class="hidden"
+            >
+
+                <section class="programmer-display">
+
+                    <div class="programmer-display-header">
+
+                        <span>
+                            64-bit Unsigned Integer
+                        </span>
+
+
+                        <span id="programmerBaseBadge">
+                            DEC
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="programmerExpression"
+                        class="programmer-expression"
+                    >
+                        Ready
+                    </div>
+
+
+                    <div
+                        id="programmerMainValue"
+                        class="programmer-main-value"
+                    >
+                        0
+                    </div>
+
+                </section>
 
 
                 <div
-                    id="historyList"
-                    class="history-list"
+                    id="programmerStatus"
+                    class="status-message"
                 ></div>
 
-            </section>
 
+                <div
+                    id="programmerError"
+                    class="error"
+                ></div>
+
+
+                <section class="base-selector">
+
+                    <button
+                        id="baseBIN"
+                        class="base-button"
+                        onclick="setProgrammerBase('BIN')"
+                    >
+                        BIN
+                    </button>
+
+                    <button
+                        id="baseOCT"
+                        class="base-button"
+                        onclick="setProgrammerBase('OCT')"
+                    >
+                        OCT
+                    </button>
+
+                    <button
+                        id="baseDEC"
+                        class="base-button active"
+                        onclick="setProgrammerBase('DEC')"
+                    >
+                        DEC
+                    </button>
+
+                    <button
+                        id="baseHEX"
+                        class="base-button"
+                        onclick="setProgrammerBase('HEX')"
+                    >
+                        HEX
+                    </button>
+
+                </section>
+
+
+                <section class="conversion-panel">
+
+                    <div class="conversion-row">
+                        <span>HEX</span>
+                        <strong id="conversionHEX">0</strong>
+                    </div>
+
+                    <div class="conversion-row">
+                        <span>DEC</span>
+                        <strong id="conversionDEC">0</strong>
+                    </div>
+
+                    <div class="conversion-row">
+                        <span>OCT</span>
+                        <strong id="conversionOCT">0</strong>
+                    </div>
+
+                    <div class="conversion-row">
+                        <span>BIN</span>
+                        <strong id="conversionBIN">0</strong>
+                    </div>
+
+                </section>
+
+
+                <section class="programmer-operation-grid">
+
+                    <button
+                        class="programmer-operation"
+                        onclick="chooseProgrammerOperation('AND')"
+                    >
+                        AND
+                    </button>
+
+                    <button
+                        class="programmer-operation"
+                        onclick="chooseProgrammerOperation('OR')"
+                    >
+                        OR
+                    </button>
+
+                    <button
+                        class="programmer-operation"
+                        onclick="chooseProgrammerOperation('XOR')"
+                    >
+                        XOR
+                    </button>
+
+                    <button
+                        class="programmer-operation"
+                        onclick="performProgrammerNot()"
+                    >
+                        NOT
+                    </button>
+
+
+                    <button
+                        class="programmer-operation"
+                        onclick="chooseProgrammerOperation('SHL')"
+                    >
+                        &lt;&lt;
+                    </button>
+
+                    <button
+                        class="programmer-operation"
+                        onclick="chooseProgrammerOperation('SHR')"
+                    >
+                        &gt;&gt;
+                    </button>
+
+                    <button
+                        class="programmer-control"
+                        onclick="programmerBackspace()"
+                    >
+                        ⌫
+                    </button>
+
+                    <button
+                        class="programmer-control"
+                        onclick="clearProgrammer()"
+                    >
+                        C
+                    </button>
+
+                </section>
+
+
+                <section class="hex-keypad">
+
+                    <button id="hexA" onclick="appendProgrammerDigit('A')">A</button>
+                    <button id="hexB" onclick="appendProgrammerDigit('B')">B</button>
+                    <button id="hexC" onclick="appendProgrammerDigit('C')">C</button>
+                    <button id="hexD" onclick="appendProgrammerDigit('D')">D</button>
+                    <button id="hexE" onclick="appendProgrammerDigit('E')">E</button>
+                    <button id="hexF" onclick="appendProgrammerDigit('F')">F</button>
+
+                </section>
+
+
+                <section class="programmer-keypad">
+
+                    <button id="prog7" onclick="appendProgrammerDigit('7')">7</button>
+                    <button id="prog8" onclick="appendProgrammerDigit('8')">8</button>
+                    <button id="prog9" onclick="appendProgrammerDigit('9')">9</button>
+
+                    <button id="prog4" onclick="appendProgrammerDigit('4')">4</button>
+                    <button id="prog5" onclick="appendProgrammerDigit('5')">5</button>
+                    <button id="prog6" onclick="appendProgrammerDigit('6')">6</button>
+
+                    <button id="prog1" onclick="appendProgrammerDigit('1')">1</button>
+                    <button id="prog2" onclick="appendProgrammerDigit('2')">2</button>
+                    <button id="prog3" onclick="appendProgrammerDigit('3')">3</button>
+
+                    <button
+                        id="prog0"
+                        class="programmer-zero"
+                        onclick="appendProgrammerDigit('0')"
+                    >
+                        0
+                    </button>
+
+                    <button
+                        id="programmerEquals"
+                        class="programmer-equals"
+                        onclick="executeProgrammerOperation()"
+                    >
+                        =
+                    </button>
+
+                </section>
+
+            </div>
+
+
+            <!-- ==================================================
+                 ABOUT
+            =================================================== -->
 
             <section class="about-section">
 
@@ -592,7 +707,7 @@
 
 
                 <p>
-                    A full-stack scientific calculator powered by a custom C++ expression parser and Drogon web server.
+                    A full-stack calculator powered by C++, a custom scientific expression parser, and a 64-bit programmer engine running through Drogon.
                 </p>
 
 
@@ -613,11 +728,11 @@
             <footer class="calculator-footer">
 
                 <span>
-                    C++ Scientific Calculator
+                    C++ Calculator
                 </span>
 
                 <span class="version">
-                    v6.0
+                    v7.0
                 </span>
 
             </footer>
