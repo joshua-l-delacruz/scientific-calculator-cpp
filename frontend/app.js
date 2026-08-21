@@ -36,7 +36,7 @@ const errorElement =
 
 
 // ============================================================
-// DISPLAY
+// DISPLAY HELPERS
 // ============================================================
 
 function updateDisplay()
@@ -83,10 +83,16 @@ function inputNumber(number)
 
     else
     {
-        if (currentValue.length >= 16)
+        if (
+            currentValue.replace(
+                "-",
+                ""
+            ).length >= 16
+        )
         {
             return;
         }
+
 
         currentValue +=
             number;
@@ -98,7 +104,7 @@ function inputNumber(number)
 
 
 // ============================================================
-// DECIMAL INPUT
+// DECIMAL
 // ============================================================
 
 function inputDecimal()
@@ -222,6 +228,10 @@ async function toggleSign()
             );
 
 
+        waitingForSecondValue =
+            true;
+
+
         updateDisplay();
     }
 
@@ -235,16 +245,13 @@ async function toggleSign()
 
 
 // ============================================================
-// CHOOSE BINARY OPERATION
+// BINARY OPERATION
 // ============================================================
 
 async function chooseOperation(operation)
 {
     clearError();
 
-
-    // If another operation is already pending and
-    // the second number has been entered, calculate first.
 
     if (
         firstValue !== null &&
@@ -272,7 +279,7 @@ async function chooseOperation(operation)
 
 
 // ============================================================
-// CALCULATE RESULT
+// RESULT
 // ============================================================
 
 async function calculateResult()
@@ -292,7 +299,6 @@ async function calculateResult()
     const secondValue =
         Number(currentValue);
 
-
     const originalFirst =
         firstValue;
 
@@ -302,6 +308,9 @@ async function calculateResult()
 
     try
     {
+        setBusyState(true);
+
+
         const response =
             await fetch(
                 API_URL,
@@ -377,6 +386,11 @@ async function calculateResult()
             error.message
         );
     }
+
+    finally
+    {
+        setBusyState(false);
+    }
 }
 
 
@@ -395,6 +409,9 @@ async function scientific(operation)
 
     try
     {
+        setBusyState(true);
+
+
         const data =
             await sendUnaryOperation(
                 operation
@@ -424,11 +441,16 @@ async function scientific(operation)
             error.message
         );
     }
+
+    finally
+    {
+        setBusyState(false);
+    }
 }
 
 
 // ============================================================
-// SEND UNARY OPERATION TO C++
+// API
 // ============================================================
 
 async function sendUnaryOperation(operation)
@@ -485,7 +507,29 @@ async function sendUnaryOperation(operation)
 
 
 // ============================================================
-// OPERATION SYMBOL
+// BUSY STATE
+// ============================================================
+
+function setBusyState(isBusy)
+{
+    const buttons =
+        document.querySelectorAll(
+            ".button"
+        );
+
+
+    buttons.forEach(
+        function(button)
+        {
+            button.disabled =
+                isBusy;
+        }
+    );
+}
+
+
+// ============================================================
+// SYMBOLS
 // ============================================================
 
 function operationSymbol(operation)
@@ -509,10 +553,6 @@ function operationSymbol(operation)
     return symbols[operation] || "";
 }
 
-
-// ============================================================
-// SCIENTIFIC FUNCTION LABEL
-// ============================================================
 
 function operationLabel(operation)
 {
@@ -543,7 +583,7 @@ function operationLabel(operation)
 
 
 // ============================================================
-// FORMAT NUMBERS
+// NUMBER FORMATTING
 // ============================================================
 
 function formatNumber(number)
@@ -568,7 +608,9 @@ function formatNumber(number)
         Math.abs(number) < 1e-9
     )
     {
-        return number.toExponential(10);
+        return number.toExponential(
+            10
+        );
     }
 
 
@@ -595,60 +637,62 @@ document.addEventListener(
             inputNumber(
                 event.key
             );
+
+            return;
         }
 
 
-        else if (
-            event.key === "."
-        )
+        if (event.key === ".")
         {
             inputDecimal();
+
+            return;
         }
 
 
-        else if (
-            event.key === "+"
-        )
+        if (event.key === "+")
         {
             await chooseOperation(
                 "add"
             );
+
+            return;
         }
 
 
-        else if (
-            event.key === "-"
-        )
+        if (event.key === "-")
         {
             await chooseOperation(
                 "subtract"
             );
+
+            return;
         }
 
 
-        else if (
-            event.key === "*"
-        )
+        if (event.key === "*")
         {
             await chooseOperation(
                 "multiply"
             );
+
+            return;
         }
 
 
-        else if (
-            event.key === "/"
-        )
+        if (event.key === "/")
         {
             event.preventDefault();
 
             await chooseOperation(
                 "divide"
             );
+
+            return;
         }
 
 
-        else if (
+        if (
             event.key === "Enter" ||
             event.key === "="
         )
@@ -656,19 +700,24 @@ document.addEventListener(
             event.preventDefault();
 
             await calculateResult();
+
+            return;
         }
 
 
-        else if (
-            event.key === "Backspace"
-        )
+        if (event.key === "Backspace")
         {
+            event.preventDefault();
+
             backspace();
+
+            return;
         }
 
 
-        else if (
-            event.key === "Escape"
+        if (
+            event.key === "Escape" ||
+            event.key === "Delete"
         )
         {
             clearCalculator();
