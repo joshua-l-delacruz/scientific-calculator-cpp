@@ -1,4 +1,4 @@
-name: Build C++ Scientific Calculator
+name: Build and Test C++ Scientific Calculator
 
 on:
   push:
@@ -10,12 +10,12 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build Docker image
         run: |
@@ -23,6 +23,55 @@ jobs:
             -t scientific-calculator-cpp \
             .
 
-      - name: Show built image
+      - name: Start calculator server
         run: |
-          docker images scientific-calculator-cpp
+          docker run \
+            -d \
+            --name scientific-calculator \
+            -p 8080:8080 \
+            scientific-calculator-cpp
+
+      - name: Wait for server
+        run: |
+          for i in {1..15}; do
+            if curl -s http://localhost:8080 > /dev/null; then
+              echo "Server is responding."
+              exit 0
+            fi
+
+            echo "Waiting for server..."
+            sleep 2
+          done
+
+          echo "Server did not start in time."
+          docker logs scientific-calculator
+          exit 1
+
+      - name: Test square root API
+        run: |
+          RESPONSE=$(curl -s \
+            -X POST \
+            http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"sqrt","value":144}')
+
+          echo "API response:"
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | grep '"result":12'
+
+      - name: Test sine API
+        run: |
+          RESPONSE=$(curl -s \
+            -X POST \
+            http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"sin","value":30}')
+
+          echo "API response:"
+          echo "$RESPONSE"
+
+      - name: Show container logs
+        if: always()
+        run: |
+          docker logs scientific-calculator
