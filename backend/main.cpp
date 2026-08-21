@@ -3,15 +3,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <limits>
 #include <string>
 
 using namespace drogon;
-
-
-// ============================================================
-// MATHEMATICAL CONSTANTS
-// ============================================================
 
 constexpr double PI =
     3.141592653589793238462643383279502884;
@@ -19,10 +13,6 @@ constexpr double PI =
 constexpr double EULER_E =
     2.718281828459045235360287471352662498;
 
-
-// ============================================================
-// JSON RESPONSE
-// ============================================================
 
 HttpResponsePtr jsonResponse(
     const Json::Value &json,
@@ -52,10 +42,6 @@ HttpResponsePtr jsonResponse(
 }
 
 
-// ============================================================
-// ERROR RESPONSE
-// ============================================================
-
 HttpResponsePtr errorResponse(
     const std::string &message,
     HttpStatusCode status = k400BadRequest)
@@ -71,10 +57,6 @@ HttpResponsePtr errorResponse(
     );
 }
 
-
-// ============================================================
-// SERVER PORT
-// ============================================================
 
 int getServerPort()
 {
@@ -105,10 +87,6 @@ int getServerPort()
 }
 
 
-// ============================================================
-// FACTORIAL
-// ============================================================
-
 double factorial(int number)
 {
     double result =
@@ -127,10 +105,6 @@ double factorial(int number)
     return result;
 }
 
-
-// ============================================================
-// MAIN
-// ============================================================
 
 int main()
 {
@@ -194,7 +168,7 @@ int main()
                 );
 
             response->setContentTypeCode(
-                CT_APPLICATION_JAVASCRIPT
+                CT_TEXT_JAVASCRIPT
             );
 
             callback(response);
@@ -250,10 +224,6 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            // =================================================
-            // CORS PREFLIGHT
-            // =================================================
-
             if (req->method() == Options)
             {
                 Json::Value responseJson;
@@ -270,10 +240,6 @@ int main()
                 return;
             }
 
-
-            // =================================================
-            // JSON BODY
-            // =================================================
 
             auto json =
                 req->getJsonObject();
@@ -367,20 +333,17 @@ int main()
                         left + right;
                 }
 
-
                 else if (operation == "subtract")
                 {
                     result =
                         left - right;
                 }
 
-
                 else if (operation == "multiply")
                 {
                     result =
                         left * right;
                 }
-
 
                 else if (operation == "divide")
                 {
@@ -398,7 +361,6 @@ int main()
                     result =
                         left / right;
                 }
-
 
                 else if (operation == "power")
                 {
@@ -433,10 +395,6 @@ int main()
                     (*json)["value"].asDouble();
 
 
-                // ---------------------------------------------
-                // SQUARE ROOT
-                // ---------------------------------------------
-
                 if (operation == "sqrt")
                 {
                     if (value < 0.0)
@@ -454,32 +412,17 @@ int main()
                         std::sqrt(value);
                 }
 
-
-                // ---------------------------------------------
-                // SQUARE
-                // ---------------------------------------------
-
                 else if (operation == "square")
                 {
                     result =
                         value * value;
                 }
 
-
-                // ---------------------------------------------
-                // CUBE
-                // ---------------------------------------------
-
                 else if (operation == "cube")
                 {
                     result =
                         value * value * value;
                 }
-
-
-                // ---------------------------------------------
-                // RECIPROCAL
-                // ---------------------------------------------
 
                 else if (operation == "reciprocal")
                 {
@@ -498,21 +441,11 @@ int main()
                         1.0 / value;
                 }
 
-
-                // ---------------------------------------------
-                // PERCENT
-                // ---------------------------------------------
-
                 else if (operation == "percent")
                 {
                     result =
                         value / 100.0;
                 }
-
-
-                // ---------------------------------------------
-                // FACTORIAL
-                // ---------------------------------------------
 
                 else if (operation == "factorial")
                 {
@@ -568,11 +501,6 @@ int main()
                         );
                 }
 
-
-                // ---------------------------------------------
-                // SINE
-                // ---------------------------------------------
-
                 else if (operation == "sin")
                 {
                     const double radians =
@@ -586,11 +514,6 @@ int main()
                         );
                 }
 
-
-                // ---------------------------------------------
-                // COSINE
-                // ---------------------------------------------
-
                 else if (operation == "cos")
                 {
                     const double radians =
@@ -603,11 +526,6 @@ int main()
                             radians
                         );
                 }
-
-
-                // ---------------------------------------------
-                // TANGENT
-                // ---------------------------------------------
 
                 else if (operation == "tan")
                 {
@@ -644,11 +562,6 @@ int main()
                         );
                 }
 
-
-                // ---------------------------------------------
-                // LOG BASE 10
-                // ---------------------------------------------
-
                 else if (operation == "log")
                 {
                     if (value <= 0.0)
@@ -668,11 +581,6 @@ int main()
                             value
                         );
                 }
-
-
-                // ---------------------------------------------
-                // NATURAL LOG
-                // ---------------------------------------------
 
                 else if (operation == "ln")
                 {
@@ -694,21 +602,11 @@ int main()
                         );
                 }
 
-
-                // ---------------------------------------------
-                // NEGATE
-                // ---------------------------------------------
-
                 else if (operation == "negate")
                 {
                     result =
                         -value;
                 }
-
-
-                // ---------------------------------------------
-                // UNKNOWN
-                // ---------------------------------------------
 
                 else
                 {
@@ -723,10 +621,6 @@ int main()
             }
 
 
-            // =================================================
-            // RESULT VALIDATION
-            // =================================================
-
             if (!std::isfinite(result))
             {
                 callback(
@@ -738,10 +632,6 @@ int main()
                 return;
             }
 
-
-            // =================================================
-            // SUCCESS
-            // =================================================
 
             Json::Value responseJson;
 
@@ -765,10 +655,6 @@ int main()
         }
     );
 
-
-    // ========================================================
-    // SERVER
-    // ========================================================
 
     const int port =
         getServerPort();
