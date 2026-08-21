@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -11,20 +12,28 @@
 
     <meta
         name="description"
-        content="A web-based scientific calculator powered by C++ and Drogon."
+        content="Scientific calculator powered by C++ and Drogon."
     >
 
-    <title>C++ Scientific Calculator</title>
+    <title>
+        C++ Scientific Calculator
+    </title>
 
     <link
         rel="stylesheet"
         href="/style.css"
     >
+
 </head>
+
 
 <body>
 
     <main class="calculator">
+
+        <!-- ==================================================
+             HEADER
+        =================================================== -->
 
         <header class="calculator-header">
 
@@ -40,12 +49,17 @@
 
             </div>
 
+
             <div class="mode-badge">
                 DEG
             </div>
 
         </header>
 
+
+        <!-- ==================================================
+             DISPLAY
+        =================================================== -->
 
         <section
             class="display"
@@ -56,6 +70,7 @@
                 id="expression"
                 class="expression"
             ></div>
+
 
             <div
                 id="display"
@@ -74,42 +89,105 @@
         ></div>
 
 
+        <!-- ==================================================
+             ADVANCED SCIENTIFIC KEYPAD
+        =================================================== -->
+
         <section
-            class="buttons"
-            aria-label="Scientific calculator keypad"
+            class="scientific-grid"
+            aria-label="Advanced scientific functions"
         >
 
-            <!-- ========================================= -->
-            <!-- SCIENTIFIC FUNCTIONS -->
-            <!-- ========================================= -->
+            <button
+                class="button advanced"
+                onclick="constantValue('pi')"
+            >
+                π
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="constantValue('e')"
+            >
+                e
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="scientific('square')"
+            >
+                x²
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="scientific('cube')"
+            >
+                x³
+            </button>
+
+
+            <button
+                class="button advanced power"
+                onclick="chooseOperation('power')"
+            >
+                xʸ
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="scientific('reciprocal')"
+            >
+                1/x
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="scientific('percent')"
+            >
+                %
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="scientific('factorial')"
+            >
+                x!
+            </button>
+
 
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('sin')"
             >
                 sin
             </button>
 
+
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('cos')"
             >
                 cos
             </button>
 
+
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('tan')"
             >
                 tan
             </button>
 
+
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('log')"
             >
                 log
@@ -118,44 +196,51 @@
 
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('ln')"
             >
                 ln
             </button>
 
+
             <button
                 class="button scientific"
-                type="button"
                 onclick="scientific('sqrt')"
             >
                 √x
             </button>
 
+
             <button
                 class="button control"
-                type="button"
                 onclick="toggleSign()"
             >
                 +/−
             </button>
 
+
             <button
                 class="button danger"
-                type="button"
                 onclick="clearCalculator()"
             >
                 C
             </button>
 
+        </section>
 
-            <!-- ========================================= -->
-            <!-- NUMBER PAD -->
-            <!-- ========================================= -->
+
+        <!-- ==================================================
+             MAIN KEYPAD
+        =================================================== -->
+
+        <section
+            class="keypad"
+            aria-label="Calculator keypad"
+        >
+
+            <!-- 7 8 9 ÷ -->
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('7')"
             >
                 7
@@ -163,7 +248,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('8')"
             >
                 8
@@ -171,7 +255,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('9')"
             >
                 9
@@ -179,16 +262,16 @@
 
             <button
                 class="button operator"
-                type="button"
                 onclick="chooseOperation('divide')"
             >
                 ÷
             </button>
 
 
+            <!-- 4 5 6 × -->
+
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('4')"
             >
                 4
@@ -196,7 +279,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('5')"
             >
                 5
@@ -204,7 +286,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('6')"
             >
                 6
@@ -212,16 +293,16 @@
 
             <button
                 class="button operator"
-                type="button"
                 onclick="chooseOperation('multiply')"
             >
                 ×
             </button>
 
 
+            <!-- 1 2 3 − -->
+
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('1')"
             >
                 1
@@ -229,7 +310,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('2')"
             >
                 2
@@ -237,7 +317,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputNumber('3')"
             >
                 3
@@ -245,16 +324,16 @@
 
             <button
                 class="button operator"
-                type="button"
                 onclick="chooseOperation('subtract')"
             >
                 −
             </button>
 
 
+            <!-- 0 . + -->
+
             <button
                 class="button number zero"
-                type="button"
                 onclick="inputNumber('0')"
             >
                 0
@@ -262,7 +341,6 @@
 
             <button
                 class="button number"
-                type="button"
                 onclick="inputDecimal()"
             >
                 .
@@ -270,20 +348,16 @@
 
             <button
                 class="button operator"
-                type="button"
                 onclick="chooseOperation('add')"
             >
                 +
             </button>
 
 
-            <!-- ========================================= -->
-            <!-- ACTION ROW -->
-            <!-- ========================================= -->
+            <!-- BACKSPACE / EQUALS -->
 
             <button
                 class="button backspace"
-                type="button"
                 onclick="backspace()"
             >
                 ⌫
@@ -291,7 +365,6 @@
 
             <button
                 class="button equals"
-                type="button"
                 onclick="calculateResult()"
             >
                 =
@@ -300,6 +373,10 @@
         </section>
 
 
+        <!-- ==================================================
+             FOOTER
+        =================================================== -->
+
         <footer class="calculator-footer">
 
             <span>
@@ -307,7 +384,7 @@
             </span>
 
             <span class="version">
-                v1.2
+                v2.0
             </span>
 
         </footer>
