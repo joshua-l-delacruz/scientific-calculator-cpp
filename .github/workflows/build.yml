@@ -31,45 +31,105 @@ jobs:
             -p 8080:8080 \
             scientific-calculator-cpp
 
-      - name: Wait for server
+      - name: Wait for C++ server
         run: |
           for i in {1..15}; do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Server is responding."
+            if curl -fsS http://localhost:8080/health; then
+              echo
+              echo "C++ server is healthy."
               exit 0
             fi
 
-            echo "Waiting for server..."
+            echo "Waiting for C++ server..."
             sleep 2
           done
 
-          echo "Server did not start in time."
+          echo "Server did not become healthy."
+
           docker logs scientific-calculator
+
           exit 1
+
+      - name: Test health endpoint
+        run: |
+          RESPONSE=$(curl -fsS \
+            http://localhost:8080/health)
+
+          echo "Health response:"
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep '"status":"ok"'
+
+          echo "$RESPONSE" | \
+            grep '"service":"scientific-calculator-cpp"'
 
       - name: Test square root API
         run: |
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/calculate \
             -H "Content-Type: application/json" \
             -d '{"operation":"sqrt","value":144}')
 
-          echo "API response:"
+          echo "Square root response:"
           echo "$RESPONSE"
 
-          echo "$RESPONSE" | grep '"result":12'
+          echo "$RESPONSE" | \
+            grep '"result":12'
+
+      - name: Test addition API
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"add","left":25,"right":15}')
+
+          echo "Addition response:"
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep '"result":40'
+
+      - name: Test division API
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"divide","left":100,"right":4}')
+
+          echo "Division response:"
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep '"result":25'
 
       - name: Test sine API
         run: |
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/calculate \
             -H "Content-Type: application/json" \
             -d '{"operation":"sin","value":30}')
 
-          echo "API response:"
+          echo "Sine response:"
           echo "$RESPONSE"
+
+      - name: Test divide by zero validation
+        run: |
+          RESPONSE=$(curl -s \
+            -X POST \
+            http://localhost:8080/api/calculate \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"divide","left":100,"right":0}')
+
+          echo "Divide-by-zero response:"
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep '"error":"Cannot divide by zero."'
 
       - name: Show container logs
         if: always()
