@@ -16,7 +16,7 @@ let waitingForSecondValue =
 
 
 // ============================================================
-// DOM ELEMENTS
+// DOM
 // ============================================================
 
 const display =
@@ -24,10 +24,12 @@ const display =
         "display"
     );
 
+
 const expression =
     document.getElementById(
         "expression"
     );
+
 
 const errorElement =
     document.getElementById(
@@ -36,7 +38,7 @@ const errorElement =
 
 
 // ============================================================
-// DISPLAY HELPERS
+// DISPLAY
 // ============================================================
 
 function updateDisplay()
@@ -83,12 +85,14 @@ function inputNumber(number)
 
     else
     {
-        if (
-            currentValue.replace(
-                "-",
-                ""
-            ).length >= 16
-        )
+        const rawLength =
+            currentValue
+                .replace("-", "")
+                .replace(".", "")
+                .length;
+
+
+        if (rawLength >= 16)
         {
             return;
         }
@@ -206,307 +210,6 @@ function backspace()
 
 
 // ============================================================
-// CHANGE SIGN
-// ============================================================
-
-async function toggleSign()
-{
-    clearError();
-
-
-    try
-    {
-        const data =
-            await sendUnaryOperation(
-                "negate"
-            );
-
-
-        currentValue =
-            formatNumber(
-                data.result
-            );
-
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-    }
-
-    catch (error)
-    {
-        showError(
-            error.message
-        );
-    }
-}
-
-
-// ============================================================
-// BINARY OPERATION
-// ============================================================
-
-async function chooseOperation(operation)
-{
-    clearError();
-
-
-    if (
-        firstValue !== null &&
-        pendingOperation !== null &&
-        !waitingForSecondValue
-    )
-    {
-        await calculateResult();
-    }
-
-
-    firstValue =
-        Number(currentValue);
-
-    pendingOperation =
-        operation;
-
-    waitingForSecondValue =
-        true;
-
-
-    expression.textContent =
-        `${formatNumber(firstValue)} ${operationSymbol(operation)}`;
-}
-
-
-// ============================================================
-// RESULT
-// ============================================================
-
-async function calculateResult()
-{
-    clearError();
-
-
-    if (
-        firstValue === null ||
-        pendingOperation === null
-    )
-    {
-        return;
-    }
-
-
-    const secondValue =
-        Number(currentValue);
-
-    const originalFirst =
-        firstValue;
-
-    const originalOperation =
-        pendingOperation;
-
-
-    try
-    {
-        setBusyState(true);
-
-
-        const response =
-            await fetch(
-                API_URL,
-                {
-                    method:
-                        "POST",
-
-                    headers:
-                    {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify(
-                            {
-                                operation:
-                                    originalOperation,
-
-                                left:
-                                    originalFirst,
-
-                                right:
-                                    secondValue
-                            }
-                        )
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            data.error
-        )
-        {
-            throw new Error(
-                data.error ||
-                "Calculation failed."
-            );
-        }
-
-
-        expression.textContent =
-            `${formatNumber(originalFirst)} ${operationSymbol(originalOperation)} ${formatNumber(secondValue)} =`;
-
-
-        currentValue =
-            formatNumber(
-                data.result
-            );
-
-
-        firstValue =
-            null;
-
-        pendingOperation =
-            null;
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-    }
-
-    catch (error)
-    {
-        showError(
-            error.message
-        );
-    }
-
-    finally
-    {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// SCIENTIFIC OPERATIONS
-// ============================================================
-
-async function scientific(operation)
-{
-    clearError();
-
-
-    const input =
-        Number(currentValue);
-
-
-    try
-    {
-        setBusyState(true);
-
-
-        const data =
-            await sendUnaryOperation(
-                operation
-            );
-
-
-        expression.textContent =
-            `${operationLabel(operation)}(${formatNumber(input)})`;
-
-
-        currentValue =
-            formatNumber(
-                data.result
-            );
-
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-    }
-
-    catch (error)
-    {
-        showError(
-            error.message
-        );
-    }
-
-    finally
-    {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// API
-// ============================================================
-
-async function sendUnaryOperation(operation)
-{
-    const value =
-        Number(currentValue);
-
-
-    const response =
-        await fetch(
-            API_URL,
-            {
-                method:
-                    "POST",
-
-                headers:
-                {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify(
-                        {
-                            operation:
-                                operation,
-
-                            value:
-                                value
-                        }
-                    )
-            }
-        );
-
-
-    const data =
-        await response.json();
-
-
-    if (
-        !response.ok ||
-        data.error
-    )
-    {
-        throw new Error(
-            data.error ||
-            "Calculation failed."
-        );
-    }
-
-
-    return data;
-}
-
-
-// ============================================================
 // BUSY STATE
 // ============================================================
 
@@ -529,7 +232,465 @@ function setBusyState(isBusy)
 
 
 // ============================================================
-// SYMBOLS
+// API REQUEST
+// ============================================================
+
+async function apiRequest(payload)
+{
+    const response =
+        await fetch(
+            API_URL,
+            {
+                method:
+                    "POST",
+
+                headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+            }
+        );
+
+
+    let data;
+
+
+    try
+    {
+        data =
+            await response.json();
+    }
+
+    catch
+    {
+        throw new Error(
+            "The C++ server returned an invalid response."
+        );
+    }
+
+
+    if (
+        !response.ok ||
+        data.error
+    )
+    {
+        throw new Error(
+            data.error ||
+            "Calculation failed."
+        );
+    }
+
+
+    return data;
+}
+
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+
+async function constantValue(operation)
+{
+    clearError();
+
+
+    try
+    {
+        setBusyState(true);
+
+
+        const data =
+            await apiRequest(
+                {
+                    operation:
+                        operation
+                }
+            );
+
+
+        currentValue =
+            formatNumber(
+                data.result
+            );
+
+
+        expression.textContent =
+            operation === "pi"
+                ? "π"
+                : "e";
+
+
+        waitingForSecondValue =
+            true;
+
+
+        updateDisplay();
+    }
+
+    catch (error)
+    {
+        showError(
+            error.message
+        );
+    }
+
+    finally
+    {
+        setBusyState(false);
+    }
+}
+
+
+// ============================================================
+// NEGATE
+// ============================================================
+
+async function toggleSign()
+{
+    clearError();
+
+
+    try
+    {
+        setBusyState(true);
+
+
+        const data =
+            await apiRequest(
+                {
+                    operation:
+                        "negate",
+
+                    value:
+                        Number(
+                            currentValue
+                        )
+                }
+            );
+
+
+        currentValue =
+            formatNumber(
+                data.result
+            );
+
+
+        waitingForSecondValue =
+            true;
+
+
+        updateDisplay();
+    }
+
+    catch (error)
+    {
+        showError(
+            error.message
+        );
+    }
+
+    finally
+    {
+        setBusyState(false);
+    }
+}
+
+
+// ============================================================
+// CHOOSE BINARY OPERATION
+// ============================================================
+
+async function chooseOperation(operation)
+{
+    clearError();
+
+
+    if (
+        firstValue !== null &&
+        pendingOperation !== null &&
+        !waitingForSecondValue
+    )
+    {
+        const successful =
+            await calculateResult();
+
+
+        if (!successful)
+        {
+            return;
+        }
+    }
+
+
+    firstValue =
+        Number(
+            currentValue
+        );
+
+
+    pendingOperation =
+        operation;
+
+
+    waitingForSecondValue =
+        true;
+
+
+    expression.textContent =
+        `${formatNumber(firstValue)} ${operationSymbol(operation)}`;
+}
+
+
+// ============================================================
+// CALCULATE BINARY RESULT
+// ============================================================
+
+async function calculateResult()
+{
+    clearError();
+
+
+    if (
+        firstValue === null ||
+        pendingOperation === null
+    )
+    {
+        return false;
+    }
+
+
+    const secondValue =
+        Number(
+            currentValue
+        );
+
+
+    const originalFirst =
+        firstValue;
+
+
+    const originalOperation =
+        pendingOperation;
+
+
+    try
+    {
+        setBusyState(true);
+
+
+        const data =
+            await apiRequest(
+                {
+                    operation:
+                        originalOperation,
+
+                    left:
+                        originalFirst,
+
+                    right:
+                        secondValue
+                }
+            );
+
+
+        expression.textContent =
+            `${formatNumber(originalFirst)} ${operationSymbol(originalOperation)} ${formatNumber(secondValue)} =`;
+
+
+        currentValue =
+            formatNumber(
+                data.result
+            );
+
+
+        firstValue =
+            null;
+
+
+        pendingOperation =
+            null;
+
+
+        waitingForSecondValue =
+            true;
+
+
+        updateDisplay();
+
+
+        return true;
+    }
+
+    catch (error)
+    {
+        showError(
+            error.message
+        );
+
+
+        return false;
+    }
+
+    finally
+    {
+        setBusyState(false);
+    }
+}
+
+
+// ============================================================
+// SCIENTIFIC UNARY OPERATION
+// ============================================================
+
+async function scientific(operation)
+{
+    clearError();
+
+
+    const input =
+        Number(
+            currentValue
+        );
+
+
+    try
+    {
+        setBusyState(true);
+
+
+        const data =
+            await apiRequest(
+                {
+                    operation:
+                        operation,
+
+                    value:
+                        input
+                }
+            );
+
+
+        expression.textContent =
+            scientificExpression(
+                operation,
+                input
+            );
+
+
+        currentValue =
+            formatNumber(
+                data.result
+            );
+
+
+        waitingForSecondValue =
+            true;
+
+
+        updateDisplay();
+    }
+
+    catch (error)
+    {
+        showError(
+            error.message
+        );
+    }
+
+    finally
+    {
+        setBusyState(false);
+    }
+}
+
+
+// ============================================================
+// SCIENTIFIC EXPRESSION LABEL
+// ============================================================
+
+function scientificExpression(
+    operation,
+    value
+)
+{
+    const formatted =
+        formatNumber(
+            value
+        );
+
+
+    switch (operation)
+    {
+        case "sqrt":
+
+            return `√(${formatted})`;
+
+
+        case "square":
+
+            return `${formatted}²`;
+
+
+        case "cube":
+
+            return `${formatted}³`;
+
+
+        case "reciprocal":
+
+            return `1 / ${formatted}`;
+
+
+        case "percent":
+
+            return `${formatted}%`;
+
+
+        case "factorial":
+
+            return `${formatted}!`;
+
+
+        case "sin":
+
+            return `sin(${formatted}°)`;
+
+
+        case "cos":
+
+            return `cos(${formatted}°)`;
+
+
+        case "tan":
+
+            return `tan(${formatted}°)`;
+
+
+        case "log":
+
+            return `log(${formatted})`;
+
+
+        case "ln":
+
+            return `ln(${formatted})`;
+
+
+        default:
+
+            return `${operation}(${formatted})`;
+    }
+}
+
+
+// ============================================================
+// BINARY SYMBOLS
 // ============================================================
 
 function operationSymbol(operation)
@@ -546,7 +707,10 @@ function operationSymbol(operation)
             "×",
 
         divide:
-            "÷"
+            "÷",
+
+        power:
+            "^"
     };
 
 
@@ -554,36 +718,8 @@ function operationSymbol(operation)
 }
 
 
-function operationLabel(operation)
-{
-    const labels =
-    {
-        sqrt:
-            "√",
-
-        sin:
-            "sin",
-
-        cos:
-            "cos",
-
-        tan:
-            "tan",
-
-        log:
-            "log",
-
-        ln:
-            "ln"
-    };
-
-
-    return labels[operation] || operation;
-}
-
-
 // ============================================================
-// NUMBER FORMATTING
+// FORMAT NUMBERS
 // ============================================================
 
 function formatNumber(number)
@@ -629,6 +765,10 @@ document.addEventListener(
 
     async function(event)
     {
+        // ----------------------------------------------------
+        // NUMBERS
+        // ----------------------------------------------------
+
         if (
             event.key >= "0" &&
             event.key <= "9"
@@ -642,6 +782,10 @@ document.addEventListener(
         }
 
 
+        // ----------------------------------------------------
+        // DECIMAL
+        // ----------------------------------------------------
+
         if (event.key === ".")
         {
             inputDecimal();
@@ -649,6 +793,10 @@ document.addEventListener(
             return;
         }
 
+
+        // ----------------------------------------------------
+        // ADD
+        // ----------------------------------------------------
 
         if (event.key === "+")
         {
@@ -660,6 +808,10 @@ document.addEventListener(
         }
 
 
+        // ----------------------------------------------------
+        // SUBTRACT
+        // ----------------------------------------------------
+
         if (event.key === "-")
         {
             await chooseOperation(
@@ -669,6 +821,10 @@ document.addEventListener(
             return;
         }
 
+
+        // ----------------------------------------------------
+        // MULTIPLY
+        // ----------------------------------------------------
 
         if (event.key === "*")
         {
@@ -680,17 +836,41 @@ document.addEventListener(
         }
 
 
+        // ----------------------------------------------------
+        // DIVIDE
+        // ----------------------------------------------------
+
         if (event.key === "/")
         {
             event.preventDefault();
+
 
             await chooseOperation(
                 "divide"
             );
 
+
             return;
         }
 
+
+        // ----------------------------------------------------
+        // POWER
+        // ----------------------------------------------------
+
+        if (event.key === "^")
+        {
+            await chooseOperation(
+                "power"
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // EQUALS
+        // ----------------------------------------------------
 
         if (
             event.key === "Enter" ||
@@ -699,21 +879,33 @@ document.addEventListener(
         {
             event.preventDefault();
 
+
             await calculateResult();
+
 
             return;
         }
 
+
+        // ----------------------------------------------------
+        // BACKSPACE
+        // ----------------------------------------------------
 
         if (event.key === "Backspace")
         {
             event.preventDefault();
 
+
             backspace();
+
 
             return;
         }
 
+
+        // ----------------------------------------------------
+        // CLEAR
+        // ----------------------------------------------------
 
         if (
             event.key === "Escape" ||
