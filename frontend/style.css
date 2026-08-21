@@ -412,6 +412,16 @@ body {
 }
 
 
+.button:disabled,
+.memory-button:disabled,
+.small-header-button:disabled,
+.mode-button:disabled {
+    opacity: 0.6;
+
+    cursor: wait;
+}
+
+
 .number {
     background: var(--button);
 }
@@ -700,6 +710,11 @@ body {
     color: var(--text);
 
     text-align: left;
+}
+
+
+.history-item:hover {
+    filter: brightness(1.08);
 }
 
 
