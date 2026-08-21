@@ -1622,6 +1622,11 @@ input:focus-visible {
     }
 
 
+    #programmerMode:not(.hidden) {
+        padding-bottom: 32px;
+    }
+
+
     #scientificMode > :not(.history-section) {
         width: calc(63% - 12px);
     }
