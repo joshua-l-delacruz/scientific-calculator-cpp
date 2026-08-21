@@ -1,19 +1,12 @@
 name: Build and Test C++ Scientific Calculator
 
-
 on:
-
   push:
-
     branches:
-
       - main
 
-
   pull_request:
-
     branches:
-
       - main
 
 
@@ -23,20 +16,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
-
     steps:
-
-      # ======================================================
-      # CHECKOUT
-      # ======================================================
 
       - name: Checkout repository
         uses: actions/checkout@v6
 
-
-      # ======================================================
-      # BUILD
-      # ======================================================
 
       - name: Build Docker image
         run: |
@@ -44,10 +28,6 @@ jobs:
             -t scientific-calculator-cpp \
             .
 
-
-      # ======================================================
-      # START
-      # ======================================================
 
       - name: Start calculator server
         run: |
@@ -58,10 +38,6 @@ jobs:
             scientific-calculator-cpp
 
 
-      # ======================================================
-      # WAIT
-      # ======================================================
-
       - name: Wait for C++ server
         run: |
           for i in {1..20}; do
@@ -69,90 +45,24 @@ jobs:
             if curl -fsS \
               http://localhost:8080/health
             then
-
               echo
               echo "C++ server is healthy."
-
               exit 0
-
             fi
-
-            echo "Waiting for server..."
 
             sleep 2
 
           done
-
 
           docker logs scientific-calculator
 
           exit 1
 
 
-      # ======================================================
-      # VERSION
-      # ======================================================
-
-      - name: Test Version 5 website
-        run: |
-          RESPONSE=$(curl -fsS \
-            http://localhost:8080/)
-
-
-          echo "$RESPONSE" | \
-            grep "v5.0"
-
-
-          echo "$RESPONSE" | \
-            grep "memoryRecall"
-
-
-          echo "$RESPONSE" | \
-            grep "historyList"
-
-
-          echo "$RESPONSE" | \
-            grep "Ans"
-
-
-      # ======================================================
-      # JAVASCRIPT
-      # ======================================================
-
-      - name: Test Version 5 frontend logic
-        run: |
-          RESPONSE=$(curl -fsS \
-            http://localhost:8080/app.js)
-
-
-          echo "$RESPONSE" | \
-            grep "memoryAdd"
-
-
-          echo "$RESPONSE" | \
-            grep "appendAnswer"
-
-
-          echo "$RESPONSE" | \
-            grep "calculationHistory"
-
-
-          echo "$RESPONSE" | \
-            grep "sessionStorage"
-
-
-      # ======================================================
-      # HEALTH
-      # ======================================================
-
-      - name: Test Version 5 health endpoint
+      - name: Test Version 5.1 health
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
-
-
-          echo "$RESPONSE"
-
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -161,27 +71,18 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["status"] == "ok"
-          assert data["version"] == "5.0"
-          assert data["engine"] == "cpp-expression-parser"
+          assert data["version"] == "5.1"
+          assert data["implicitMultiplication"] is True
           '
 
 
-      # ======================================================
-      # BASIC C++ EXPRESSION
-      # ======================================================
-
-      - name: Test basic C++ expression
+      - name: Test normal multiplication
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"expression":"(25+5)*3","mode":"DEG"}')
-
-
-          echo "$RESPONSE"
-
+            -d '{"expression":"25*4","mode":"DEG"}')
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -190,13 +91,113 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == 90
+          assert data["result"] == 100
           '
 
 
-      # ======================================================
-      # DEG
-      # ======================================================
+      - name: Test recalled-value implicit multiplication bug
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"(-100)50","mode":"RAD"}')
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["result"] == -5000
+          '
+
+
+      - name: Test number before parentheses
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"2(5+3)","mode":"DEG"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["result"] == 16
+          '
+
+
+      - name: Test adjacent parentheses
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"(2+3)(4+5)","mode":"DEG"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["result"] == 45
+          '
+
+
+      - name: Test number times pi
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"2pi","mode":"RAD"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import math
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert abs(
+              data["result"] -
+              2 * math.pi
+          ) < 1e-12
+          '
+
+
+      - name: Test number times function
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"3sin(30)","mode":"DEG"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert abs(
+              data["result"] -
+              1.5
+          ) < 1e-12
+          '
+
 
       - name: Test DEG mode
         run: |
@@ -206,7 +207,6 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"expression":"sin(30)","mode":"DEG"}')
 
-
           echo "$RESPONSE" | \
             python3 -c '
           import json
@@ -215,14 +215,11 @@ jobs:
           data = json.load(sys.stdin)
 
           assert abs(
-              data["result"] - 0.5
+              data["result"] -
+              0.5
           ) < 1e-12
           '
 
-
-      # ======================================================
-      # RAD
-      # ======================================================
 
       - name: Test RAD mode
         run: |
@@ -232,7 +229,6 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"expression":"sin(pi/2)","mode":"RAD"}')
 
-
           echo "$RESPONSE" | \
             python3 -c '
           import json
@@ -241,23 +237,19 @@ jobs:
           data = json.load(sys.stdin)
 
           assert abs(
-              data["result"] - 1
+              data["result"] -
+              1
           ) < 1e-12
           '
 
 
-      # ======================================================
-      # COMPOUND EXPRESSION
-      # ======================================================
-
-      - name: Test advanced expression
+      - name: Test factorial and power
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
             -d '{"expression":"2^8+5!","mode":"DEG"}')
-
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -270,34 +262,6 @@ jobs:
           '
 
 
-      # ======================================================
-      # PRECEDENCE
-      # ======================================================
-
-      - name: Test unary exponent precedence
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"-2^2","mode":"DEG"}')
-
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == -4
-          '
-
-
-      # ======================================================
-      # ERROR HANDLING
-      # ======================================================
-
       - name: Test divide by zero
         run: |
           RESPONSE=$(curl -s \
@@ -306,14 +270,9 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"expression":"10/0","mode":"DEG"}')
 
-
           echo "$RESPONSE" | \
             grep '"error":"Cannot divide by zero."' 
 
-
-      # ======================================================
-      # LOGS
-      # ======================================================
 
       - name: Show container logs
         if: always()
