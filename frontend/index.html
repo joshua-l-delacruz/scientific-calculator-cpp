@@ -1,49 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>C++ Scientific Calculator</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
-    <div class="calculator">
+    <main class="calculator">
 
-        <h1>Scientific Calculator</h1>
-        <p class="subtitle">Powered by C++</p>
+        <header class="calculator-header">
 
-        <input
-            type="number"
-            id="value"
-            placeholder="Enter a number"
-        >
+            <div>
+                <h1>Scientific Calculator</h1>
 
-        <div class="buttons">
+                <p>
+                    Powered by C++ & Drogon
+                </p>
+            </div>
 
-            <button onclick="calculate('sqrt')">√x</button>
-            <button onclick="calculate('sin')">sin</button>
-            <button onclick="calculate('cos')">cos</button>
+            <span class="mode">
+                DEG
+            </span>
 
-            <button onclick="calculate('tan')">tan</button>
-            <button onclick="calculate('log')">log</button>
-            <button onclick="calculate('ln')">ln</button>
+        </header>
 
-        </div>
+        <section class="display">
 
-        <div class="result">
-            Result:
-            <span id="result">0</span>
-        </div>
+            <div
+                id="expression"
+                class="expression"
+            ></div>
 
-        <div id="error" class="error"></div>
+            <div
+                id="display"
+                class="display-value"
+            >
+                0
+            </div>
 
-    </div>
+        </section>
+
+        <div
+            id="error"
+            class="error"
+        ></div>
+
+        <section class="buttons">
+
+            <!-- Scientific functions -->
+
+            <button
+                class="scientific"
+                onclick="scientific('sin')"
+            >
+                sin
+            </button>
+
+            <button
+                class="scientific"
+                onclick="scientific('cos')"
+            >
+                cos
+            </button>
+
+            <button
+                class="scientific"
+                onclick="scientific('tan')"
+            >
+                tan
+            </button>
+
+            <button
+                class="scientific"
+                onclick="scientific('log')"
+            >
+                log
+            </button>
+
+            <button
+                class="scientific"
+                onclick="scientific('ln')"
+            >
+                ln
+            </button>
+
+            <button
+                class="scientific"
+                onclick="scientific('sqrt')"
+            >
+                √x
+            </button>
+
+            <!-- Controls -->
+
+            <button
+                class="control"
+                onclick="clearCalculator()"
+            >
+                C
+            </button>
+
+            <button
+                class="control"
+                onclick="backspace()"
+            >
+                ⌫
+            </button>
+
+            <button
+                class="control"
+                onclick="toggleSign()"
+            >
+                +/−
+            </button>
+
+            <button
+                class="operator"
+                onclick="chooseOperation('divide')"
+            >
+                ÷
+            </button>
+
+            <!-- Number row -->
+
+            <button onclick="inputNumber('7')">
+                7
+            </button>
+
+            <button onclick="inputNumber('8')">
+                8
+            </button>
+
+            <button onclick="inputNumber('9')">
+                9
+            </button>
+
+            <button
+                class="operator"
+                onclick="chooseOperation('multiply')"
+            >
+                ×
+            </button>
+
+            <button onclick="inputNumber('4')">
+                4
+            </button>
+
+            <button onclick="inputNumber('5')">
+                5
+            </button>
+
+            <button onclick="inputNumber('6')">
+                6
+            </button>
+
+            <button
+                class="operator"
+                onclick="chooseOperation('subtract')"
+            >
+                −
+            </button>
+
+            <button onclick="inputNumber('1')">
+                1
+            </button>
+
+            <button onclick="inputNumber('2')">
+                2
+            </button>
+
+            <button onclick="inputNumber('3')">
+                3
+            </button>
+
+            <button
+                class="operator"
+                onclick="chooseOperation('add')"
+            >
+                +
+            </button>
+
+            <button
+                class="zero"
+                onclick="inputNumber('0')"
+            >
+                0
+            </button>
+
+            <button onclick="inputDecimal()">
+                .
+            </button>
+
+            <button
+                class="equals"
+                onclick="calculateResult()"
+            >
+                =
+            </button>
+
+        </section>
+
+        <footer>
+
+            C++ Scientific Calculator
+
+        </footer>
+
+    </main>
 
     <script src="app.js"></script>
 
 </body>
+
 </html>
