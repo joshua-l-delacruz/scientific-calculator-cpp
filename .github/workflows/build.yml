@@ -788,12 +788,12 @@ jobs:
       # FRONTEND
       # ========================================================
 
-      - name: Test Version 9 frontend
+      - name: Test Version 10.2 frontend
         run: |
           HTML=$(curl -fsS \
             http://localhost:8080/)
 
-          echo "$HTML" | grep "v9.0"
+          echo "$HTML" | grep "v10.2"
           echo "$HTML" | grep "Programmer History"
           echo "$HTML" | grep "Architecture"
           echo "$HTML" | grep "Copy"
@@ -802,7 +802,7 @@ jobs:
           echo "$HTML" | grep "/api/programmer"
 
 
-      - name: Test Version 9 JavaScript
+      - name: Test Version 10.2 JavaScript
         run: |
           JS=$(curl -fsS \
             http://localhost:8080/app.js)
