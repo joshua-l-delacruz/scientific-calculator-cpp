@@ -1,12 +1,19 @@
 name: Build and Test C++ Calculator
 
+
 on:
+
   push:
+
     branches:
+
       - main
 
+
   pull_request:
+
     branches:
+
       - main
 
 
@@ -46,9 +53,12 @@ jobs:
             if curl -fsS \
               http://localhost:8080/health
             then
+
               echo
               echo "C++ server is healthy."
+
               exit 0
+
             fi
 
             sleep 2
@@ -60,10 +70,12 @@ jobs:
           exit 1
 
 
-      - name: Test Version 7 health
+      - name: Test Version 8 health
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -73,10 +85,12 @@ jobs:
           data = json.load(sys.stdin)
 
           assert data["status"] == "ok"
-          assert data["version"] == "7.0"
+          assert data["version"] == "8.0"
           assert data["programmerMode"] is True
-          assert data["programmerIntegerSize"] == "64-bit unsigned"
-          assert data["programmerBases"] == "BIN,OCT,DEC,HEX"
+          assert data["signedProgrammerMode"] is True
+          assert data["interactiveBits"] is True
+          assert data["programmerWidths"] == "8,16,32,64"
+          assert data["rotateOperations"] == "ROL,ROR"
           '
 
 
@@ -99,13 +113,19 @@ jobs:
           '
 
 
-      - name: Test DEC to HEX conversion
+      - name: Test 8-bit unsigned conversion
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"CONVERT","left":"255","base":"DEC"}')
+            -d '{
+              "operation":"CONVERT",
+              "left":"255",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
 
           echo "$RESPONSE"
 
@@ -116,20 +136,56 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "255"
           assert data["hex"] == "FF"
-          assert data["oct"] == "377"
+          assert data["bin"] == "11111111"
+          assert data["unsignedDec"] == "255"
+          assert data["signedDec"] == "-1"
+          '
+
+
+      - name: Test 8-bit signed negative one
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{
+              "operation":"CONVERT",
+              "left":"-1",
+              "base":"DEC",
+              "width":8,
+              "signed":true
+            }')
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "-1"
+          assert data["unsignedDec"] == "255"
+          assert data["hex"] == "FF"
           assert data["bin"] == "11111111"
           '
 
 
-      - name: Test HEX conversion
+      - name: Test 16-bit signed minimum
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"CONVERT","left":"FF","base":"HEX"}')
+            -d '{
+              "operation":"CONVERT",
+              "left":"-32768",
+              "base":"DEC",
+              "width":16,
+              "signed":true
+            }')
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -138,17 +194,25 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "255"
+          assert data["signedDec"] == "-32768"
+          assert data["hex"] == "8000"
           '
 
 
-      - name: Test binary AND
+      - name: Test bit toggle
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"AND","left":"1100","right":"1010","base":"BIN"}')
+            -d '{
+              "operation":"TOGGLE",
+              "left":"0",
+              "right":"7",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
 
           echo "$RESPONSE"
 
@@ -159,18 +223,26 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["bin"] == "1000"
-          assert data["dec"] == "8"
+          assert data["unsignedDec"] == "128"
+          assert data["bin"] == "10000000"
           '
 
 
-      - name: Test OR
+      - name: Test 8-bit NOT
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"OR","left":"12","right":"10","base":"DEC"}')
+            -d '{
+              "operation":"NOT",
+              "left":"0",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -179,17 +251,25 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "14"
+          assert data["unsignedDec"] == "255"
+          assert data["hex"] == "FF"
           '
 
 
-      - name: Test XOR
+      - name: Test 8-bit left shift wrapping
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"XOR","left":"12","right":"10","base":"DEC"}')
+            -d '{
+              "operation":"SHL",
+              "left":"128",
+              "right":"1",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -198,17 +278,26 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "6"
+          assert data["unsignedDec"] == "0"
           '
 
 
-      - name: Test left shift
+      - name: Test signed arithmetic right shift
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"SHL","left":"5","right":"2","base":"DEC"}')
+            -d '{
+              "operation":"SHR",
+              "left":"-8",
+              "right":"1",
+              "base":"DEC",
+              "width":8,
+              "signed":true
+            }')
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -217,17 +306,26 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "20"
+          assert data["signedDec"] == "-4"
           '
 
 
-      - name: Test right shift
+      - name: Test rotate left
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"SHR","left":"20","right":"2","base":"DEC"}')
+            -d '{
+              "operation":"ROL",
+              "left":"129",
+              "right":"1",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -236,34 +334,108 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["dec"] == "5"
+          assert data["unsignedDec"] == "3"
+          assert data["bin"] == "00000011"
           '
 
 
-      - name: Test programmer invalid digit
+      - name: Test rotate right
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{
+              "operation":"ROR",
+              "left":"3",
+              "right":"1",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["unsignedDec"] == "129"
+          assert data["bin"] == "10000001"
+          '
+
+
+      - name: Test bitwise AND
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{
+              "operation":"AND",
+              "left":"12",
+              "right":"10",
+              "base":"DEC",
+              "width":8,
+              "signed":false
+            }')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["unsignedDec"] == "8"
+          '
+
+
+      - name: Test signed range validation
         run: |
           RESPONSE=$(curl -s \
             -X POST \
             http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"operation":"CONVERT","left":"102","base":"BIN"}')
+            -d '{
+              "operation":"CONVERT",
+              "left":"128",
+              "base":"DEC",
+              "width":8,
+              "signed":true
+            }')
 
           echo "$RESPONSE"
 
           echo "$RESPONSE" | \
-            grep "Invalid digit"
+            grep "outside the selected bit width"
 
 
-      - name: Test Version 7 HTML
+      - name: Test Version 8 HTML
         run: |
           HTML=$(curl -fsS \
             http://localhost:8080/)
 
-          echo "$HTML" | grep "v7.0"
-          echo "$HTML" | grep "Programmer"
-          echo "$HTML" | grep "BIN"
-          echo "$HTML" | grep "HEX"
-          echo "$HTML" | grep "XOR"
+          echo "$HTML" | grep "v8.0"
+          echo "$HTML" | grep "Bit editor"
+          echo "$HTML" | grep "ROL"
+          echo "$HTML" | grep "ROR"
+          echo "$HTML" | grep "Signed"
+          echo "$HTML" | grep "64"
+
+
+      - name: Test Version 8 JavaScript
+        run: |
+          JS=$(curl -fsS \
+            http://localhost:8080/app.js)
+
+          echo "$JS" | grep "toggleProgrammerBit"
+          echo "$JS" | grep "setProgrammerWidth"
+          echo "$JS" | grep "setProgrammerSigned"
+          echo "$JS" | grep "renderBitGrid"
 
 
       - name: Show container logs
