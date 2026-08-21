@@ -7,7 +7,7 @@ const PROGRAMMER_API =
 
 
 // ============================================================
-// STORAGE
+// STORAGE KEYS
 // ============================================================
 
 const STORAGE_KEYS =
@@ -37,12 +37,22 @@ const STORAGE_KEYS =
         "programmerWidth",
 
     programmerSigned:
-        "programmerSigned"
+        "programmerSigned",
+
+    programmerValue:
+        "programmerValue",
+
+    programmerHistory:
+        "programmerHistory"
 };
 
 
 const MAX_HISTORY_ITEMS =
     20;
+
+
+const MAX_PROGRAMMER_HISTORY_ITEMS =
+    30;
 
 
 // ============================================================
@@ -87,7 +97,7 @@ let lastResult =
 
 
 let calculationHistory =
-    loadHistory();
+    loadScientificHistory();
 
 
 let historyCollapsed =
@@ -95,7 +105,7 @@ let historyCollapsed =
 
 
 // ============================================================
-// APP STATE
+// APPLICATION STATE
 // ============================================================
 
 let theme =
@@ -104,10 +114,30 @@ let theme =
     ) || "dark";
 
 
+if (
+    theme !== "dark" &&
+    theme !== "light"
+)
+{
+    theme =
+        "dark";
+}
+
+
 let calculatorMode =
     sessionStorage.getItem(
         STORAGE_KEYS.calculatorMode
     ) || "scientific";
+
+
+if (
+    calculatorMode !== "scientific" &&
+    calculatorMode !== "programmer"
+)
+{
+    calculatorMode =
+        "scientific";
+}
 
 
 // ============================================================
@@ -118,6 +148,22 @@ let programmerBase =
     sessionStorage.getItem(
         STORAGE_KEYS.programmerBase
     ) || "DEC";
+
+
+if (
+    ![
+        "BIN",
+        "OCT",
+        "DEC",
+        "HEX"
+    ].includes(
+        programmerBase
+    )
+)
+{
+    programmerBase =
+        "DEC";
+}
 
 
 let programmerWidth =
@@ -151,7 +197,9 @@ let programmerSigned =
 
 
 let programmerValue =
-    "0";
+    sessionStorage.getItem(
+        STORAGE_KEYS.programmerValue
+    ) || "0";
 
 
 let programmerLeft =
@@ -164,6 +212,14 @@ let programmerPendingOperation =
 
 let programmerWaitingForRight =
     false;
+
+
+let programmerHistoryCollapsed =
+    false;
+
+
+let programmerHistory =
+    loadProgrammerHistory();
 
 
 let programmerConversions =
@@ -189,7 +245,7 @@ let programmerConversions =
 
 
 // ============================================================
-// DOM
+// SCIENTIFIC DOM
 // ============================================================
 
 const scientificMode =
@@ -334,6 +390,12 @@ const programmerMainValue =
     );
 
 
+const programmerOperationState =
+    document.getElementById(
+        "programmerOperationState"
+    );
+
+
 const programmerError =
     document.getElementById(
         "programmerError"
@@ -388,8 +450,38 @@ const bitGrid =
     );
 
 
+const wordInfoWidth =
+    document.getElementById(
+        "wordInfoWidth"
+    );
+
+
+const wordInfoSigned =
+    document.getElementById(
+        "wordInfoSigned"
+    );
+
+
+const programmerHistoryList =
+    document.getElementById(
+        "programmerHistoryList"
+    );
+
+
+const programmerHistoryCount =
+    document.getElementById(
+        "programmerHistoryCount"
+    );
+
+
+const toggleProgrammerHistoryButton =
+    document.getElementById(
+        "toggleProgrammerHistoryButton"
+    );
+
+
 // ============================================================
-// STORAGE HELPERS
+// GENERIC STORAGE HELPERS
 // ============================================================
 
 function getStoredNumber(key)
@@ -419,7 +511,11 @@ function getStoredNumber(key)
 }
 
 
-function loadHistory()
+// ============================================================
+// SCIENTIFIC HISTORY STORAGE
+// ============================================================
+
+function loadScientificHistory()
 {
     try
     {
@@ -454,13 +550,98 @@ function loadHistory()
 }
 
 
-function saveHistory()
+function saveScientificHistory()
 {
     sessionStorage.setItem(
         STORAGE_KEYS.history,
         JSON.stringify(
             calculationHistory
         )
+    );
+}
+
+
+// ============================================================
+// PROGRAMMER HISTORY STORAGE
+// ============================================================
+
+function loadProgrammerHistory()
+{
+    try
+    {
+        const raw =
+            sessionStorage.getItem(
+                STORAGE_KEYS.programmerHistory
+            );
+
+
+        if (!raw)
+        {
+            return [];
+        }
+
+
+        const parsed =
+            JSON.parse(raw);
+
+
+        return Array.isArray(parsed)
+            ? parsed.slice(
+                0,
+                MAX_PROGRAMMER_HISTORY_ITEMS
+            )
+            : [];
+    }
+
+    catch
+    {
+        return [];
+    }
+}
+
+
+function saveProgrammerHistory()
+{
+    sessionStorage.setItem(
+        STORAGE_KEYS.programmerHistory,
+        JSON.stringify(
+            programmerHistory
+        )
+    );
+}
+
+
+// ============================================================
+// PROGRAMMER STATE STORAGE
+// ============================================================
+
+function saveProgrammerState()
+{
+    sessionStorage.setItem(
+        STORAGE_KEYS.programmerBase,
+        programmerBase
+    );
+
+
+    sessionStorage.setItem(
+        STORAGE_KEYS.programmerWidth,
+        String(
+            programmerWidth
+        )
+    );
+
+
+    sessionStorage.setItem(
+        STORAGE_KEYS.programmerSigned,
+        String(
+            programmerSigned
+        )
+    );
+
+
+    sessionStorage.setItem(
+        STORAGE_KEYS.programmerValue,
+        programmerValue
     );
 }
 
@@ -503,7 +684,7 @@ function toggleTheme()
 
 
 // ============================================================
-// MAIN CALCULATOR MODE
+// CALCULATOR MODE
 // ============================================================
 
 function switchCalculatorMode(mode)
@@ -567,7 +748,7 @@ function switchCalculatorMode(mode)
 
 
 // ============================================================
-// SCIENTIFIC STATUS
+// SCIENTIFIC STATUS / ERROR
 // ============================================================
 
 function clearError()
@@ -590,7 +771,7 @@ function showStatus(message)
         message;
 
 
-    setTimeout(
+    window.setTimeout(
         function()
         {
             if (
@@ -660,7 +841,7 @@ function toggleAngleMode()
 
 
 // ============================================================
-// MEMORY
+// SCIENTIFIC MEMORY
 // ============================================================
 
 function updateMemoryIndicator()
@@ -838,6 +1019,8 @@ function appendNumericValue(value)
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
@@ -851,6 +1034,8 @@ function appendToken(token)
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
@@ -880,6 +1065,9 @@ function appendOperator(operator)
 
 function appendConstant(constant)
 {
+    clearError();
+
+
     if (
         expressionNeedsMultiplicationBeforeValue()
     )
@@ -894,11 +1082,16 @@ function appendConstant(constant)
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
 function appendFunction(name)
 {
+    clearError();
+
+
     if (
         expressionNeedsMultiplicationBeforeValue()
     )
@@ -913,6 +1106,8 @@ function appendFunction(name)
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
@@ -942,6 +1137,9 @@ function appendFactorial()
 
 function toggleSignExpression()
 {
+    clearError();
+
+
     const expression =
         expressionInput.value.trim();
 
@@ -961,11 +1159,16 @@ function toggleSignExpression()
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
 function backspace()
 {
+    clearError();
+
+
     expressionInput.value =
         expressionInput.value.slice(
             0,
@@ -974,6 +1177,8 @@ function backspace()
 
 
     updatePreview();
+
+    expressionInput.focus();
 }
 
 
@@ -992,6 +1197,9 @@ function clearCalculator()
 
 
     clearError();
+
+
+    expressionInput.focus();
 }
 
 
@@ -1029,6 +1237,10 @@ async function evaluateExpression()
 
     equalsButton.textContent =
         "…";
+
+
+    equalsButton.disabled =
+        true;
 
 
     try
@@ -1118,12 +1330,19 @@ async function evaluateExpression()
     {
         equalsButton.textContent =
             "=";
+
+
+        equalsButton.disabled =
+            false;
+
+
+        expressionInput.focus();
     }
 }
 
 
 // ============================================================
-// HISTORY
+// SCIENTIFIC HISTORY
 // ============================================================
 
 function addHistoryItem(
@@ -1141,7 +1360,10 @@ function addHistoryItem(
                 result,
 
             mode:
-                mode
+                mode,
+
+            timestamp:
+                Date.now()
         }
     );
 
@@ -1153,7 +1375,7 @@ function addHistoryItem(
         );
 
 
-    saveHistory();
+    saveScientificHistory();
 
     renderHistory();
 }
@@ -1305,6 +1527,20 @@ function renderHistory()
                         item.result;
 
 
+                    sessionStorage.setItem(
+                        STORAGE_KEYS.angleMode,
+                        angleMode
+                    );
+
+
+                    sessionStorage.setItem(
+                        STORAGE_KEYS.lastResult,
+                        String(
+                            lastResult
+                        )
+                    );
+
+
                     updateAngleModeInterface();
 
                     updatePreview();
@@ -1314,6 +1550,9 @@ function renderHistory()
                         formatNumber(
                             item.result
                         );
+
+
+                    expressionInput.focus();
                 }
             );
 
@@ -1338,6 +1577,11 @@ function clearHistory()
 
 
     renderHistory();
+
+
+    showStatus(
+        "Scientific history cleared."
+    );
 }
 
 
@@ -1361,11 +1605,14 @@ function toggleHistory()
 
 
 // ============================================================
-// COPY
+// SCIENTIFIC COPY
 // ============================================================
 
 async function copyExpression()
 {
+    clearError();
+
+
     const value =
         expressionInput.value.trim();
 
@@ -1403,6 +1650,9 @@ async function copyExpression()
 
 async function copyResult()
 {
+    clearError();
+
+
     if (
         lastResult ===
         null
@@ -1440,7 +1690,7 @@ async function copyResult()
 
 
 // ============================================================
-// PROGRAMMER STATUS
+// PROGRAMMER STATUS / ERROR
 // ============================================================
 
 function clearProgrammerError()
@@ -1463,7 +1713,7 @@ function showProgrammerStatus(message)
         message;
 
 
-    setTimeout(
+    window.setTimeout(
         function()
         {
             if (
@@ -1518,8 +1768,21 @@ async function programmerRequest(payload)
         );
 
 
-    const data =
-        await response.json();
+    let data;
+
+
+    try
+    {
+        data =
+            await response.json();
+    }
+
+    catch
+    {
+        throw new Error(
+            "The C++ programmer engine returned an invalid response."
+        );
+    }
 
 
     if (
@@ -1604,6 +1867,9 @@ function updateConversionsFromResponse(data)
     renderBitGrid(
         data.bin
     );
+
+
+    updateWordInfo();
 }
 
 
@@ -1622,8 +1888,120 @@ function valueForProgrammerBase(data)
 
         case "DEC":
         default:
-            return data.dec;
+            return programmerSigned
+                ? data.signedDec
+                : data.unsignedDec;
     }
+}
+
+
+// ============================================================
+// PROGRAMMER COPY
+// ============================================================
+
+async function copyProgrammerValue(type)
+{
+    clearProgrammerError();
+
+
+    let value;
+
+
+    switch (type)
+    {
+        case "BIN":
+            value =
+                programmerConversions.BIN;
+            break;
+
+        case "OCT":
+            value =
+                programmerConversions.OCT;
+            break;
+
+        case "HEX":
+            value =
+                programmerConversions.HEX;
+            break;
+
+        case "SDEC":
+            value =
+                programmerConversions.signedDEC;
+            break;
+
+        case "UDEC":
+            value =
+                programmerConversions.unsignedDEC;
+            break;
+
+        case "DEC":
+        default:
+            value =
+                programmerConversions.DEC;
+            break;
+    }
+
+
+    try
+    {
+        await navigator.clipboard.writeText(
+            value
+        );
+
+
+        showProgrammerStatus(
+            `${type} copied.`
+        );
+    }
+
+    catch
+    {
+        showProgrammerError(
+            "Could not copy value."
+        );
+    }
+}
+
+
+// ============================================================
+// WORD INFORMATION
+// ============================================================
+
+function updateWordInfo()
+{
+    wordInfoWidth.textContent =
+        `${programmerWidth}-bit`;
+
+
+    wordInfoSigned.textContent =
+        programmerSigned
+            ? "Signed"
+            : "Unsigned";
+}
+
+
+// ============================================================
+// OPERATION STATE
+// ============================================================
+
+function updateProgrammerOperationState()
+{
+    if (
+        programmerPendingOperation &&
+        programmerLeft !== null
+    )
+    {
+        programmerOperationState.textContent =
+            `Pending: ${programmerLeft} ${programmerOperatorLabel(
+                programmerPendingOperation
+            )} …`;
+
+        return;
+    }
+
+
+    programmerOperationState.textContent =
+        "No pending operation";
 }
 
 
@@ -1708,11 +2086,17 @@ function updateProgrammerDisplay()
 
 
     updateProgrammerKeyAvailability();
+
+    updateProgrammerOperationState();
+
+    updateWordInfo();
+
+    saveProgrammerState();
 }
 
 
 // ============================================================
-// PROGRAMMER DIGITS
+// PROGRAMMER DIGIT VALIDATION
 // ============================================================
 
 function programmerDigitAllowed(digit)
@@ -1771,7 +2155,9 @@ function updateProgrammerKeyAvailability()
         function(digit)
         {
             const id =
-                /^[A-F]$/.test(digit)
+                /^[A-F]$/.test(
+                    digit
+                )
                     ? `hex${digit}`
                     : `prog${digit}`;
 
@@ -1793,6 +2179,10 @@ function updateProgrammerKeyAvailability()
     );
 }
 
+
+// ============================================================
+// PROGRAMMER INPUT
+// ============================================================
 
 function appendProgrammerDigit(digit)
 {
@@ -1820,7 +2210,8 @@ function appendProgrammerDigit(digit)
     }
 
     else if (
-        programmerValue === "0"
+        programmerValue ===
+        "0"
     )
     {
         programmerValue =
@@ -1828,7 +2219,8 @@ function appendProgrammerDigit(digit)
     }
 
     else if (
-        programmerValue === "-0"
+        programmerValue ===
+        "-0"
     )
     {
         programmerValue =
@@ -1851,10 +2243,15 @@ function appendProgrammerDigit(digit)
 
 function programmerBackspace()
 {
+    clearProgrammerError();
+
+
     if (
         programmerValue.length <= 1 ||
         (
-            programmerValue.startsWith("-") &&
+            programmerValue.startsWith(
+                "-"
+            ) &&
             programmerValue.length <= 2
         )
     )
@@ -1880,7 +2277,7 @@ function programmerBackspace()
 
 
 // ============================================================
-// SIGNED TOGGLE
+// PROGRAMMER SIGN
 // ============================================================
 
 function programmerToggleSign()
@@ -1893,7 +2290,7 @@ function programmerToggleSign()
     )
     {
         showProgrammerError(
-            "+/− is available in DEC mode."
+            "+/− is available only in DEC mode."
         );
 
         return;
@@ -1937,7 +2334,7 @@ function programmerToggleSign()
 
 
 // ============================================================
-// CLEAR PROGRAMMER
+// PROGRAMMER CLEAR
 // ============================================================
 
 function clearProgrammer()
@@ -1972,7 +2369,7 @@ function clearProgrammer()
 
 
 // ============================================================
-// REFRESH CONVERSIONS
+// PROGRAMMER CONVERSIONS
 // ============================================================
 
 async function refreshProgrammerConversions()
@@ -1997,6 +2394,9 @@ async function refreshProgrammerConversions()
         updateConversionsFromResponse(
             data
         );
+
+
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2009,7 +2409,7 @@ async function refreshProgrammerConversions()
 
 
 // ============================================================
-// BASE CHANGE
+// PROGRAMMER BASE
 // ============================================================
 
 async function setProgrammerBase(base)
@@ -2035,35 +2435,40 @@ async function setProgrammerBase(base)
             base;
 
 
-        sessionStorage.setItem(
-            STORAGE_KEYS.programmerBase,
-            programmerBase
-        );
-
-
         switch (base)
         {
             case "BIN":
+
                 programmerValue =
                     data.bin;
+
                 break;
+
 
             case "OCT":
+
                 programmerValue =
                     data.oct;
+
                 break;
 
+
             case "HEX":
+
                 programmerValue =
                     data.hex;
+
                 break;
+
 
             case "DEC":
             default:
+
                 programmerValue =
                     programmerSigned
                         ? data.signedDec
                         : data.unsignedDec;
+
                 break;
         }
 
@@ -2073,6 +2478,9 @@ async function setProgrammerBase(base)
         updateConversionsFromResponse(
             data
         );
+
+
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2085,7 +2493,7 @@ async function setProgrammerBase(base)
 
 
 // ============================================================
-// WIDTH CHANGE
+// PROGRAMMER WIDTH
 // ============================================================
 
 async function setProgrammerWidth(width)
@@ -2111,16 +2519,6 @@ async function setProgrammerWidth(width)
             width;
 
 
-        sessionStorage.setItem(
-            STORAGE_KEYS.programmerWidth,
-            String(
-                programmerWidth
-            )
-        );
-
-
-        // Use low-order bits when shrinking width.
-
         const oldBinary =
             oldData.bin;
 
@@ -2131,7 +2529,7 @@ async function setProgrammerWidth(width)
             );
 
 
-        const temporaryBase =
+        const originalBase =
             programmerBase;
 
 
@@ -2157,13 +2555,29 @@ async function setProgrammerWidth(width)
 
 
         programmerBase =
-            temporaryBase;
+            originalBase;
 
 
         programmerValue =
             valueForProgrammerBase(
                 newData
             );
+
+
+        programmerLeft =
+            null;
+
+
+        programmerPendingOperation =
+            null;
+
+
+        programmerWaitingForRight =
+            false;
+
+
+        programmerExpression.textContent =
+            `${programmerWidth}-bit word selected`;
 
 
         updateProgrammerDisplay();
@@ -2173,8 +2587,7 @@ async function setProgrammerWidth(width)
         );
 
 
-        programmerExpression.textContent =
-            `${programmerWidth}-bit word selected`;
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2187,7 +2600,7 @@ async function setProgrammerWidth(width)
 
 
 // ============================================================
-// SIGNED / UNSIGNED CHANGE
+// SIGNED / UNSIGNED MODE
 // ============================================================
 
 async function setProgrammerSigned(signedMode)
@@ -2197,8 +2610,6 @@ async function setProgrammerSigned(signedMode)
 
     try
     {
-        // Convert using current mode first.
-
         const data =
             await programmerRequest(
                 {
@@ -2215,16 +2626,9 @@ async function setProgrammerSigned(signedMode)
             signedMode;
 
 
-        sessionStorage.setItem(
-            STORAGE_KEYS.programmerSigned,
-            String(
-                programmerSigned
-            )
-        );
-
-
         if (
-            programmerBase === "DEC"
+            programmerBase ===
+            "DEC"
         )
         {
             programmerValue =
@@ -2232,6 +2636,24 @@ async function setProgrammerSigned(signedMode)
                     ? data.signedDec
                     : data.unsignedDec;
         }
+
+
+        programmerLeft =
+            null;
+
+
+        programmerPendingOperation =
+            null;
+
+
+        programmerWaitingForRight =
+            false;
+
+
+        programmerExpression.textContent =
+            programmerSigned
+                ? "Signed two's-complement mode"
+                : "Unsigned integer mode";
 
 
         updateProgrammerDisplay();
@@ -2254,10 +2676,7 @@ async function setProgrammerSigned(signedMode)
         );
 
 
-        programmerExpression.textContent =
-            programmerSigned
-                ? "Signed two's-complement mode"
-                : "Unsigned integer mode";
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2318,7 +2737,16 @@ function renderBitGrid(binary)
             "bit-cell";
 
 
-        if (bit === "1")
+        button.setAttribute(
+            "aria-label",
+            `Toggle bit ${bitIndex}, currently ${bit}`
+        );
+
+
+        if (
+            bit ===
+            "1"
+        )
         {
             button.classList.add(
                 "active"
@@ -2390,6 +2818,10 @@ async function toggleProgrammerBit(bitIndex)
 
     try
     {
+        const original =
+            programmerValue;
+
+
         const data =
             await programmerRequest(
                 {
@@ -2422,6 +2854,29 @@ async function toggleProgrammerBit(bitIndex)
         updateConversionsFromResponse(
             data
         );
+
+
+        addProgrammerHistoryItem(
+            {
+                expression:
+                    `TOGGLE bit ${bitIndex}`,
+
+                left:
+                    original,
+
+                result:
+                    programmerValue,
+
+                base:
+                    programmerBase,
+
+                width:
+                    programmerWidth,
+
+                signed:
+                    programmerSigned
+            }
+        );
     }
 
     catch (error)
@@ -2434,7 +2889,7 @@ async function toggleProgrammerBit(bitIndex)
 
 
 // ============================================================
-// PROGRAMMER OPERATIONS
+// PROGRAMMER OPERATION LABEL
 // ============================================================
 
 function programmerOperatorLabel(operation)
@@ -2464,10 +2919,15 @@ function programmerOperatorLabel(operation)
     };
 
 
-    return labels[operation] ||
-        operation;
+    return labels[
+        operation
+    ] || operation;
 }
 
+
+// ============================================================
+// CHOOSE PROGRAMMER OPERATION
+// ============================================================
 
 function chooseProgrammerOperation(operation)
 {
@@ -2487,7 +2947,12 @@ function chooseProgrammerOperation(operation)
 
 
     programmerExpression.textContent =
-        `${programmerLeft} ${programmerOperatorLabel(operation)}`;
+        `${programmerLeft} ${programmerOperatorLabel(
+            operation
+        )}`;
+
+
+    updateProgrammerOperationState();
 }
 
 
@@ -2515,18 +2980,26 @@ async function executeProgrammerOperation()
 
     try
     {
+        const left =
+            programmerLeft;
+
+
         const right =
             programmerValue;
+
+
+        const operation =
+            programmerPendingOperation;
 
 
         const data =
             await programmerRequest(
                 {
                     operation:
-                        programmerPendingOperation,
+                        operation,
 
                     left:
-                        programmerLeft,
+                        left,
 
                     right:
                         right
@@ -2534,16 +3007,49 @@ async function executeProgrammerOperation()
             );
 
 
+        const expressionText =
+            `${left} ${programmerOperatorLabel(
+                operation
+            )} ${right}`;
+
+
         programmerExpression.textContent =
-            `${programmerLeft} ${programmerOperatorLabel(
-                programmerPendingOperation
-            )} ${right} =`;
+            `${expressionText} =`;
 
 
         programmerValue =
             valueForProgrammerBase(
                 data
             );
+
+
+        addProgrammerHistoryItem(
+            {
+                expression:
+                    expressionText,
+
+                left:
+                    left,
+
+                right:
+                    right,
+
+                operation:
+                    operation,
+
+                result:
+                    programmerValue,
+
+                base:
+                    programmerBase,
+
+                width:
+                    programmerWidth,
+
+                signed:
+                    programmerSigned
+            }
+        );
 
 
         programmerLeft =
@@ -2563,6 +3069,9 @@ async function executeProgrammerOperation()
         updateConversionsFromResponse(
             data
         );
+
+
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2575,7 +3084,7 @@ async function executeProgrammerOperation()
 
 
 // ============================================================
-// NOT
+// PROGRAMMER NOT
 // ============================================================
 
 async function performProgrammerNot()
@@ -2611,6 +3120,40 @@ async function performProgrammerNot()
             );
 
 
+        addProgrammerHistoryItem(
+            {
+                expression:
+                    `NOT ${original}`,
+
+                left:
+                    original,
+
+                operation:
+                    "NOT",
+
+                result:
+                    programmerValue,
+
+                base:
+                    programmerBase,
+
+                width:
+                    programmerWidth,
+
+                signed:
+                    programmerSigned
+            }
+        );
+
+
+        programmerLeft =
+            null;
+
+
+        programmerPendingOperation =
+            null;
+
+
         programmerWaitingForRight =
             true;
 
@@ -2620,6 +3163,9 @@ async function performProgrammerNot()
         updateConversionsFromResponse(
             data
         );
+
+
+        saveProgrammerState();
     }
 
     catch (error)
@@ -2628,6 +3174,260 @@ async function performProgrammerNot()
             error.message
         );
     }
+}
+
+
+// ============================================================
+// PROGRAMMER HISTORY
+// ============================================================
+
+function addProgrammerHistoryItem(item)
+{
+    programmerHistory.unshift(
+        {
+            ...item,
+
+            timestamp:
+                Date.now()
+        }
+    );
+
+
+    programmerHistory =
+        programmerHistory.slice(
+            0,
+            MAX_PROGRAMMER_HISTORY_ITEMS
+        );
+
+
+    saveProgrammerHistory();
+
+    renderProgrammerHistory();
+}
+
+
+function renderProgrammerHistory()
+{
+    programmerHistoryList.innerHTML =
+        "";
+
+
+    programmerHistoryCount.textContent =
+        programmerHistory.length === 1
+            ? "1 operation"
+            : `${programmerHistory.length} operations`;
+
+
+    if (
+        programmerHistory.length ===
+        0
+    )
+    {
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+
+        empty.className =
+            "history-empty";
+
+
+        empty.textContent =
+            "No programmer operations yet.";
+
+
+        programmerHistoryList.appendChild(
+            empty
+        );
+
+
+        return;
+    }
+
+
+    programmerHistory.forEach(
+        function(item)
+        {
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "history-item";
+
+
+            const expressionElement =
+                document.createElement(
+                    "span"
+                );
+
+
+            expressionElement.className =
+                "history-expression";
+
+
+            expressionElement.textContent =
+                item.expression;
+
+
+            const resultRow =
+                document.createElement(
+                    "span"
+                );
+
+
+            resultRow.className =
+                "history-result-row";
+
+
+            const resultElement =
+                document.createElement(
+                    "span"
+                );
+
+
+            resultElement.className =
+                "history-result";
+
+
+            resultElement.textContent =
+                `= ${item.result}`;
+
+
+            const modeElement =
+                document.createElement(
+                    "span"
+                );
+
+
+            modeElement.className =
+                "history-mode";
+
+
+            modeElement.textContent =
+                `${item.width}-bit ${item.signed ? "SIGNED" : "UNSIGNED"} ${item.base}`;
+
+
+            resultRow.appendChild(
+                resultElement
+            );
+
+
+            resultRow.appendChild(
+                modeElement
+            );
+
+
+            button.appendChild(
+                expressionElement
+            );
+
+
+            button.appendChild(
+                resultRow
+            );
+
+
+            button.addEventListener(
+                "click",
+
+                async function()
+                {
+                    programmerWidth =
+                        item.width;
+
+
+                    programmerSigned =
+                        Boolean(
+                            item.signed
+                        );
+
+
+                    programmerBase =
+                        item.base;
+
+
+                    programmerValue =
+                        String(
+                            item.result
+                        );
+
+
+                    programmerLeft =
+                        null;
+
+
+                    programmerPendingOperation =
+                        null;
+
+
+                    programmerWaitingForRight =
+                        false;
+
+
+                    programmerExpression.textContent =
+                        item.expression;
+
+
+                    updateProgrammerDisplay();
+
+
+                    await refreshProgrammerConversions();
+                }
+            );
+
+
+            programmerHistoryList.appendChild(
+                button
+            );
+        }
+    );
+}
+
+
+function clearProgrammerHistory()
+{
+    programmerHistory =
+        [];
+
+
+    sessionStorage.removeItem(
+        STORAGE_KEYS.programmerHistory
+    );
+
+
+    renderProgrammerHistory();
+
+
+    showProgrammerStatus(
+        "Programmer history cleared."
+    );
+}
+
+
+function toggleProgrammerHistory()
+{
+    programmerHistoryCollapsed =
+        !programmerHistoryCollapsed;
+
+
+    programmerHistoryList.classList.toggle(
+        "collapsed",
+        programmerHistoryCollapsed
+    );
+
+
+    toggleProgrammerHistoryButton.textContent =
+        programmerHistoryCollapsed
+            ? "Expand"
+            : "Collapse";
 }
 
 
@@ -2645,7 +3445,9 @@ function serializeNumber(number)
 
     return String(
         Number(
-            number.toPrecision(15)
+            number.toPrecision(
+                15
+            )
         )
     );
 }
@@ -2682,13 +3484,15 @@ function formatNumber(number)
 
 
     return Number(
-        number.toPrecision(12)
+        number.toPrecision(
+            12
+        )
     ).toString();
 }
 
 
 // ============================================================
-// SCIENTIFIC EVENTS
+// SCIENTIFIC KEYBOARD
 // ============================================================
 
 expressionInput.addEventListener(
@@ -2715,7 +3519,10 @@ expressionInput.addEventListener(
         {
             event.preventDefault();
 
+
             await evaluateExpression();
+
+            return;
         }
 
 
@@ -2724,6 +3531,9 @@ expressionInput.addEventListener(
             "Escape"
         )
         {
+            event.preventDefault();
+
+
             clearCalculator();
         }
     }
@@ -2731,20 +3541,151 @@ expressionInput.addEventListener(
 
 
 // ============================================================
-// INITIALIZE
+// PROGRAMMER KEYBOARD
+// ============================================================
+
+document.addEventListener(
+    "keydown",
+
+    async function(event)
+    {
+        if (
+            calculatorMode !==
+            "programmer"
+        )
+        {
+            return;
+        }
+
+
+        if (
+            event.ctrlKey ||
+            event.metaKey ||
+            event.altKey
+        )
+        {
+            return;
+        }
+
+
+        const key =
+            event.key.toUpperCase();
+
+
+        if (
+            /^[0-9A-F]$/.test(
+                key
+            )
+        )
+        {
+            if (
+                programmerDigitAllowed(
+                    key
+                )
+            )
+            {
+                event.preventDefault();
+
+
+                appendProgrammerDigit(
+                    key
+                );
+            }
+
+
+            return;
+        }
+
+
+        if (
+            event.key ===
+            "Backspace"
+        )
+        {
+            event.preventDefault();
+
+
+            programmerBackspace();
+
+            return;
+        }
+
+
+        if (
+            event.key ===
+            "Escape"
+        )
+        {
+            event.preventDefault();
+
+
+            clearProgrammer();
+
+            return;
+        }
+
+
+        if (
+            event.key ===
+            "Enter" ||
+            event.key ===
+            "="
+        )
+        {
+            event.preventDefault();
+
+
+            await executeProgrammerOperation();
+
+            return;
+        }
+
+
+        if (
+            event.key ===
+            "-"
+        )
+        {
+            if (
+                programmerBase ===
+                    "DEC" &&
+                programmerSigned
+            )
+            {
+                event.preventDefault();
+
+
+                programmerToggleSign();
+            }
+        }
+    }
+);
+
+
+// ============================================================
+// INITIALIZATION
 // ============================================================
 
 applyTheme();
 
+
 updateAngleModeInterface();
+
 
 updateMemoryIndicator();
 
+
 renderHistory();
+
+
+renderProgrammerHistory();
+
 
 updatePreview();
 
+
 updateProgrammerDisplay();
+
 
 switchCalculatorMode(
     calculatorMode
@@ -2764,3 +3705,6 @@ if (
 
 
 refreshProgrammerConversions();
+
+
+expressionInput.focus();
