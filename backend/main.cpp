@@ -1,10 +1,15 @@
 #include <drogon/drogon.h>
 
 #include <algorithm>
+#include <bitset>
 #include <cctype>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
+#include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -61,15 +66,15 @@ AngleMode parseAngleMode(
     );
 
 
-    if (mode == "RAD")
-    {
-        return AngleMode::RAD;
-    }
-
-
     if (mode == "DEG")
     {
         return AngleMode::DEG;
+    }
+
+
+    if (mode == "RAD")
+    {
+        return AngleMode::RAD;
     }
 
 
@@ -140,7 +145,7 @@ HttpResponsePtr errorResponse(
 
 
 // ============================================================
-// SERVER PORT
+// PORT
 // ============================================================
 
 int getServerPort()
@@ -168,7 +173,7 @@ int getServerPort()
     {
         std::cerr
             << "Invalid PORT environment variable. "
-            << "Using port 8080."
+            << "Using 8080."
             << std::endl;
 
 
@@ -239,7 +244,7 @@ double factorial(
 
 
 // ============================================================
-// C++ EXPRESSION PARSER
+// SCIENTIFIC EXPRESSION PARSER
 // ============================================================
 
 class ExpressionParser
@@ -314,10 +319,6 @@ public:
 
 private:
 
-    // ========================================================
-    // WHITESPACE
-    // ========================================================
-
     void skipWhitespace()
     {
         while (
@@ -334,10 +335,6 @@ private:
         }
     }
 
-
-    // ========================================================
-    // MATCH CHARACTER
-    // ========================================================
 
     bool match(
         char character
@@ -362,10 +359,6 @@ private:
         return false;
     }
 
-
-    // ========================================================
-    // IMPLICIT MULTIPLICATION
-    // ========================================================
 
     bool startsImplicitFactor()
     {
@@ -402,12 +395,6 @@ private:
     }
 
 
-    // ========================================================
-    // EXPRESSION
-    //
-    // + -
-    // ========================================================
-
     double parseExpression()
     {
         double value =
@@ -438,13 +425,6 @@ private:
         return value;
     }
 
-
-    // ========================================================
-    // TERM
-    //
-    // * /
-    // implicit multiplication
-    // ========================================================
 
     double parseTerm()
     {
@@ -500,10 +480,6 @@ private:
     }
 
 
-    // ========================================================
-    // UNARY
-    // ========================================================
-
     double parseUnary()
     {
         if (match('+'))
@@ -521,10 +497,6 @@ private:
         return parsePower();
     }
 
-
-    // ========================================================
-    // POWER
-    // ========================================================
 
     double parsePower()
     {
@@ -558,10 +530,6 @@ private:
     }
 
 
-    // ========================================================
-    // POSTFIX
-    // ========================================================
-
     double parsePostfix()
     {
         double value =
@@ -580,10 +548,6 @@ private:
         return value;
     }
 
-
-    // ========================================================
-    // PRIMARY
-    // ========================================================
 
     double parsePrimary()
     {
@@ -697,10 +661,6 @@ private:
     }
 
 
-    // ========================================================
-    // NUMBER
-    // ========================================================
-
     double parseNumber()
     {
         skipWhitespace();
@@ -792,10 +752,6 @@ private:
     }
 
 
-    // ========================================================
-    // IDENTIFIER
-    // ========================================================
-
     std::string parseIdentifier()
     {
         skipWhitespace();
@@ -843,10 +799,6 @@ private:
     }
 
 
-    // ========================================================
-    // ANGLE CONVERSION
-    // ========================================================
-
     double toRadians(
         double value
     ) const
@@ -865,10 +817,6 @@ private:
             180.0;
     }
 
-
-    // ========================================================
-    // FUNCTIONS
-    // ========================================================
 
     double evaluateFunction(
         const std::string &name,
@@ -919,14 +867,10 @@ private:
                 );
 
 
-            const double cosine =
-                std::cos(
-                    radians
-                );
-
-
             if (
-                std::abs(cosine) <
+                std::abs(
+                    std::cos(radians)
+                ) <
                 1e-12
             )
             {
@@ -992,29 +936,301 @@ private:
 
 
 // ============================================================
+// PROGRAMMER MODE HELPERS
+// ============================================================
+
+int programmerBaseFromName(
+    std::string baseName
+)
+{
+    std::transform(
+        baseName.begin(),
+        baseName.end(),
+        baseName.begin(),
+        [](unsigned char character)
+        {
+            return static_cast<char>(
+                std::toupper(character)
+            );
+        }
+    );
+
+
+    if (baseName == "BIN")
+    {
+        return 2;
+    }
+
+
+    if (baseName == "OCT")
+    {
+        return 8;
+    }
+
+
+    if (baseName == "DEC")
+    {
+        return 10;
+    }
+
+
+    if (baseName == "HEX")
+    {
+        return 16;
+    }
+
+
+    throw std::runtime_error(
+        "Programmer base must be BIN, OCT, DEC or HEX."
+    );
+}
+
+
+std::string normalizeIntegerInput(
+    std::string text
+)
+{
+    text.erase(
+        std::remove_if(
+            text.begin(),
+            text.end(),
+            [](unsigned char character)
+            {
+                return std::isspace(character);
+            }
+        ),
+        text.end()
+    );
+
+
+    std::transform(
+        text.begin(),
+        text.end(),
+        text.begin(),
+        [](unsigned char character)
+        {
+            return static_cast<char>(
+                std::toupper(character)
+            );
+        }
+    );
+
+
+    return text;
+}
+
+
+uint64_t parseUnsignedInteger(
+    std::string text,
+    int base
+)
+{
+    text =
+        normalizeIntegerInput(
+            text
+        );
+
+
+    if (text.empty())
+    {
+        throw std::runtime_error(
+            "Programmer value cannot be empty."
+        );
+    }
+
+
+    if (
+        base == 16 &&
+        text.rfind("0X", 0) == 0
+    )
+    {
+        text =
+            text.substr(2);
+    }
+
+
+    if (
+        base == 2 &&
+        text.rfind("0B", 0) == 0
+    )
+    {
+        text =
+            text.substr(2);
+    }
+
+
+    if (text.empty())
+    {
+        throw std::runtime_error(
+            "Invalid programmer value."
+        );
+    }
+
+
+    std::size_t consumed =
+        0;
+
+
+    try
+    {
+        const unsigned long long value =
+            std::stoull(
+                text,
+                &consumed,
+                base
+            );
+
+
+        if (
+            consumed !=
+            text.length()
+        )
+        {
+            throw std::runtime_error(
+                "Invalid digit for the selected number base."
+            );
+        }
+
+
+        return static_cast<uint64_t>(
+            value
+        );
+    }
+
+    catch (
+        const std::invalid_argument &
+    )
+    {
+        throw std::runtime_error(
+            "Invalid digit for the selected number base."
+        );
+    }
+
+    catch (
+        const std::out_of_range &
+    )
+    {
+        throw std::runtime_error(
+            "Value exceeds the 64-bit unsigned integer range."
+        );
+    }
+}
+
+
+std::string unsignedToBase(
+    uint64_t value,
+    int base
+)
+{
+    if (base == 10)
+    {
+        return std::to_string(
+            value
+        );
+    }
+
+
+    if (value == 0)
+    {
+        return "0";
+    }
+
+
+    const char digits[] =
+        "0123456789ABCDEF";
+
+
+    std::string result;
+
+
+    while (value > 0)
+    {
+        result.push_back(
+            digits[
+                value %
+                static_cast<uint64_t>(base)
+            ]
+        );
+
+
+        value /=
+            static_cast<uint64_t>(base);
+    }
+
+
+    std::reverse(
+        result.begin(),
+        result.end()
+    );
+
+
+    return result;
+}
+
+
+Json::Value programmerResultJson(
+    uint64_t result
+)
+{
+    Json::Value json;
+
+
+    json["result"] =
+        std::to_string(result);
+
+
+    json["bin"] =
+        unsignedToBase(
+            result,
+            2
+        );
+
+
+    json["oct"] =
+        unsignedToBase(
+            result,
+            8
+        );
+
+
+    json["dec"] =
+        unsignedToBase(
+            result,
+            10
+        );
+
+
+    json["hex"] =
+        unsignedToBase(
+            result,
+            16
+        );
+
+
+    return json;
+}
+
+
+// ============================================================
 // MAIN
 // ============================================================
 
 int main()
 {
     // ========================================================
-    // FRONTEND
+    // STATIC FRONTEND
     // ========================================================
 
     app().registerHandler(
         "/",
 
-        [](const HttpRequestPtr &req,
+        [](const HttpRequestPtr &,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            auto response =
+            callback(
                 HttpResponse::newFileResponse(
                     "/app/frontend/index.html"
-                );
-
-
-            callback(
-                response
+                )
             );
         },
 
@@ -1027,7 +1243,7 @@ int main()
     app().registerHandler(
         "/style.css",
 
-        [](const HttpRequestPtr &req,
+        [](const HttpRequestPtr &,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
             auto response =
@@ -1055,7 +1271,7 @@ int main()
     app().registerHandler(
         "/app.js",
 
-        [](const HttpRequestPtr &req,
+        [](const HttpRequestPtr &,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
             auto response =
@@ -1087,7 +1303,7 @@ int main()
     app().registerHandler(
         "/health",
 
-        [](const HttpRequestPtr &req,
+        [](const HttpRequestPtr &,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
             Json::Value json;
@@ -1102,19 +1318,27 @@ int main()
 
 
             json["version"] =
-                "6.0";
+                "7.0";
 
 
             json["engine"] =
                 "cpp-expression-parser";
 
 
-            json["implicitMultiplication"] =
+            json["programmerMode"] =
                 true;
+
+
+            json["programmerIntegerSize"] =
+                "64-bit unsigned";
 
 
             json["angleModes"] =
                 "DEG,RAD";
+
+
+            json["programmerBases"] =
+                "BIN,OCT,DEC,HEX";
 
 
             callback(
@@ -1131,7 +1355,7 @@ int main()
 
 
     // ========================================================
-    // EVALUATE
+    // SCIENTIFIC API
     // ========================================================
 
     app().registerHandler(
@@ -1147,7 +1371,6 @@ int main()
             {
                 Json::Value json;
 
-
                 json["status"] =
                     "ok";
 
@@ -1157,7 +1380,6 @@ int main()
                         json
                     )
                 );
-
 
                 return;
             }
@@ -1175,7 +1397,6 @@ int main()
                     )
                 );
 
-
                 return;
             }
 
@@ -1191,7 +1412,6 @@ int main()
                         "Missing expression."
                     )
                 );
-
 
                 return;
             }
@@ -1210,7 +1430,6 @@ int main()
                     )
                 );
 
-
                 return;
             }
 
@@ -1225,7 +1444,6 @@ int main()
                         "Expression is too long."
                     )
                 );
-
 
                 return;
             }
@@ -1309,6 +1527,253 @@ int main()
 
 
     // ========================================================
+    // PROGRAMMER API
+    // ========================================================
+
+    app().registerHandler(
+        "/api/programmer",
+
+        [](const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            if (
+                req->method() ==
+                Options
+            )
+            {
+                Json::Value json;
+
+                json["status"] =
+                    "ok";
+
+
+                callback(
+                    jsonResponse(
+                        json
+                    )
+                );
+
+                return;
+            }
+
+
+            auto json =
+                req->getJsonObject();
+
+
+            if (!json)
+            {
+                callback(
+                    errorResponse(
+                        "Invalid JSON request."
+                    )
+                );
+
+                return;
+            }
+
+
+            if (
+                !json->isMember(
+                    "operation"
+                ) ||
+                !json->isMember(
+                    "left"
+                ) ||
+                !json->isMember(
+                    "base"
+                )
+            )
+            {
+                callback(
+                    errorResponse(
+                        "Programmer request requires operation, left and base."
+                    )
+                );
+
+                return;
+            }
+
+
+            try
+            {
+                std::string operation =
+                    (*json)["operation"]
+                        .asString();
+
+
+                std::transform(
+                    operation.begin(),
+                    operation.end(),
+                    operation.begin(),
+                    [](unsigned char character)
+                    {
+                        return static_cast<char>(
+                            std::toupper(character)
+                        );
+                    }
+                );
+
+
+                const std::string baseName =
+                    (*json)["base"]
+                        .asString();
+
+
+                const int base =
+                    programmerBaseFromName(
+                        baseName
+                    );
+
+
+                const uint64_t left =
+                    parseUnsignedInteger(
+                        (*json)["left"]
+                            .asString(),
+                        base
+                    );
+
+
+                uint64_t result =
+                    left;
+
+
+                if (operation == "CONVERT")
+                {
+                    result =
+                        left;
+                }
+
+                else if (operation == "NOT")
+                {
+                    result =
+                        ~left;
+                }
+
+                else
+                {
+                    if (
+                        !json->isMember(
+                            "right"
+                        )
+                    )
+                    {
+                        throw std::runtime_error(
+                            "This programmer operation requires a right value."
+                        );
+                    }
+
+
+                    const uint64_t right =
+                        parseUnsignedInteger(
+                            (*json)["right"]
+                                .asString(),
+                            base
+                        );
+
+
+                    if (operation == "AND")
+                    {
+                        result =
+                            left & right;
+                    }
+
+                    else if (operation == "OR")
+                    {
+                        result =
+                            left | right;
+                    }
+
+                    else if (operation == "XOR")
+                    {
+                        result =
+                            left ^ right;
+                    }
+
+                    else if (operation == "SHL")
+                    {
+                        if (right > 63)
+                        {
+                            throw std::runtime_error(
+                                "Shift amount must be between 0 and 63."
+                            );
+                        }
+
+
+                        result =
+                            left <<
+                            static_cast<unsigned int>(
+                                right
+                            );
+                    }
+
+                    else if (operation == "SHR")
+                    {
+                        if (right > 63)
+                        {
+                            throw std::runtime_error(
+                                "Shift amount must be between 0 and 63."
+                            );
+                        }
+
+
+                        result =
+                            left >>
+                            static_cast<unsigned int>(
+                                right
+                            );
+                    }
+
+                    else
+                    {
+                        throw std::runtime_error(
+                            "Unsupported programmer operation."
+                        );
+                    }
+                }
+
+
+                Json::Value responseJson =
+                    programmerResultJson(
+                        result
+                    );
+
+
+                responseJson["operation"] =
+                    operation;
+
+
+                responseJson["base"] =
+                    baseName;
+
+
+                callback(
+                    jsonResponse(
+                        responseJson
+                    )
+                );
+            }
+
+            catch (
+                const std::exception &error
+            )
+            {
+                callback(
+                    errorResponse(
+                        error.what()
+                    )
+                );
+            }
+        },
+
+        {
+            Post,
+            Options
+        }
+    );
+
+
+    // ========================================================
     // SERVER
     // ========================================================
 
@@ -1317,12 +1782,12 @@ int main()
 
 
     std::cout
-        << "C++ Scientific Calculator v6.0"
+        << "C++ Scientific Calculator v7.0"
         << std::endl;
 
 
     std::cout
-        << "Production UI release"
+        << "Scientific + Programmer modes enabled"
         << std::endl;
 
 
