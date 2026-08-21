@@ -12,7 +12,7 @@
 
     <meta
         name="description"
-        content="Scientific calculator powered by C++ and Drogon."
+        content="Scientific calculator powered by a C++ expression parser and Drogon."
     >
 
     <title>
@@ -44,7 +44,7 @@
                 </h1>
 
                 <p>
-                    Powered by C++ & Drogon
+                    C++ Expression Engine
                 </p>
 
             </div>
@@ -67,9 +67,11 @@
         >
 
             <div
-                id="expression"
+                id="expressionPreview"
                 class="expression"
-            ></div>
+            >
+                Ready
+            </div>
 
 
             <div
@@ -90,17 +92,30 @@
 
 
         <!-- ==================================================
-             ADVANCED SCIENTIFIC KEYPAD
+             EXPRESSION CONTROLS
         =================================================== -->
 
-        <section
-            class="scientific-grid"
-            aria-label="Advanced scientific functions"
-        >
+        <section class="expression-controls">
+
+            <button
+                class="button expression-button"
+                onclick="appendToken('(')"
+            >
+                (
+            </button>
+
+
+            <button
+                class="button expression-button"
+                onclick="appendToken(')')"
+            >
+                )
+            </button>
+
 
             <button
                 class="button advanced"
-                onclick="constantValue('pi')"
+                onclick="appendConstant('pi')"
             >
                 π
             </button>
@@ -108,63 +123,23 @@
 
             <button
                 class="button advanced"
-                onclick="constantValue('e')"
+                onclick="appendConstant('e')"
             >
                 e
             </button>
 
-
-            <button
-                class="button advanced"
-                onclick="scientific('square')"
-            >
-                x²
-            </button>
+        </section>
 
 
-            <button
-                class="button advanced"
-                onclick="scientific('cube')"
-            >
-                x³
-            </button>
+        <!-- ==================================================
+             ADVANCED FUNCTIONS
+        =================================================== -->
 
-
-            <button
-                class="button advanced power"
-                onclick="chooseOperation('power')"
-            >
-                xʸ
-            </button>
-
-
-            <button
-                class="button advanced"
-                onclick="scientific('reciprocal')"
-            >
-                1/x
-            </button>
-
-
-            <button
-                class="button advanced"
-                onclick="scientific('percent')"
-            >
-                %
-            </button>
-
-
-            <button
-                class="button advanced"
-                onclick="scientific('factorial')"
-            >
-                x!
-            </button>
-
+        <section class="scientific-grid">
 
             <button
                 class="button scientific"
-                onclick="scientific('sin')"
+                onclick="appendFunction('sin')"
             >
                 sin
             </button>
@@ -172,7 +147,7 @@
 
             <button
                 class="button scientific"
-                onclick="scientific('cos')"
+                onclick="appendFunction('cos')"
             >
                 cos
             </button>
@@ -180,7 +155,7 @@
 
             <button
                 class="button scientific"
-                onclick="scientific('tan')"
+                onclick="appendFunction('tan')"
             >
                 tan
             </button>
@@ -188,7 +163,7 @@
 
             <button
                 class="button scientific"
-                onclick="scientific('log')"
+                onclick="appendFunction('log')"
             >
                 log
             </button>
@@ -196,7 +171,7 @@
 
             <button
                 class="button scientific"
-                onclick="scientific('ln')"
+                onclick="appendFunction('ln')"
             >
                 ln
             </button>
@@ -204,15 +179,47 @@
 
             <button
                 class="button scientific"
-                onclick="scientific('sqrt')"
+                onclick="appendFunction('sqrt')"
             >
-                √x
+                √
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="appendSquare()"
+            >
+                x²
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="appendCube()"
+            >
+                x³
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="appendToken('^')"
+            >
+                xʸ
+            </button>
+
+
+            <button
+                class="button advanced"
+                onclick="appendFactorial()"
+            >
+                x!
             </button>
 
 
             <button
                 class="button control"
-                onclick="toggleSign()"
+                onclick="toggleSignExpression()"
             >
                 +/−
             </button>
@@ -232,129 +239,116 @@
              MAIN KEYPAD
         =================================================== -->
 
-        <section
-            class="keypad"
-            aria-label="Calculator keypad"
-        >
-
-            <!-- 7 8 9 ÷ -->
+        <section class="keypad">
 
             <button
                 class="button number"
-                onclick="inputNumber('7')"
+                onclick="appendNumber('7')"
             >
                 7
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('8')"
+                onclick="appendNumber('8')"
             >
                 8
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('9')"
+                onclick="appendNumber('9')"
             >
                 9
             </button>
 
             <button
                 class="button operator"
-                onclick="chooseOperation('divide')"
+                onclick="appendOperator('/')"
             >
                 ÷
             </button>
 
 
-            <!-- 4 5 6 × -->
-
             <button
                 class="button number"
-                onclick="inputNumber('4')"
+                onclick="appendNumber('4')"
             >
                 4
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('5')"
+                onclick="appendNumber('5')"
             >
                 5
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('6')"
+                onclick="appendNumber('6')"
             >
                 6
             </button>
 
             <button
                 class="button operator"
-                onclick="chooseOperation('multiply')"
+                onclick="appendOperator('*')"
             >
                 ×
             </button>
 
 
-            <!-- 1 2 3 − -->
-
             <button
                 class="button number"
-                onclick="inputNumber('1')"
+                onclick="appendNumber('1')"
             >
                 1
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('2')"
+                onclick="appendNumber('2')"
             >
                 2
             </button>
 
             <button
                 class="button number"
-                onclick="inputNumber('3')"
+                onclick="appendNumber('3')"
             >
                 3
             </button>
 
             <button
                 class="button operator"
-                onclick="chooseOperation('subtract')"
+                onclick="appendOperator('-')"
             >
                 −
             </button>
 
 
-            <!-- 0 . + -->
-
             <button
                 class="button number zero"
-                onclick="inputNumber('0')"
+                onclick="appendNumber('0')"
             >
                 0
             </button>
 
             <button
                 class="button number"
-                onclick="inputDecimal()"
+                onclick="appendDecimal()"
             >
                 .
             </button>
 
             <button
                 class="button operator"
-                onclick="chooseOperation('add')"
+                onclick="appendOperator('+')"
             >
                 +
             </button>
 
-
-            <!-- BACKSPACE / EQUALS -->
 
             <button
                 class="button backspace"
@@ -365,10 +359,33 @@
 
             <button
                 class="button equals"
-                onclick="calculateResult()"
+                onclick="evaluateExpression()"
             >
                 =
             </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             RAW EXPRESSION
+        =================================================== -->
+
+        <section class="raw-expression-section">
+
+            <label for="expressionInput">
+                Expression
+            </label>
+
+
+            <input
+                id="expressionInput"
+                class="expression-input"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Example: (2+3)^4"
+            >
 
         </section>
 
@@ -384,7 +401,7 @@
             </span>
 
             <span class="version">
-                v2.0
+                v3.0
             </span>
 
         </footer>
