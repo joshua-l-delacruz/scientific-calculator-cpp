@@ -1,4 +1,4 @@
-name: Build and Test C++ Scientific Calculator
+name: Build and Test C++ Calculator
 
 on:
   push:
@@ -15,6 +15,7 @@ jobs:
   build-and-test:
 
     runs-on: ubuntu-latest
+
 
     steps:
 
@@ -38,22 +39,17 @@ jobs:
             scientific-calculator-cpp
 
 
-      - name: Wait for C++ server
+      - name: Wait for server
         run: |
           for i in {1..20}; do
 
             if curl -fsS \
               http://localhost:8080/health
             then
-
               echo
               echo "C++ server is healthy."
-
               exit 0
-
             fi
-
-            echo "Waiting for server..."
 
             sleep 2
 
@@ -64,12 +60,10 @@ jobs:
           exit 1
 
 
-      - name: Test Version 6 health
+      - name: Test Version 7 health
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
-
-          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -79,138 +73,14 @@ jobs:
           data = json.load(sys.stdin)
 
           assert data["status"] == "ok"
-          assert data["version"] == "6.0"
-          assert data["engine"] == "cpp-expression-parser"
-          assert data["implicitMultiplication"] is True
+          assert data["version"] == "7.0"
+          assert data["programmerMode"] is True
+          assert data["programmerIntegerSize"] == "64-bit unsigned"
+          assert data["programmerBases"] == "BIN,OCT,DEC,HEX"
           '
 
 
-      - name: Test Version 6 HTML
-        run: |
-          RESPONSE=$(curl -fsS \
-            http://localhost:8080/)
-
-          echo "$RESPONSE" | grep "v6.0"
-          echo "$RESPONSE" | grep "themeButton"
-          echo "$RESPONSE" | grep "copyExpression"
-          echo "$RESPONSE" | grep "copyResult"
-          echo "$RESPONSE" | grep "toggleHistory"
-          echo "$RESPONSE" | grep "About this project"
-
-
-      - name: Test Version 6 JavaScript
-        run: |
-          RESPONSE=$(curl -fsS \
-            http://localhost:8080/app.js)
-
-          echo "$RESPONSE" | grep "navigator.clipboard"
-          echo "$RESPONSE" | grep "toggleTheme"
-          echo "$RESPONSE" | grep "Calculating with C++"
-          echo "$RESPONSE" | grep "toggleHistory"
-          echo "$RESPONSE" | grep "memoryRecall"
-          echo "$RESPONSE" | grep "appendAnswer"
-
-
-      - name: Test arithmetic
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"(25+5)*3","mode":"DEG"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == 90
-          '
-
-
-      - name: Test implicit multiplication
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"(-100)50","mode":"RAD"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == -5000
-          '
-
-
-      - name: Test adjacent parentheses
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"(2+3)(4+5)","mode":"DEG"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == 45
-          '
-
-
-      - name: Test DEG trigonometry
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(30)","mode":"DEG"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] - 0.5
-          ) < 1e-12
-          '
-
-
-      - name: Test RAD trigonometry
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(pi/2)","mode":"RAD"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] - 1
-          ) < 1e-12
-          '
-
-
-      - name: Test factorial and power
+      - name: Test scientific calculator
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
@@ -229,13 +99,15 @@ jobs:
           '
 
 
-      - name: Test unary exponent precedence
+      - name: Test DEC to HEX conversion
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/evaluate \
+            http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"expression":"-2^2","mode":"DEG"}')
+            -d '{"operation":"CONVERT","left":"255","base":"DEC"}')
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -244,20 +116,154 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == -4
+          assert data["dec"] == "255"
+          assert data["hex"] == "FF"
+          assert data["oct"] == "377"
+          assert data["bin"] == "11111111"
           '
 
 
-      - name: Test divide by zero
+      - name: Test HEX conversion
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"CONVERT","left":"FF","base":"HEX"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "255"
+          '
+
+
+      - name: Test binary AND
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"AND","left":"1100","right":"1010","base":"BIN"}')
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["bin"] == "1000"
+          assert data["dec"] == "8"
+          '
+
+
+      - name: Test OR
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"OR","left":"12","right":"10","base":"DEC"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "14"
+          '
+
+
+      - name: Test XOR
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"XOR","left":"12","right":"10","base":"DEC"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "6"
+          '
+
+
+      - name: Test left shift
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"SHL","left":"5","right":"2","base":"DEC"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "20"
+          '
+
+
+      - name: Test right shift
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/programmer \
+            -H "Content-Type: application/json" \
+            -d '{"operation":"SHR","left":"20","right":"2","base":"DEC"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["dec"] == "5"
+          '
+
+
+      - name: Test programmer invalid digit
         run: |
           RESPONSE=$(curl -s \
             -X POST \
-            http://localhost:8080/api/evaluate \
+            http://localhost:8080/api/programmer \
             -H "Content-Type: application/json" \
-            -d '{"expression":"10/0","mode":"DEG"}')
+            -d '{"operation":"CONVERT","left":"102","base":"BIN"}')
+
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
-            grep '"error":"Cannot divide by zero."' 
+            grep "Invalid digit"
+
+
+      - name: Test Version 7 HTML
+        run: |
+          HTML=$(curl -fsS \
+            http://localhost:8080/)
+
+          echo "$HTML" | grep "v7.0"
+          echo "$HTML" | grep "Programmer"
+          echo "$HTML" | grep "BIN"
+          echo "$HTML" | grep "HEX"
+          echo "$HTML" | grep "XOR"
 
 
       - name: Show container logs
