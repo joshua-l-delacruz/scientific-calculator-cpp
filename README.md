@@ -1,439 +1,588 @@
-C++ Calculator
-A full-stack scientific and programmer calculator built with a real C++ backend, a custom mathematical expression parser, a width-aware programmer engine, and a responsive browser interface.
-The application demonstrates that C++ can be used not only for native applications and systems programming, but also as the backend of a modern web application.
-Live Application
-Production deployment
+# C++ Calculator
+
+[![Build and Test](https://github.com/joshua-l-delacruz/scientific-calculator-cpp/actions/workflows/build.yml/badge.svg)](https://github.com/joshua-l-delacruz/scientific-calculator-cpp/actions/workflows/build.yml)
+[![C++](https://img.shields.io/badge/C%2B%2B-Backend-00599C?logo=cplusplus)](https://isocpp.org/)
+[![Drogon](https://img.shields.io/badge/Drogon-Web%20Framework-blue)](https://github.com/drogonframework/drogon)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Live](https://img.shields.io/badge/Live-Render-46E3B7?logo=render&logoColor=white)](https://scientific-calculator-cpp.onrender.com)
+
+A full-stack **scientific and programmer calculator** powered by a real **C++ backend**, a custom mathematical expression parser, a width-aware programmer engine, REST APIs, Docker, and automated CI testing.
+
+## Live Application
+
 https://scientific-calculator-cpp.onrender.com
-Project Status
-Current release: V10 Portfolio Release
-Backend API version: 9.1
-The calculator is deployed, containerized, automatically tested through GitHub Actions, and publicly accessible through Render.
-Features
-Scientific Calculator
-The scientific calculator uses a custom C++ expression parser rather than JavaScript's eval().
-Supported capabilities include:
+
+## Current Status
+
+- Portfolio release: **V10.1**
+- Backend API: **V9.1**
+- Language: **C++**
+- Web framework: **Drogon**
+- Build system: **CMake**
+- Container: **Docker**
+- CI: **GitHub Actions**
+- Hosting: **Render**
+
+## Table of Contents
+
+- [Features](#features)
+- [Scientific Calculator](#scientific-calculator)
+- [Programmer Calculator](#programmer-calculator)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [REST API](#rest-api)
+- [Docker](#docker)
+- [Continuous Integration](#continuous-integration)
+- [Project Structure](#project-structure)
+- [What I Learned](#what-i-learned)
+- [Version History](#version-history)
+- [Author](#author)
+
+# Features
+
+## Scientific Calculator
+
+The scientific calculator uses a custom recursive C++ expression parser instead of JavaScript `eval()`.
+
+Supported features include:
+
 - Addition
 - Subtraction
 - Multiplication
 - Division
 - Parentheses
 - Operator precedence
-- Unary positive and negative numbers
-- Exponents
+- Unary positive and negative values
+- Exponentiation
 - Factorials
 - Implicit multiplication
-- Scientific constants
+- Mathematical constants
 - Scientific functions
-- Degree and radian trigonometry
+- DEG/RAD trigonometry
+- Memory functions
+- Previous-answer recall
 - Calculation history
-- Calculator memory
-- Previous answer recall
 - Copy expression
 - Copy result
-- Dark and light themes
-Scientific Functions
-Function	Description
-sin(x)	Sine
-cos(x)	Cosine
-tan(x)	Tangent
-log(x)	Base-10 logarithm
-ln(x)	Natural logarithm
-sqrt(x)	Square root
-abs(x)	Absolute value
-x!	Factorial
-x^y	Exponentiation
+- Dark/light themes
 
+### Scientific Functions
 
-Mathematical Constants
-Constant	Meaning
-pi	π
-e	Euler's number
+| Function | Description |
+|---|---|
+| `sin(x)` | Sine |
+| `cos(x)` | Cosine |
+| `tan(x)` | Tangent |
+| `log(x)` | Base-10 logarithm |
+| `ln(x)` | Natural logarithm |
+| `sqrt(x)` | Square root |
+| `abs(x)` | Absolute value |
+| `x!` | Factorial |
+| `x^y` | Exponentiation |
 
+### Constants
 
-Example Expressions
-2 + 3 * 4
-(2 + 3) * 4
-2^8 + 5!
-sqrt(144)
-sin(30)
-sin(pi/2)
-log(100) + ln(e)
-Programmer Calculator
-The programmer calculator is implemented by the C++ backend using width-aware integer operations.
-Number Bases
-The calculator supports:
-- Binary — BIN
-- Octal — OCT
-- Decimal — DEC
-- Hexadecimal — HEX
-Changing the active number base automatically converts the current value.
+| Constant | Meaning |
+|---|---|
+| `pi` | π |
+| `e` | Euler's number |
+
+### Examples
+
+    2 + 3 * 4
+
+    (2 + 3) * 4
+
+    2^8 + 5!
+
+    sqrt(144)
+
+    sin(30)
+
+    sin(pi/2)
+
+    log(100) + ln(e)
+
+# Programmer Calculator
+
+The programmer calculator performs integer conversions and bitwise operations through the C++ backend.
+
+## Number Bases
+
+Supported bases:
+
+- BIN — Binary
+- OCT — Octal
+- DEC — Decimal
+- HEX — Hexadecimal
+
 Example:
-DEC 255
-becomes:
-HEX FF
-OCT 377
-BIN 11111111
-Word Sizes
-The programmer engine supports:
+
+    DEC: 255
+    HEX: FF
+    OCT: 377
+    BIN: 11111111
+
+## Word Sizes
+
+Supported integer widths:
+
 - 8-bit
 - 16-bit
 - 32-bit
 - 64-bit
-Operations are restricted to the selected word size.
-This allows the calculator to demonstrate real low-level integer behavior.
-Signed and Unsigned Integers
-Programmer mode supports both Unsigned and Signed interpretations.
-For example, the 8-bit pattern:
-11111111
-can represent:
-Unsigned: 255
-Signed:   -1
-This uses standard two's-complement representation.
+
+Results are constrained to the selected word width.
+
+## Signed and Unsigned Integers
+
+The programmer engine supports both unsigned and signed two's-complement interpretation.
+
+Example 8-bit value:
+
+    11111111
+
+Interpretations:
+
+    Unsigned: 255
+    Signed:   -1
+
 Another example:
-10000000
-in an 8-bit word represents:
-Unsigned: 128
-Signed:   -128
-Bitwise Operations
-Supported programmer operations include:
-Operation	Description
-AND	Bitwise AND
-OR	Bitwise OR
-XOR	Bitwise exclusive OR
-NOT	Bitwise complement
-<<	Left shift
->>	Right shift
-ROL	Rotate left
-ROR	Rotate right
 
+    10000000
+
+Interpretations:
+
+    Unsigned: 128
+    Signed:   -128
+
+## Bitwise Operations
+
+| Operation | Description |
+|---|---|
+| `AND` | Bitwise AND |
+| `OR` | Bitwise OR |
+| `XOR` | Bitwise XOR |
+| `NOT` | Bitwise complement |
+| `<<` | Left shift |
+| `>>` | Right shift |
+| `ROL` | Rotate left |
+| `ROR` | Rotate right |
+| `TOGGLE` | Toggle individual bit |
 
 Example:
-12 AND 10
-Binary representation:
-12 = 1100
-10 = 1010
-Result:
-1000
-Decimal:
-8
-Bit Editor
-Programmer mode contains an interactive visual bit editor.
-For an 8-bit word:
-7 6 5 4 3 2 1 0
-each bit can be clicked individually.
-For example:
-00000000
-Clicking bit 7 produces:
-10000000
-The browser sends the operation to the C++ backend as a TOGGLE operation.
-Integer Rotation
-The calculator supports circular bit rotation.
-Example using an 8-bit unsigned integer:
-129
+
+    12 AND 10 = 8
+
 Binary:
-10000001
+
+    12 = 1100
+    10 = 1010
+         ----
+          1000
+
+## Interactive Bit Editor
+
+Programmer mode contains a clickable bit editor.
+
+For an 8-bit word:
+
+    7 6 5 4 3 2 1 0
+
+Starting with:
+
+    00000000
+
+Toggling bit 7 produces:
+
+    10000000
+
+The browser sends a `TOGGLE` request to the C++ programmer API.
+
+## Rotate Operations
+
+Example:
+
+    129 = 10000001
+
 Rotate left by one:
-ROL 1
+
+    ROL 1
+
 Result:
-00000011
-Decimal:
-3
-Rotate the result right by one:
-ROR 1
-returns:
-10000001
-Decimal:
-129
-Arithmetic Right Shift
-When Signed mode is enabled, right shifting performs arithmetic sign extension.
+
+    00000011 = 3
+
+Rotate right again:
+
+    ROR 1
+
+Result:
+
+    10000001 = 129
+
+## Arithmetic Right Shift
+
+Signed mode performs arithmetic sign extension.
+
 Example:
--8 >> 1
+
+    -8 >> 1 = -4
+
+## Overflow Behavior
+
+Programmer operations use:
+
+    wrap-to-selected-width
+
+For example, in 8-bit mode:
+
+    128 << 1
+
+Binary:
+
+    10000000 << 1
+    1 00000000
+
+Only the lowest eight bits remain:
+
+    00000000
+
 Result:
--4
-The sign bit is preserved by the C++ programmer engine.
-Overflow Behavior
-Programmer calculations follow a fixed-width overflow policy:
-wrap-to-selected-width
-For example, in an 8-bit word:
-128 << 1
-produces:
-0
-because:
-10000000 << 1
-creates:
-1 00000000
-and only the lowest eight bits are retained.
-Programmer History
-Programmer operations are stored separately from scientific calculations.
-History records include:
-- expression
+
+    0
+
+## Programmer History
+
+Programmer history stores:
+
+- operation
+- operands
 - result
-- number base
-- selected word size
-- signed/unsigned mode
-Example:
-12 AND 10 = 8
-12 OR 10 = 14
-12 XOR 10 = 6
-History entries can be selected to restore previous programmer states.
-Persistent State
-The frontend stores calculator preferences in browser storage.
-Programmer state can persist across page refreshes, including:
-- calculator mode
 - number base
 - word size
 - signed/unsigned mode
-- current programmer value
-- programmer history
+
 Example:
-Programmer
-8-bit
-Unsigned
-HEX
-FF
-Refreshing the browser restores that state.
-Technology Stack
-Backend
+
+    12 AND 10 = 8
+    12 OR 10  = 14
+    12 XOR 10 = 6
+
+## Persistent State
+
+The frontend remembers programmer settings across refreshes, including:
+
+- calculator mode
+- base
+- word size
+- signed/unsigned mode
+- current value
+- history
+
+# Technology Stack
+
+## Backend
+
 - C++
 - Drogon
 - JsonCpp
 - CMake
-Frontend
+
+## Frontend
+
 - HTML5
 - CSS3
 - JavaScript
-- Responsive browser interface
-Infrastructure
+
+## Infrastructure
+
 - Docker
 - GitHub Actions
 - Render
-API
+
+## Communication
+
 - REST
-- JSON
 - HTTP
-Architecture
-The application uses a client-server architecture:
-Browser
-   |
-   | HTTP / JSON
-   v
-Drogon REST API
-   |
-   v
-C++ Calculation Engines
-   |
-   +----------------------+
-   |                      |
-   v                      v
-Scientific Parser    Programmer Engine
-The browser is responsible for:
-- user interface
-- calculator buttons
-- history rendering
-- state persistence
+- JSON
+
+# Architecture
+
+    Browser
+       |
+       | HTTP / JSON
+       v
+    Drogon REST API
+       |
+       v
+    C++ Backend
+       |
+       +----------------------+
+       |                      |
+       v                      v
+    Scientific Parser    Programmer Engine
+
+The browser handles:
+
+- interface rendering
 - keyboard interaction
+- browser storage
+- history presentation
 - API requests
-The C++ backend is responsible for:
-- mathematical parsing
+
+The C++ backend handles:
+
+- expression parsing
 - scientific calculations
-- programmer operations
-- integer validation
+- numeric validation
+- number-base conversion
+- fixed-width integers
 - signed interpretation
-- bit-width enforcement
-- rotation
-- shifting
-- bit manipulation
+- bitwise operations
+- shifts
+- rotations
+- bit toggling
 - API responses
-More details are available in:
-docs/ARCHITECTURE.md
-REST API
-The application exposes four main endpoints.
-Method	Endpoint	Purpose
-GET	/health	Service health information
-GET	/api/info	Application and API metadata
-POST	/api/evaluate	Scientific expression evaluation
-POST	/api/programmer	Programmer calculations
 
+Detailed architecture documentation:
 
-Complete API documentation:
-docs/API.md
-API Example — Scientific Calculator
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+# REST API
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/health` | Health and capability information |
+| GET | `/api/info` | Application metadata |
+| POST | `/api/evaluate` | Scientific calculations |
+| POST | `/api/programmer` | Programmer calculations |
+
+Full API documentation:
+
+[`docs/API.md`](docs/API.md)
+
+## Scientific API Example
+
 Request:
-POST /api/evaluate
-Content-Type: application/json
-Body:
-{
-  "expression": "sin(30)",
-  "mode": "DEG"
-}
+
+    POST /api/evaluate
+
+JSON body:
+
+    {
+      "expression": "sin(30)",
+      "mode": "DEG"
+    }
+
 Response:
-{
-  "expression": "sin(30)",
-  "mode": "DEG",
-  "result": 0.5
-}
-API Example — Programmer Calculator
+
+    {
+      "expression": "sin(30)",
+      "mode": "DEG",
+      "result": 0.5
+    }
+
+## Programmer API Example
+
 Request:
-POST /api/programmer
-Content-Type: application/json
-Body:
-{
-  "operation": "AND",
-  "left": "12",
-  "right": "10",
-  "base": "DEC",
-  "width": 8,
-  "signed": false
-}
-Response includes representations such as:
-{
-  "bin": "00001000",
-  "dec": "8",
-  "hex": "08",
-  "oct": "010",
-  "signedDec": "8",
-  "unsignedDec": "8",
-  "width": 8,
-  "signed": false
-}
-API Metadata
-The application provides machine-readable metadata at:
-/api/info
-Example metadata includes:
-{
-  "name": "C++ Calculator",
-  "version": "9.1",
-  "language": "C++",
-  "framework": "Drogon"
-}
-The endpoint also describes:
+
+    POST /api/programmer
+
+JSON body:
+
+    {
+      "operation": "AND",
+      "left": "12",
+      "right": "10",
+      "base": "DEC",
+      "width": 8,
+      "signed": false
+    }
+
+The response includes:
+
+- binary representation
+- octal representation
+- decimal representation
+- hexadecimal representation
+- signed decimal interpretation
+- unsigned decimal interpretation
+- selected word width
+- signed mode
+- overflow policy
+
+## API Metadata
+
+Machine-readable API information is available at:
+
+https://scientific-calculator-cpp.onrender.com/api/info
+
+It describes:
+
+- application version
+- C++ framework
+- available routes
+- supported bases
+- supported word sizes
 - scientific functions
 - programmer operations
-- word sizes
-- bases
-- REST routes
 - runtime technologies
-- supported application features
-Health Check
-The service exposes:
-GET /health
-A successful response contains:
-{
-  "status": "ok"
-}
-The endpoint is used by automated tests and can also be used by hosting infrastructure for health monitoring.
-Docker
-The complete application runs inside Docker.
-Build the image:
-docker build -t scientific-calculator-cpp .
-Run it:
-docker run \
-  --rm \
-  -p 8080:8080 \
-  scientific-calculator-cpp
-Then open:
-http://localhost:8080
-Health endpoint:
-http://localhost:8080/health
-API information:
-http://localhost:8080/api/info
-Continuous Integration
-GitHub Actions automatically validates the application whenever changes are pushed to the main branch or submitted through a pull request.
-The CI pipeline:
-1. checks out the repository
-2. builds the Docker image
-3. starts the C++ service
-4. waits for the health endpoint
-5. tests scientific calculations
-6. tests degree and radian trigonometry
-7. tests signed and unsigned programmer values
-8. tests number conversion
-9. tests AND, OR, XOR and NOT
-10. tests shifts
-11. tests rotate-left and rotate-right
-12. tests bit toggling
-13. tests invalid input handling
-14. tests /api/info
-15. validates important frontend features
-This helps prevent regressions before deployment.
-Project Structure
-scientific-calculator-cpp/
-│
-├── backend/
-│   ├── CMakeLists.txt
-│   └── main.cpp
-│
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-│
-├── docs/
-│   ├── API.md
-│   └── ARCHITECTURE.md
-│
-├── .github/
-│   └── workflows/
-│       └── build.yml
-│
-├── Dockerfile
-├── LICENSE
-└── README.md
-Why C++?
-C++ is normally associated with:
-- operating systems
-- embedded software
-- game engines
-- databases
-- browsers
-- networking
-- performance-critical applications
-This project explores another use case:
-C++ as the backend of a modern web application.
 
-Drogon provides the HTTP server and routing layer while the calculator engines remain implemented in C++.
-This allows browser-based JavaScript to focus on interface behavior while calculation logic remains server-side.
-Engineering Concepts Demonstrated
-This project demonstrates practical experience with:
-- C++ application development
-- parsing algorithms
-- recursion
+# Docker
+
+Build:
+
+    docker build -t scientific-calculator-cpp .
+
+Run:
+
+    docker run --rm -p 8080:8080 scientific-calculator-cpp
+
+Open:
+
+    http://localhost:8080
+
+Health check:
+
+    http://localhost:8080/health
+
+API metadata:
+
+    http://localhost:8080/api/info
+
+# Continuous Integration
+
+GitHub Actions automatically builds and tests the project.
+
+The pipeline validates:
+
+- Docker image build
+- C++ server startup
+- health endpoint
+- API metadata
+- scientific arithmetic
+- DEG trigonometry
+- RAD trigonometry
+- scientific functions
+- invalid scientific expressions
+- number conversions
+- signed integers
+- unsigned integers
+- AND
+- OR
+- XOR
+- NOT
+- left shift
+- logical right shift
+- arithmetic right shift
+- rotate left
+- rotate right
+- bit toggling
+- invalid signed ranges
+- invalid word sizes
+- frontend availability
+
+# Project Structure
+
+    scientific-calculator-cpp/
+    │
+    ├── backend/
+    │   ├── CMakeLists.txt
+    │   └── main.cpp
+    │
+    ├── frontend/
+    │   ├── index.html
+    │   ├── style.css
+    │   └── app.js
+    │
+    ├── docs/
+    │   ├── API.md
+    │   └── ARCHITECTURE.md
+    │
+    ├── .github/
+    │   └── workflows/
+    │       └── build.yml
+    │
+    ├── Dockerfile
+    ├── LICENSE
+    └── README.md
+
+# Why C++?
+
+C++ is commonly associated with systems programming, game engines, embedded applications, databases, networking, browsers, and other performance-oriented software.
+
+This project explores another use case:
+
+> **C++ as the backend of a modern web application.**
+
+Drogon provides the web-server and HTTP-routing layer while the authoritative calculation logic remains in C++.
+
+# What I Learned
+
+Building this project gave me practical experience with:
+
+- modern C++ application development
+- recursive-descent parsing
 - operator precedence
-- REST APIs
-- JSON request and response handling
-- HTTP
+- mathematical expression evaluation
+- REST API design
+- HTTP request handling
+- JSON serialization
 - frontend/backend integration
-- bit manipulation
 - binary arithmetic
-- two's-complement integers
+- bit manipulation
+- two's-complement representation
 - fixed-width integer behavior
-- bit shifting
+- logical and arithmetic shifting
 - bit rotation
-- validation
+- input validation
 - error handling
-- Docker
+- Docker containers
 - CMake
-- CI/CD
 - GitHub Actions
-- responsive frontend development
+- CI/CD
+- responsive web interfaces
 - cloud deployment
-Version History
-V1
+
+It also reinforced an important software-design principle:
+
+> The frontend should manage presentation and interaction, while the backend remains authoritative for calculation and validation.
+
+# Version History
+
+## V1
+
 Initial scientific calculator.
-V1.2
-Improved calculator interaction and responsive interface.
-V2
+
+## V1.2
+
+Responsive interface improvements.
+
+## V2
+
 Additional scientific functions and constants.
-V3
-Custom C++ expression engine.
-V4
-Degree and radian trigonometry.
-V5
-Scientific history and memory.
-V6
-User-interface and usability improvements.
-V7
-Programmer calculator with:
+
+## V3
+
+Custom recursive C++ expression parser.
+
+## V4
+
+DEG/RAD trigonometry.
+
+## V5
+
+Scientific memory and history.
+
+## V6
+
+Production-oriented UI improvements.
+
+## V7
+
+Initial programmer mode with:
+
 - BIN
 - OCT
 - DEC
@@ -443,58 +592,85 @@ Programmer calculator with:
 - XOR
 - NOT
 - shifts
-V8
-Advanced programmer mode with:
+
+## V8
+
+Advanced programmer engine:
+
 - 8/16/32/64-bit words
-- signed/unsigned integers
+- signed and unsigned integers
 - two's complement
+- arithmetic right shift
 - ROL
 - ROR
-- arithmetic shift
 - interactive bit editor
-V9
-Portfolio-oriented frontend improvements:
+
+## V9
+
+Programmer usability and portfolio interface:
+
 - programmer history
-- persistent programmer state
+- persistent state
 - copy controls
-- programmer keyboard support
-- architecture display
-- API display
-V9.1
+- keyboard support
+- architecture section
+- API section
+
+## V9.1
+
 Backend metadata release:
-- /api/info
-- updated health metadata
-- API capability discovery
-- expanded CI validation
-V10
-Portfolio documentation release:
+
+- `/api/info`
+- expanded `/health`
+- API capability metadata
+- expanded CI tests
+
+## V10
+
+Portfolio documentation:
+
 - professional README
-- complete API documentation
+- API documentation
 - architecture documentation
-- project structure documentation
-- deployment instructions
-- engineering concepts
-- version history
-Future Ideas
-Possible future releases may include:
-- floating-point bit visualization
-- IEEE-754 converter
-- binary32 and binary64 inspection
+
+## V10.1
+
+GitHub presentation polish:
+
+- build status badge
+- technology badges
+- live deployment badge
+- table of contents
+- recruiter-oriented project explanation
+- What I Learned section
+
+# Future Ideas
+
+Potential future enhancements:
+
+- IEEE-754 floating-point visualization
+- binary32/binary64 inspector
 - engineering notation
-- complex numbers
+- complex-number calculations
 - matrices
 - statistics
-- unit conversion
 - graphing
-- expression variables
-- downloadable calculation history
-- API rate limiting
+- unit conversions
+- variables
+- downloadable history
 - OpenAPI specification
-- automated releases
-- version tags
-- portfolio integration
-Author
-Joshua Dela Cruz
+- rate limiting
+- structured logging
+- automated GitHub releases
+- semantic version tags
+- portfolio website integration
+
+# Author
+
+**Joshua Dela Cruz**
+
 C++ / IT / Cloud / Cybersecurity learning portfolio project.
-License
-See LICENSE for the repository's license terms.
+
+# License
+
+See [`LICENSE`](LICENSE) for license information.
