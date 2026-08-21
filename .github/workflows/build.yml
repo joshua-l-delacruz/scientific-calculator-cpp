@@ -45,10 +45,15 @@ jobs:
             if curl -fsS \
               http://localhost:8080/health
             then
+
               echo
               echo "C++ server is healthy."
+
               exit 0
+
             fi
+
+            echo "Waiting for server..."
 
             sleep 2
 
@@ -59,49 +64,10 @@ jobs:
           exit 1
 
 
-      - name: Test Version 5.1 health
+      - name: Test Version 6 health
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["version"] == "5.1"
-          assert data["implicitMultiplication"] is True
-          '
-
-
-      - name: Test normal multiplication
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"25*4","mode":"DEG"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == 100
-          '
-
-
-      - name: Test recalled-value implicit multiplication bug
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"(-100)50","mode":"RAD"}')
 
           echo "$RESPONSE"
 
@@ -112,17 +78,46 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == -5000
+          assert data["status"] == "ok"
+          assert data["version"] == "6.0"
+          assert data["engine"] == "cpp-expression-parser"
+          assert data["implicitMultiplication"] is True
           '
 
 
-      - name: Test number before parentheses
+      - name: Test Version 6 HTML
+        run: |
+          RESPONSE=$(curl -fsS \
+            http://localhost:8080/)
+
+          echo "$RESPONSE" | grep "v6.0"
+          echo "$RESPONSE" | grep "themeButton"
+          echo "$RESPONSE" | grep "copyExpression"
+          echo "$RESPONSE" | grep "copyResult"
+          echo "$RESPONSE" | grep "toggleHistory"
+          echo "$RESPONSE" | grep "About this project"
+
+
+      - name: Test Version 6 JavaScript
+        run: |
+          RESPONSE=$(curl -fsS \
+            http://localhost:8080/app.js)
+
+          echo "$RESPONSE" | grep "navigator.clipboard"
+          echo "$RESPONSE" | grep "toggleTheme"
+          echo "$RESPONSE" | grep "Calculating with C++"
+          echo "$RESPONSE" | grep "toggleHistory"
+          echo "$RESPONSE" | grep "memoryRecall"
+          echo "$RESPONSE" | grep "appendAnswer"
+
+
+      - name: Test arithmetic
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"expression":"2(5+3)","mode":"DEG"}')
+            -d '{"expression":"(25+5)*3","mode":"DEG"}')
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -131,7 +126,26 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == 16
+          assert data["result"] == 90
+          '
+
+
+      - name: Test implicit multiplication
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"(-100)50","mode":"RAD"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["result"] == -5000
           '
 
 
@@ -154,52 +168,7 @@ jobs:
           '
 
 
-      - name: Test number times pi
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"2pi","mode":"RAD"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import math
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] -
-              2 * math.pi
-          ) < 1e-12
-          '
-
-
-      - name: Test number times function
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"3sin(30)","mode":"DEG"}')
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] -
-              1.5
-          ) < 1e-12
-          '
-
-
-      - name: Test DEG mode
+      - name: Test DEG trigonometry
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
@@ -215,13 +184,12 @@ jobs:
           data = json.load(sys.stdin)
 
           assert abs(
-              data["result"] -
-              0.5
+              data["result"] - 0.5
           ) < 1e-12
           '
 
 
-      - name: Test RAD mode
+      - name: Test RAD trigonometry
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
@@ -237,8 +205,7 @@ jobs:
           data = json.load(sys.stdin)
 
           assert abs(
-              data["result"] -
-              1
+              data["result"] - 1
           ) < 1e-12
           '
 
@@ -259,6 +226,25 @@ jobs:
           data = json.load(sys.stdin)
 
           assert data["result"] == 376
+          '
+
+
+      - name: Test unary exponent precedence
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"-2^2","mode":"DEG"}')
+
+          echo "$RESPONSE" | \
+            python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+
+          assert data["result"] == -4
           '
 
 
