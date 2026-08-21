@@ -3,16 +3,25 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 
 using namespace drogon;
 
+
+// ============================================================
+// MATHEMATICAL CONSTANTS
+// ============================================================
+
 constexpr double PI =
-    3.14159265358979323846;
+    3.141592653589793238462643383279502884;
+
+constexpr double EULER_E =
+    2.718281828459045235360287471352662498;
 
 
 // ============================================================
-// JSON RESPONSE HELPER
+// JSON RESPONSE
 // ============================================================
 
 HttpResponsePtr jsonResponse(
@@ -44,7 +53,7 @@ HttpResponsePtr jsonResponse(
 
 
 // ============================================================
-// ERROR RESPONSE HELPER
+// ERROR RESPONSE
 // ============================================================
 
 HttpResponsePtr errorResponse(
@@ -97,13 +106,36 @@ int getServerPort()
 
 
 // ============================================================
+// FACTORIAL
+// ============================================================
+
+double factorial(int number)
+{
+    double result =
+        1.0;
+
+    for (
+        int i = 2;
+        i <= number;
+        ++i
+    )
+    {
+        result *=
+            static_cast<double>(i);
+    }
+
+    return result;
+}
+
+
+// ============================================================
 // MAIN
 // ============================================================
 
 int main()
 {
     // ========================================================
-    // FRONTEND — INDEX.HTML
+    // FRONTEND
     // ========================================================
 
     app().registerHandler(
@@ -126,10 +158,6 @@ int main()
     );
 
 
-    // ========================================================
-    // FRONTEND — STYLE.CSS
-    // ========================================================
-
     app().registerHandler(
         "/style.css",
 
@@ -141,6 +169,10 @@ int main()
                     "/app/frontend/style.css"
                 );
 
+            response->setContentTypeCode(
+                CT_TEXT_CSS
+            );
+
             callback(response);
         },
 
@@ -149,10 +181,6 @@ int main()
         }
     );
 
-
-    // ========================================================
-    // FRONTEND — APP.JS
-    // ========================================================
 
     app().registerHandler(
         "/app.js",
@@ -165,6 +193,10 @@ int main()
                     "/app/frontend/app.js"
                 );
 
+            response->setContentTypeCode(
+                CT_APPLICATION_JAVASCRIPT
+            );
+
             callback(response);
         },
 
@@ -175,7 +207,7 @@ int main()
 
 
     // ========================================================
-    // HEALTH CHECK
+    // HEALTH
     // ========================================================
 
     app().registerHandler(
@@ -193,7 +225,7 @@ int main()
                 "scientific-calculator-cpp";
 
             responseJson["version"] =
-                "1.1";
+                "2.0";
 
             callback(
                 jsonResponse(
@@ -219,7 +251,7 @@ int main()
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
             // =================================================
-            // OPTIONS / CORS
+            // CORS PREFLIGHT
             // =================================================
 
             if (req->method() == Options)
@@ -240,7 +272,7 @@ int main()
 
 
             // =================================================
-            // READ JSON REQUEST
+            // JSON BODY
             // =================================================
 
             auto json =
@@ -279,14 +311,32 @@ int main()
 
 
             // =================================================
+            // CONSTANTS
+            // =================================================
+
+            if (operation == "pi")
+            {
+                result =
+                    PI;
+            }
+
+            else if (operation == "e")
+            {
+                result =
+                    EULER_E;
+            }
+
+
+            // =================================================
             // BINARY OPERATIONS
             // =================================================
 
-            if (
+            else if (
                 operation == "add" ||
                 operation == "subtract" ||
                 operation == "multiply" ||
-                operation == "divide"
+                operation == "divide" ||
+                operation == "power"
             )
             {
                 if (
@@ -307,14 +357,9 @@ int main()
                 const double left =
                     (*json)["left"].asDouble();
 
-
                 const double right =
                     (*json)["right"].asDouble();
 
-
-                // ---------------------------------------------
-                // ADDITION
-                // ---------------------------------------------
 
                 if (operation == "add")
                 {
@@ -323,10 +368,6 @@ int main()
                 }
 
 
-                // ---------------------------------------------
-                // SUBTRACTION
-                // ---------------------------------------------
-
                 else if (operation == "subtract")
                 {
                     result =
@@ -334,20 +375,12 @@ int main()
                 }
 
 
-                // ---------------------------------------------
-                // MULTIPLICATION
-                // ---------------------------------------------
-
                 else if (operation == "multiply")
                 {
                     result =
                         left * right;
                 }
 
-
-                // ---------------------------------------------
-                // DIVISION
-                // ---------------------------------------------
 
                 else if (operation == "divide")
                 {
@@ -362,15 +395,24 @@ int main()
                         return;
                     }
 
-
                     result =
                         left / right;
+                }
+
+
+                else if (operation == "power")
+                {
+                    result =
+                        std::pow(
+                            left,
+                            right
+                        );
                 }
             }
 
 
             // =================================================
-            // SCIENTIFIC / UNARY OPERATIONS
+            // UNARY OPERATIONS
             // =================================================
 
             else
@@ -408,9 +450,122 @@ int main()
                         return;
                     }
 
-
                     result =
                         std::sqrt(value);
+                }
+
+
+                // ---------------------------------------------
+                // SQUARE
+                // ---------------------------------------------
+
+                else if (operation == "square")
+                {
+                    result =
+                        value * value;
+                }
+
+
+                // ---------------------------------------------
+                // CUBE
+                // ---------------------------------------------
+
+                else if (operation == "cube")
+                {
+                    result =
+                        value * value * value;
+                }
+
+
+                // ---------------------------------------------
+                // RECIPROCAL
+                // ---------------------------------------------
+
+                else if (operation == "reciprocal")
+                {
+                    if (value == 0.0)
+                    {
+                        callback(
+                            errorResponse(
+                                "Cannot calculate the reciprocal of zero."
+                            )
+                        );
+
+                        return;
+                    }
+
+                    result =
+                        1.0 / value;
+                }
+
+
+                // ---------------------------------------------
+                // PERCENT
+                // ---------------------------------------------
+
+                else if (operation == "percent")
+                {
+                    result =
+                        value / 100.0;
+                }
+
+
+                // ---------------------------------------------
+                // FACTORIAL
+                // ---------------------------------------------
+
+                else if (operation == "factorial")
+                {
+                    if (value < 0.0)
+                    {
+                        callback(
+                            errorResponse(
+                                "Factorial requires a non-negative integer."
+                            )
+                        );
+
+                        return;
+                    }
+
+
+                    const double rounded =
+                        std::round(value);
+
+
+                    if (
+                        std::abs(
+                            value - rounded
+                        ) > 1e-12
+                    )
+                    {
+                        callback(
+                            errorResponse(
+                                "Factorial requires a whole number."
+                            )
+                        );
+
+                        return;
+                    }
+
+
+                    if (rounded > 170.0)
+                    {
+                        callback(
+                            errorResponse(
+                                "Factorial is limited to 170 to avoid overflow."
+                            )
+                        );
+
+                        return;
+                    }
+
+
+                    result =
+                        factorial(
+                            static_cast<int>(
+                                rounded
+                            )
+                        );
                 }
 
 
@@ -421,11 +576,14 @@ int main()
                 else if (operation == "sin")
                 {
                     const double radians =
-                        value * PI / 180.0;
-
+                        value *
+                        PI /
+                        180.0;
 
                     result =
-                        std::sin(radians);
+                        std::sin(
+                            radians
+                        );
                 }
 
 
@@ -436,11 +594,14 @@ int main()
                 else if (operation == "cos")
                 {
                     const double radians =
-                        value * PI / 180.0;
-
+                        value *
+                        PI /
+                        180.0;
 
                     result =
-                        std::cos(radians);
+                        std::cos(
+                            radians
+                        );
                 }
 
 
@@ -451,11 +612,15 @@ int main()
                 else if (operation == "tan")
                 {
                     const double radians =
-                        value * PI / 180.0;
+                        value *
+                        PI /
+                        180.0;
 
 
                     const double cosine =
-                        std::cos(radians);
+                        std::cos(
+                            radians
+                        );
 
 
                     if (
@@ -474,7 +639,9 @@ int main()
 
 
                     result =
-                        std::tan(radians);
+                        std::tan(
+                            radians
+                        );
                 }
 
 
@@ -497,7 +664,9 @@ int main()
 
 
                     result =
-                        std::log10(value);
+                        std::log10(
+                            value
+                        );
                 }
 
 
@@ -520,7 +689,9 @@ int main()
 
 
                     result =
-                        std::log(value);
+                        std::log(
+                            value
+                        );
                 }
 
 
@@ -536,7 +707,7 @@ int main()
 
 
                 // ---------------------------------------------
-                // UNKNOWN OPERATION
+                // UNKNOWN
                 // ---------------------------------------------
 
                 else
@@ -553,14 +724,14 @@ int main()
 
 
             // =================================================
-            // VALIDATE RESULT
+            // RESULT VALIDATION
             // =================================================
 
             if (!std::isfinite(result))
             {
                 callback(
                     errorResponse(
-                        "The calculation produced an invalid result."
+                        "The calculation produced an invalid or overflowing result."
                     )
                 );
 
@@ -569,7 +740,7 @@ int main()
 
 
             // =================================================
-            // SUCCESS RESPONSE
+            // SUCCESS
             // =================================================
 
             Json::Value responseJson;
@@ -596,7 +767,7 @@ int main()
 
 
     // ========================================================
-    // START SERVER
+    // SERVER
     // ========================================================
 
     const int port =
@@ -604,20 +775,12 @@ int main()
 
 
     std::cout
-        << "============================================"
+        << "C++ Scientific Calculator v2.0"
         << std::endl;
 
     std::cout
-        << "C++ Scientific Calculator"
-        << std::endl;
-
-    std::cout
-        << "Drogon server starting on port "
+        << "Listening on port "
         << port
-        << std::endl;
-
-    std::cout
-        << "============================================"
         << std::endl;
 
 
