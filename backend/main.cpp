@@ -15,7 +15,6 @@ HttpResponsePtr jsonResponse(
 
     response->setStatusCode(status);
 
-    // Allow the frontend to communicate with the API
     response->addHeader(
         "Access-Control-Allow-Origin",
         "*"
@@ -28,7 +27,7 @@ HttpResponsePtr jsonResponse(
 
     response->addHeader(
         "Access-Control-Allow-Methods",
-        "POST, OPTIONS"
+        "GET, POST, OPTIONS"
     );
 
     return response;
@@ -36,19 +35,54 @@ HttpResponsePtr jsonResponse(
 
 int main()
 {
+    // =====================================
+    // Health Check Endpoint
+    // =====================================
+
+    app().registerHandler(
+        "/health",
+
+        [](const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            Json::Value responseJson;
+
+            responseJson["status"] =
+                "ok";
+
+            responseJson["service"] =
+                "scientific-calculator-cpp";
+
+            callback(
+                jsonResponse(responseJson)
+            );
+        },
+
+        {
+            Get
+        }
+    );
+
+    // =====================================
+    // Calculator API
+    // =====================================
+
     app().registerHandler(
         "/api/calculate",
 
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            // Handle browser CORS preflight request
+            // Handle browser CORS preflight
             if (req->method() == Options)
             {
-                Json::Value empty;
+                Json::Value responseJson;
+
+                responseJson["status"] =
+                    "ok";
 
                 callback(
-                    jsonResponse(empty)
+                    jsonResponse(responseJson)
                 );
 
                 return;
@@ -94,10 +128,11 @@ int main()
             std::string operation =
                 (*json)["operation"].asString();
 
-            double result = 0.0;
+            double result =
+                0.0;
 
             // =====================================
-            // Binary operations
+            // Binary Operations
             // =====================================
 
             if (
@@ -176,7 +211,7 @@ int main()
             }
 
             // =====================================
-            // Scientific unary operations
+            // Unary / Scientific Operations
             // =====================================
 
             else
@@ -321,6 +356,10 @@ int main()
                 }
             }
 
+            // =====================================
+            // Successful Response
+            // =====================================
+
             Json::Value responseJson;
 
             responseJson["operation"] =
@@ -340,10 +379,16 @@ int main()
         }
     );
 
+    // =====================================
+    // Start Drogon Server
+    // =====================================
+
     app()
         .addListener(
             "0.0.0.0",
             8080
         )
         .run();
+
+    return 0;
 }
