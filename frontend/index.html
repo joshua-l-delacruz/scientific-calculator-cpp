@@ -12,7 +12,7 @@
 
     <meta
         name="description"
-        content="Portfolio-ready scientific calculator powered by C++ and Drogon."
+        content="Scientific calculator powered by C++, Drogon and a custom expression parser."
     >
 
     <title>
@@ -32,10 +32,6 @@
     <main class="app-shell">
 
         <section class="calculator">
-
-            <!-- ==================================================
-                 HEADER
-            =================================================== -->
 
             <header class="calculator-header">
 
@@ -81,10 +77,6 @@
             </header>
 
 
-            <!-- ==================================================
-                 DISPLAY
-            =================================================== -->
-
             <section
                 class="display"
                 aria-live="polite"
@@ -125,10 +117,6 @@
             </section>
 
 
-            <!-- ==================================================
-                 STATUS / ERROR
-            =================================================== -->
-
             <div
                 id="statusMessage"
                 class="status-message"
@@ -144,10 +132,6 @@
             ></div>
 
 
-            <!-- ==================================================
-                 MEMORY
-            =================================================== -->
-
             <section
                 class="memory-grid"
                 aria-label="Calculator memory controls"
@@ -157,7 +141,6 @@
                     class="memory-button"
                     type="button"
                     onclick="memoryClear()"
-                    aria-label="Clear memory"
                 >
                     MC
                 </button>
@@ -167,7 +150,6 @@
                     class="memory-button"
                     type="button"
                     onclick="memoryRecall()"
-                    aria-label="Recall memory"
                 >
                     MR
                 </button>
@@ -177,7 +159,6 @@
                     class="memory-button"
                     type="button"
                     onclick="memoryAdd()"
-                    aria-label="Add result to memory"
                 >
                     M+
                 </button>
@@ -187,7 +168,6 @@
                     class="memory-button"
                     type="button"
                     onclick="memorySubtract()"
-                    aria-label="Subtract result from memory"
                 >
                     M−
                 </button>
@@ -197,17 +177,12 @@
                     class="memory-button ans-button"
                     type="button"
                     onclick="appendAnswer()"
-                    aria-label="Insert previous answer"
                 >
                     Ans
                 </button>
 
             </section>
 
-
-            <!-- ==================================================
-                 PARENTHESES / CONSTANTS
-            =================================================== -->
 
             <section class="expression-controls">
 
@@ -248,10 +223,6 @@
 
             </section>
 
-
-            <!-- ==================================================
-                 SCIENTIFIC FUNCTIONS
-            =================================================== -->
 
             <section class="scientific-grid">
 
@@ -364,10 +335,6 @@
 
             </section>
 
-
-            <!-- ==================================================
-                 KEYPAD
-            =================================================== -->
 
             <section class="keypad">
 
@@ -515,10 +482,6 @@
             </section>
 
 
-            <!-- ==================================================
-                 EXPRESSION INPUT
-            =================================================== -->
-
             <section class="raw-expression-section">
 
                 <div class="expression-label-row">
@@ -571,10 +534,6 @@
             </section>
 
 
-            <!-- ==================================================
-                 HISTORY
-            =================================================== -->
-
             <section class="history-section">
 
                 <div class="history-header">
@@ -605,7 +564,6 @@
 
 
                         <button
-                            id="clearHistoryButton"
                             class="history-control-button"
                             type="button"
                             onclick="clearHistory()"
@@ -621,20 +579,10 @@
                 <div
                     id="historyList"
                     class="history-list"
-                >
-
-                    <div class="history-empty">
-                        No calculations yet.
-                    </div>
-
-                </div>
+                ></div>
 
             </section>
 
-
-            <!-- ==================================================
-                 ABOUT
-            =================================================== -->
 
             <section class="about-section">
 
@@ -661,10 +609,6 @@
 
             </section>
 
-
-            <!-- ==================================================
-                 FOOTER
-            =================================================== -->
 
             <footer class="calculator-footer">
 
