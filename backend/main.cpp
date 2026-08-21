@@ -336,7 +336,7 @@ private:
 
 
     // ========================================================
-    // MATCH CHARACTER
+    // CHARACTER MATCH
     // ========================================================
 
     bool match(
@@ -366,7 +366,7 @@ private:
     // ========================================================
     // EXPRESSION
     //
-    // + and -
+    // + -
     // ========================================================
 
     double parseExpression()
@@ -403,7 +403,7 @@ private:
     // ========================================================
     // TERM
     //
-    // * and /
+    // * /
     // ========================================================
 
     double parseTerm()
@@ -454,13 +454,6 @@ private:
 
     // ========================================================
     // UNARY
-    //
-    // +5
-    // -5
-    //
-    // Deliberately below exponentiation precedence:
-    //
-    // -2^2 = -(2^2) = -4
     // ========================================================
 
     double parseUnary()
@@ -483,10 +476,6 @@ private:
 
     // ========================================================
     // POWER
-    //
-    // Right associative:
-    //
-    // 2^3^2 = 2^(3^2)
     // ========================================================
 
     double parsePower()
@@ -523,8 +512,6 @@ private:
 
     // ========================================================
     // POSTFIX
-    //
-    // Factorial
     // ========================================================
 
     double parsePostfix()
@@ -972,7 +959,7 @@ private:
 int main()
 {
     // ========================================================
-    // FRONTEND ROUTES
+    // FRONTEND
     // ========================================================
 
     app().registerHandler(
@@ -1076,7 +1063,7 @@ int main()
 
 
             json["version"] =
-                "4.0";
+                "5.0";
 
 
             json["engine"] =
@@ -1101,7 +1088,7 @@ int main()
 
 
     // ========================================================
-    // EVALUATE EXPRESSION
+    // EXPRESSION API
     // ========================================================
 
     app().registerHandler(
@@ -1110,10 +1097,6 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            // ------------------------------------------------
-            // CORS
-            // ------------------------------------------------
-
             if (
                 req->method() ==
                 Options
@@ -1136,10 +1119,6 @@ int main()
                 return;
             }
 
-
-            // ------------------------------------------------
-            // BODY
-            // ------------------------------------------------
 
             auto json =
                 req->getJsonObject();
@@ -1208,13 +1187,6 @@ int main()
                 return;
             }
 
-
-            // ------------------------------------------------
-            // MODE
-            //
-            // DEG remains the default for backwards
-            // compatibility.
-            // ------------------------------------------------
 
             std::string requestedMode =
                 "DEG";
@@ -1302,12 +1274,12 @@ int main()
 
 
     std::cout
-        << "C++ Scientific Calculator v4.0"
+        << "C++ Scientific Calculator v5.0"
         << std::endl;
 
 
     std::cout
-        << "DEG / RAD support enabled"
+        << "Memory and history frontend enabled"
         << std::endl;
 
 
