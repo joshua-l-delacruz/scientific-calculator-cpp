@@ -3,7 +3,7 @@ const API_URL =
 
 
 // ============================================================
-// STORAGE KEYS
+// STORAGE
 // ============================================================
 
 const STORAGE_KEYS =
@@ -18,7 +18,10 @@ const STORAGE_KEYS =
         "scientificCalculatorLastResult",
 
     history:
-        "scientificCalculatorHistory"
+        "scientificCalculatorHistory",
+
+    theme:
+        "scientificCalculatorTheme"
 };
 
 
@@ -71,6 +74,26 @@ let calculationHistory =
     loadHistory();
 
 
+let theme =
+    localStorage.getItem(
+        STORAGE_KEYS.theme
+    ) || "dark";
+
+
+if (
+    theme !== "dark" &&
+    theme !== "light"
+)
+{
+    theme =
+        "dark";
+}
+
+
+let historyCollapsed =
+    false;
+
+
 // ============================================================
 // DOM
 // ============================================================
@@ -93,6 +116,12 @@ const errorElement =
     );
 
 
+const statusMessage =
+    document.getElementById(
+        "statusMessage"
+    );
+
+
 const expressionInput =
     document.getElementById(
         "expressionInput"
@@ -102,6 +131,12 @@ const expressionInput =
 const modeButton =
     document.getElementById(
         "modeButton"
+    );
+
+
+const themeButton =
+    document.getElementById(
+        "themeButton"
     );
 
 
@@ -135,8 +170,20 @@ const historyCount =
     );
 
 
+const toggleHistoryButton =
+    document.getElementById(
+        "toggleHistoryButton"
+    );
+
+
+const equalsButton =
+    document.getElementById(
+        "equalsButton"
+    );
+
+
 // ============================================================
-// STORAGE
+// STORAGE HELPERS
 // ============================================================
 
 function getStoredNumber(key)
@@ -234,7 +281,7 @@ function saveHistory()
 
 
 // ============================================================
-// ERROR
+// STATUS / ERROR
 // ============================================================
 
 function clearError()
@@ -251,8 +298,68 @@ function showError(message)
 }
 
 
+function showStatus(message)
+{
+    statusMessage.textContent =
+        message;
+
+
+    window.setTimeout(
+        function()
+        {
+            if (
+                statusMessage.textContent ===
+                message
+            )
+            {
+                statusMessage.textContent =
+                    "";
+            }
+        },
+        1800
+    );
+}
+
+
 // ============================================================
-// MODE
+// THEME
+// ============================================================
+
+function applyTheme()
+{
+    document.documentElement.setAttribute(
+        "data-theme",
+        theme
+    );
+
+
+    themeButton.textContent =
+        theme === "dark"
+            ? "☾"
+            : "☀";
+}
+
+
+function toggleTheme()
+{
+    theme =
+        theme === "dark"
+            ? "light"
+            : "dark";
+
+
+    localStorage.setItem(
+        STORAGE_KEYS.theme,
+        theme
+    );
+
+
+    applyTheme();
+}
+
+
+// ============================================================
+// ANGLE MODE
 // ============================================================
 
 function updateAngleModeInterface()
@@ -363,6 +470,11 @@ function memoryClear()
     saveMemory();
 
 
+    showStatus(
+        "Memory cleared."
+    );
+
+
     expressionInput.focus();
 }
 
@@ -374,6 +486,11 @@ function memoryRecall()
 
     appendNumericValue(
         memoryValue
+    );
+
+
+    showStatus(
+        "Memory recalled."
     );
 }
 
@@ -403,6 +520,11 @@ function memoryAdd()
     saveMemory();
 
 
+    showStatus(
+        "Result added to memory."
+    );
+
+
     expressionInput.focus();
 }
 
@@ -430,6 +552,11 @@ function memorySubtract()
 
 
     saveMemory();
+
+
+    showStatus(
+        "Result subtracted from memory."
+    );
 
 
     expressionInput.focus();
@@ -492,7 +619,6 @@ function expressionNeedsMultiplicationBeforeValue()
     return (
         lastCharacter === ')' ||
         lastCharacter === '!' ||
-        lastCharacter === '.' ||
         /[0-9a-zA-Z]/.test(
             lastCharacter
         )
@@ -533,7 +659,6 @@ function appendNumericValue(value)
 
 
     updatePreview();
-
 
     expressionInput.focus();
 }
@@ -577,7 +702,6 @@ function appendToken(token)
 
 
     updatePreview();
-
 
     expressionInput.focus();
 }
@@ -627,7 +751,6 @@ function appendConstant(constant)
 
     updatePreview();
 
-
     expressionInput.focus();
 }
 
@@ -652,7 +775,6 @@ function appendFunction(functionName)
 
 
     updatePreview();
-
 
     expressionInput.focus();
 }
@@ -701,7 +823,6 @@ function toggleSignExpression()
             "-"
         );
 
-
         return;
     }
 
@@ -713,7 +834,6 @@ function toggleSignExpression()
 
 
     updatePreview();
-
 
     expressionInput.focus();
 }
@@ -746,7 +866,6 @@ function backspace()
 
     updatePreview();
 
-
     expressionInput.focus();
 }
 
@@ -772,12 +891,17 @@ function clearCalculator()
     clearError();
 
 
+    showStatus(
+        "Calculator cleared."
+    );
+
+
     expressionInput.focus();
 }
 
 
 // ============================================================
-// BUSY
+// BUSY STATE
 // ============================================================
 
 function setBusyState(isBusy)
@@ -799,8 +923,40 @@ function setBusyState(isBusy)
         isBusy;
 
 
+    themeButton.disabled =
+        isBusy;
+
+
     expressionInput.disabled =
         isBusy;
+
+
+    equalsButton.classList.toggle(
+        "loading",
+        isBusy
+    );
+
+
+    equalsButton.textContent =
+        isBusy
+            ? "…"
+            : "=";
+
+
+    if (isBusy)
+    {
+        statusMessage.textContent =
+            "Calculating with C++...";
+    }
+
+    else if (
+        statusMessage.textContent ===
+        "Calculating with C++..."
+    )
+    {
+        statusMessage.textContent =
+            "";
+    }
 }
 
 
@@ -825,7 +981,6 @@ async function evaluateExpression()
         showError(
             "Enter an expression."
         );
-
 
         return;
     }
@@ -940,6 +1095,91 @@ async function evaluateExpression()
 
 
         expressionInput.focus();
+    }
+}
+
+
+// ============================================================
+// COPY
+// ============================================================
+
+async function copyExpression()
+{
+    clearError();
+
+
+    const value =
+        expressionInput.value.trim();
+
+
+    if (!value)
+    {
+        showError(
+            "There is no expression to copy."
+        );
+
+        return;
+    }
+
+
+    try
+    {
+        await navigator.clipboard.writeText(
+            value
+        );
+
+
+        showStatus(
+            "Expression copied."
+        );
+    }
+
+    catch
+    {
+        showError(
+            "Could not copy the expression."
+        );
+    }
+}
+
+
+async function copyResult()
+{
+    clearError();
+
+
+    if (
+        lastResult ===
+        null
+    )
+    {
+        showError(
+            "There is no result to copy."
+        );
+
+        return;
+    }
+
+
+    try
+    {
+        await navigator.clipboard.writeText(
+            serializeNumber(
+                lastResult
+            )
+        );
+
+
+        showStatus(
+            "Result copied."
+        );
+    }
+
+    catch
+    {
+        showError(
+            "Could not copy the result."
+        );
     }
 }
 
@@ -1194,7 +1434,31 @@ function clearHistory()
     renderHistory();
 
 
+    showStatus(
+        "History cleared."
+    );
+
+
     expressionInput.focus();
+}
+
+
+function toggleHistory()
+{
+    historyCollapsed =
+        !historyCollapsed;
+
+
+    historyList.classList.toggle(
+        "collapsed",
+        historyCollapsed
+    );
+
+
+    toggleHistoryButton.textContent =
+        historyCollapsed
+            ? "Expand"
+            : "Collapse";
 }
 
 
@@ -1255,7 +1519,7 @@ function formatNumber(number)
 
 
 // ============================================================
-// TEXT INPUT
+// INPUT EVENTS
 // ============================================================
 
 expressionInput.addEventListener(
@@ -1269,10 +1533,6 @@ expressionInput.addEventListener(
     }
 );
 
-
-// ============================================================
-// KEYBOARD — INPUT
-// ============================================================
 
 expressionInput.addEventListener(
     "keydown",
@@ -1303,7 +1563,7 @@ expressionInput.addEventListener(
 
 
 // ============================================================
-// KEYBOARD — GLOBAL
+// GLOBAL KEYBOARD
 // ============================================================
 
 document.addEventListener(
@@ -1329,7 +1589,6 @@ document.addEventListener(
                 event.key
             );
 
-
             return;
         }
 
@@ -1349,7 +1608,6 @@ document.addEventListener(
                 event.key
             );
 
-
             return;
         }
 
@@ -1360,7 +1618,6 @@ document.addEventListener(
         )
         {
             appendDecimal();
-
 
             return;
         }
@@ -1376,7 +1633,6 @@ document.addEventListener(
 
             await evaluateExpression();
 
-
             return;
         }
 
@@ -1390,7 +1646,6 @@ document.addEventListener(
 
 
             backspace();
-
 
             return;
         }
@@ -1410,6 +1665,8 @@ document.addEventListener(
 // ============================================================
 // INITIALIZE
 // ============================================================
+
+applyTheme();
 
 updateAngleModeInterface();
 
