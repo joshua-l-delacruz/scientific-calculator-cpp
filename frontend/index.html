@@ -12,7 +12,7 @@
 
     <meta
         name="description"
-        content="Scientific calculator powered by a C++ expression parser and Drogon."
+        content="Scientific calculator powered by a C++ expression parser with DEG and RAD modes."
     >
 
     <title>
@@ -50,9 +50,16 @@
             </div>
 
 
-            <div class="mode-badge">
+            <button
+                id="modeButton"
+                class="mode-button"
+                type="button"
+                onclick="toggleAngleMode()"
+                aria-label="Switch angle mode"
+                title="Switch between degrees and radians"
+            >
                 DEG
-            </div>
+            </button>
 
         </header>
 
@@ -65,6 +72,18 @@
             class="display"
             aria-live="polite"
         >
+
+            <div class="display-meta">
+
+                <span
+                    id="displayMode"
+                    class="display-mode"
+                >
+                    DEG
+                </span>
+
+            </div>
+
 
             <div
                 id="expressionPreview"
@@ -99,6 +118,7 @@
 
             <button
                 class="button expression-button"
+                type="button"
                 onclick="appendToken('(')"
             >
                 (
@@ -107,6 +127,7 @@
 
             <button
                 class="button expression-button"
+                type="button"
                 onclick="appendToken(')')"
             >
                 )
@@ -115,6 +136,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendConstant('pi')"
             >
                 π
@@ -123,6 +145,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendConstant('e')"
             >
                 e
@@ -132,13 +155,14 @@
 
 
         <!-- ==================================================
-             ADVANCED FUNCTIONS
+             SCIENTIFIC FUNCTIONS
         =================================================== -->
 
         <section class="scientific-grid">
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('sin')"
             >
                 sin
@@ -147,6 +171,7 @@
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('cos')"
             >
                 cos
@@ -155,6 +180,7 @@
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('tan')"
             >
                 tan
@@ -163,6 +189,7 @@
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('log')"
             >
                 log
@@ -171,6 +198,7 @@
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('ln')"
             >
                 ln
@@ -179,6 +207,7 @@
 
             <button
                 class="button scientific"
+                type="button"
                 onclick="appendFunction('sqrt')"
             >
                 √
@@ -187,6 +216,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendSquare()"
             >
                 x²
@@ -195,6 +225,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendCube()"
             >
                 x³
@@ -203,6 +234,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendToken('^')"
             >
                 xʸ
@@ -211,6 +243,7 @@
 
             <button
                 class="button advanced"
+                type="button"
                 onclick="appendFactorial()"
             >
                 x!
@@ -219,6 +252,7 @@
 
             <button
                 class="button control"
+                type="button"
                 onclick="toggleSignExpression()"
             >
                 +/−
@@ -227,6 +261,7 @@
 
             <button
                 class="button danger"
+                type="button"
                 onclick="clearCalculator()"
             >
                 C
@@ -236,13 +271,14 @@
 
 
         <!-- ==================================================
-             MAIN KEYPAD
+             KEYPAD
         =================================================== -->
 
         <section class="keypad">
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('7')"
             >
                 7
@@ -250,6 +286,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('8')"
             >
                 8
@@ -257,6 +294,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('9')"
             >
                 9
@@ -264,6 +302,7 @@
 
             <button
                 class="button operator"
+                type="button"
                 onclick="appendOperator('/')"
             >
                 ÷
@@ -272,6 +311,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('4')"
             >
                 4
@@ -279,6 +319,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('5')"
             >
                 5
@@ -286,6 +327,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('6')"
             >
                 6
@@ -293,6 +335,7 @@
 
             <button
                 class="button operator"
+                type="button"
                 onclick="appendOperator('*')"
             >
                 ×
@@ -301,6 +344,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('1')"
             >
                 1
@@ -308,6 +352,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('2')"
             >
                 2
@@ -315,6 +360,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendNumber('3')"
             >
                 3
@@ -322,6 +368,7 @@
 
             <button
                 class="button operator"
+                type="button"
                 onclick="appendOperator('-')"
             >
                 −
@@ -330,6 +377,7 @@
 
             <button
                 class="button number zero"
+                type="button"
                 onclick="appendNumber('0')"
             >
                 0
@@ -337,6 +385,7 @@
 
             <button
                 class="button number"
+                type="button"
                 onclick="appendDecimal()"
             >
                 .
@@ -344,6 +393,7 @@
 
             <button
                 class="button operator"
+                type="button"
                 onclick="appendOperator('+')"
             >
                 +
@@ -352,6 +402,7 @@
 
             <button
                 class="button backspace"
+                type="button"
                 onclick="backspace()"
             >
                 ⌫
@@ -359,6 +410,7 @@
 
             <button
                 class="button equals"
+                type="button"
                 onclick="evaluateExpression()"
             >
                 =
@@ -368,14 +420,25 @@
 
 
         <!-- ==================================================
-             RAW EXPRESSION
+             EXPRESSION INPUT
         =================================================== -->
 
         <section class="raw-expression-section">
 
-            <label for="expressionInput">
-                Expression
-            </label>
+            <div class="expression-label-row">
+
+                <label for="expressionInput">
+                    Expression
+                </label>
+
+                <span
+                    id="expressionModeLabel"
+                    class="expression-mode-label"
+                >
+                    Trigonometry: Degrees
+                </span>
+
+            </div>
 
 
             <input
@@ -384,7 +447,7 @@
                 type="text"
                 autocomplete="off"
                 spellcheck="false"
-                placeholder="Example: (2+3)^4"
+                placeholder="Example: sin(30) + sqrt(144)"
             >
 
         </section>
@@ -401,7 +464,7 @@
             </span>
 
             <span class="version">
-                v3.0
+                v4.0
             </span>
 
         </footer>
