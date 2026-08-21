@@ -101,7 +101,7 @@ button {
 
 
 .calculator {
-    width: 560px;
+    width: 620px;
     max-width: 100%;
 
     padding: 24px;
@@ -124,6 +124,10 @@ button {
         rgba(0, 0, 0, 0.3);
 }
 
+
+/* ============================================================
+   HEADER
+============================================================ */
 
 .calculator-header {
     display: flex;
@@ -165,7 +169,6 @@ button {
 .small-header-button,
 .mode-button {
     min-width: 46px;
-
     min-height: 38px;
 
     border:
@@ -190,14 +193,15 @@ button {
 
 
 /* ============================================================
-   MODE SWITCH
+   MAIN MODE SWITCH
 ============================================================ */
 
 .calculator-mode-switch {
     display: grid;
 
     grid-template-columns:
-        1fr 1fr;
+        1fr
+        1fr;
 
     gap: 8px;
 
@@ -313,9 +317,9 @@ button {
 
     font-weight: 700;
 
-    white-space: nowrap;
-
     overflow-x: auto;
+
+    white-space: nowrap;
 }
 
 
@@ -346,7 +350,7 @@ button {
 
 
 /* ============================================================
-   SCIENTIFIC BUTTONS
+   SCIENTIFIC CONTROLS
 ============================================================ */
 
 .memory-grid {
@@ -428,28 +432,6 @@ button {
 }
 
 
-.button:hover,
-.memory-button:hover,
-.programmer-operation:hover,
-.programmer-control:hover,
-.base-button:hover,
-.programmer-keypad button:hover,
-.hex-keypad button:hover {
-    filter: brightness(1.12);
-}
-
-
-.button:active,
-.memory-button:active,
-.programmer-operation:active,
-.programmer-control:active,
-.base-button:active,
-.programmer-keypad button:active,
-.hex-keypad button:active {
-    transform: scale(0.97);
-}
-
-
 .operator {
     background:
         linear-gradient(
@@ -512,7 +494,7 @@ button {
 
 
 /* ============================================================
-   EXPRESSION / HISTORY
+   SCIENTIFIC EXPRESSION
 ============================================================ */
 
 .raw-expression-section {
@@ -565,6 +547,11 @@ button {
 }
 
 
+.expression-input:focus {
+    border-color: var(--accent);
+}
+
+
 .expression-actions {
     display: flex;
 
@@ -597,8 +584,13 @@ button {
 }
 
 
+/* ============================================================
+   HISTORY
+============================================================ */
+
 .history-section,
-.about-section {
+.about-section,
+.bit-editor-section {
     margin-top: 18px;
 
     padding: 15px;
@@ -611,7 +603,8 @@ button {
 }
 
 
-.history-header {
+.history-header,
+.bit-editor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -621,14 +614,16 @@ button {
 
 
 .history-header h2,
-.about-section h2 {
+.about-section h2,
+.bit-editor-header h2 {
     margin: 0;
 
     font-size: 14px;
 }
 
 
-.history-header span {
+.history-header span,
+.bit-editor-header span {
     color: var(--subtle);
 
     font-size: 10px;
@@ -696,8 +691,7 @@ button {
 
     color: var(--muted);
 
-    font-family:
-        monospace;
+    font-family: monospace;
 }
 
 
@@ -716,6 +710,100 @@ button {
     color: var(--accent);
 
     font-size: 10px;
+}
+
+
+/* ============================================================
+   PROGRAMMER SETTINGS
+============================================================ */
+
+.programmer-settings {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+
+.setting-group {
+    padding: 11px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 11px;
+
+    background: var(--display);
+}
+
+
+.setting-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    font-weight: 700;
+}
+
+
+.word-size-selector {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 5px;
+}
+
+
+.signed-selector {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 5px;
+}
+
+
+.word-size-button,
+.signed-button {
+    min-height: 35px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    background: var(--panel-2);
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+.word-size-button.active,
+.signed-button.active {
+    background: #172554;
+
+    color: #7dd3fc;
 }
 
 
@@ -850,7 +938,8 @@ button {
     display: grid;
 
     grid-template-columns:
-        55px 1fr;
+        60px
+        1fr;
 
     gap: 10px;
 
@@ -889,6 +978,79 @@ button {
 }
 
 
+.secondary-conversion {
+    background:
+        rgba(56, 189, 248, 0.03);
+}
+
+
+/* ============================================================
+   BIT GRID
+============================================================ */
+
+.bit-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(8, minmax(0, 1fr));
+
+    gap: 5px;
+}
+
+
+.bit-cell {
+    min-width: 0;
+
+    padding:
+        6px
+        2px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    background: var(--panel-2);
+
+    color: var(--subtle);
+
+    text-align: center;
+}
+
+
+.bit-cell.active {
+    background: #172554;
+
+    color: #7dd3fc;
+
+    border-color:
+        rgba(56, 189, 248, 0.35);
+}
+
+
+.bit-index {
+    display: block;
+
+    margin-bottom: 2px;
+
+    font-size: 8px;
+
+    opacity: 0.65;
+}
+
+
+.bit-value {
+    display: block;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
 /* ============================================================
    PROGRAMMER OPERATIONS
 ============================================================ */
@@ -923,6 +1085,11 @@ button {
 }
 
 
+.rotate {
+    color: var(--accent);
+}
+
+
 .programmer-control {
     background: #374151;
 
@@ -930,8 +1097,13 @@ button {
 }
 
 
+.programmer-clear {
+    grid-column: span 2;
+}
+
+
 /* ============================================================
-   HEX KEYPAD
+   HEX
 ============================================================ */
 
 .hex-keypad {
@@ -964,7 +1136,7 @@ button {
 
 
 /* ============================================================
-   PROGRAMMER NUMBER KEYPAD
+   PROGRAMMER KEYPAD
 ============================================================ */
 
 .programmer-keypad {
@@ -1013,15 +1185,32 @@ button {
 }
 
 
-/* ============================================================
-   DISABLED PROGRAMMER DIGITS
-============================================================ */
-
 .programmer-keypad button:disabled,
 .hex-keypad button:disabled {
     opacity: 0.25;
 
     cursor: not-allowed;
+}
+
+
+/* ============================================================
+   HOVER
+============================================================ */
+
+button {
+    transition:
+        transform 0.08s ease,
+        filter 0.15s ease;
+}
+
+
+button:hover:not(:disabled) {
+    filter: brightness(1.12);
+}
+
+
+button:active:not(:disabled) {
+    transform: scale(0.97);
 }
 
 
@@ -1088,7 +1277,7 @@ button {
    MOBILE
 ============================================================ */
 
-@media (max-width: 580px) {
+@media (max-width: 640px) {
 
     .app-shell {
         padding: 8px;
@@ -1107,6 +1296,12 @@ button {
     }
 
 
+    .programmer-settings {
+        grid-template-columns:
+            1fr;
+    }
+
+
     .button,
     .programmer-keypad button {
         min-height: 48px;
@@ -1120,14 +1315,16 @@ button {
     }
 
 
-    .conversion-row {
-        grid-template-columns:
-            45px 1fr;
+    .programmer-main-value {
+        font-size: 28px;
     }
 
 
-    .programmer-main-value {
-        font-size: 28px;
+    .bit-grid {
+        grid-template-columns:
+            repeat(8, minmax(28px, 1fr));
+
+        overflow-x: auto;
     }
 
 }
