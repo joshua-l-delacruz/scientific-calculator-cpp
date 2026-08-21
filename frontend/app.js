@@ -1,23 +1,10 @@
 const API_URL =
-    "/api/calculate";
+    "/api/evaluate";
 
 
-let currentValue =
-    "0";
-
-let firstValue =
+let lastResult =
     null;
 
-let pendingOperation =
-    null;
-
-let waitingForSecondValue =
-    false;
-
-
-// ============================================================
-// DOM
-// ============================================================
 
 const display =
     document.getElementById(
@@ -25,9 +12,9 @@ const display =
     );
 
 
-const expression =
+const preview =
     document.getElementById(
-        "expression"
+        "expressionPreview"
     );
 
 
@@ -37,16 +24,15 @@ const errorElement =
     );
 
 
-// ============================================================
-// DISPLAY
-// ============================================================
+const expressionInput =
+    document.getElementById(
+        "expressionInput"
+    );
 
-function updateDisplay()
-{
-    display.textContent =
-        currentValue;
-}
 
+// ============================================================
+// HELPERS
+// ============================================================
 
 function clearError()
 {
@@ -62,109 +48,149 @@ function showError(message)
 }
 
 
-// ============================================================
-// NUMBER INPUT
-// ============================================================
-
-function inputNumber(number)
+function updatePreview()
 {
-    clearError();
+    const expression =
+        expressionInput.value;
 
 
-    if (
-        currentValue === "0" ||
-        waitingForSecondValue
-    )
-    {
-        currentValue =
-            number;
-
-        waitingForSecondValue =
-            false;
-    }
-
-    else
-    {
-        const rawLength =
-            currentValue
-                .replace("-", "")
-                .replace(".", "")
-                .length;
-
-
-        if (rawLength >= 16)
-        {
-            return;
-        }
-
-
-        currentValue +=
-            number;
-    }
-
-
-    updateDisplay();
+    preview.textContent =
+        expression.length > 0
+            ? expression
+            : "Ready";
 }
 
 
 // ============================================================
-// DECIMAL
+// APPEND
 // ============================================================
 
-function inputDecimal()
+function appendToken(token)
 {
     clearError();
 
 
-    if (waitingForSecondValue)
+    expressionInput.value +=
+        token;
+
+
+    updatePreview();
+
+
+    expressionInput.focus();
+}
+
+
+function appendNumber(number)
+{
+    appendToken(
+        number
+    );
+}
+
+
+function appendDecimal()
+{
+    appendToken(
+        "."
+    );
+}
+
+
+function appendOperator(operator)
+{
+    appendToken(
+        operator
+    );
+}
+
+
+// ============================================================
+// CONSTANT
+// ============================================================
+
+function appendConstant(constant)
+{
+    appendToken(
+        constant
+    );
+}
+
+
+// ============================================================
+// FUNCTION
+// ============================================================
+
+function appendFunction(functionName)
+{
+    appendToken(
+        functionName + "("
+    );
+}
+
+
+// ============================================================
+// POWER SHORTCUTS
+// ============================================================
+
+function appendSquare()
+{
+    appendToken(
+        "^2"
+    );
+}
+
+
+function appendCube()
+{
+    appendToken(
+        "^3"
+    );
+}
+
+
+// ============================================================
+// FACTORIAL
+// ============================================================
+
+function appendFactorial()
+{
+    appendToken(
+        "!"
+    );
+}
+
+
+// ============================================================
+// SIGN
+// ============================================================
+
+function toggleSignExpression()
+{
+    clearError();
+
+
+    const expression =
+        expressionInput.value.trim();
+
+
+    if (expression.length === 0)
     {
-        currentValue =
-            "0.";
-
-        waitingForSecondValue =
-            false;
-
-        updateDisplay();
+        appendToken(
+            "-"
+        );
 
         return;
     }
 
 
-    if (!currentValue.includes("."))
-    {
-        currentValue +=
-            ".";
-    }
+    expressionInput.value =
+        "-(" +
+        expression +
+        ")";
 
 
-    updateDisplay();
-}
-
-
-// ============================================================
-// CLEAR
-// ============================================================
-
-function clearCalculator()
-{
-    currentValue =
-        "0";
-
-    firstValue =
-        null;
-
-    pendingOperation =
-        null;
-
-    waitingForSecondValue =
-        false;
-
-    expression.textContent =
-        "";
-
-    clearError();
-
-    updateDisplay();
+    updatePreview();
 }
 
 
@@ -177,423 +203,172 @@ function backspace()
     clearError();
 
 
-    if (waitingForSecondValue)
+    if (
+        expressionInput.value.length ===
+        0
+    )
     {
         return;
     }
 
 
-    if (
-        currentValue.length <= 1 ||
-        (
-            currentValue.length === 2 &&
-            currentValue.startsWith("-")
-        )
-    )
-    {
-        currentValue =
-            "0";
-    }
-
-    else
-    {
-        currentValue =
-            currentValue.slice(
-                0,
-                -1
-            );
-    }
+    expressionInput.value =
+        expressionInput.value.slice(
+            0,
+            -1
+        );
 
 
-    updateDisplay();
+    updatePreview();
 }
 
 
 // ============================================================
-// BUSY STATE
+// CLEAR
+// ============================================================
+
+function clearCalculator()
+{
+    expressionInput.value =
+        "";
+
+
+    display.textContent =
+        "0";
+
+
+    preview.textContent =
+        "Ready";
+
+
+    lastResult =
+        null;
+
+
+    clearError();
+}
+
+
+// ============================================================
+// BUSY
 // ============================================================
 
 function setBusyState(isBusy)
 {
-    const buttons =
-        document.querySelectorAll(
+    document
+        .querySelectorAll(
             ".button"
-        );
-
-
-    buttons.forEach(
-        function(button)
-        {
-            button.disabled =
-                isBusy;
-        }
-    );
-}
-
-
-// ============================================================
-// API REQUEST
-// ============================================================
-
-async function apiRequest(payload)
-{
-    const response =
-        await fetch(
-            API_URL,
+        )
+        .forEach(
+            function(button)
             {
-                method:
-                    "POST",
-
-                headers:
-                {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify(
-                        payload
-                    )
+                button.disabled =
+                    isBusy;
             }
         );
 
 
-    let data;
-
-
-    try
-    {
-        data =
-            await response.json();
-    }
-
-    catch
-    {
-        throw new Error(
-            "The C++ server returned an invalid response."
-        );
-    }
-
-
-    if (
-        !response.ok ||
-        data.error
-    )
-    {
-        throw new Error(
-            data.error ||
-            "Calculation failed."
-        );
-    }
-
-
-    return data;
+    expressionInput.disabled =
+        isBusy;
 }
 
 
 // ============================================================
-// CONSTANTS
+// EVALUATE
 // ============================================================
 
-async function constantValue(operation)
+async function evaluateExpression()
 {
     clearError();
 
 
-    try
-    {
-        setBusyState(true);
+    const expression =
+        expressionInput.value.trim();
 
 
-        const data =
-            await apiRequest(
-                {
-                    operation:
-                        operation
-                }
-            );
-
-
-        currentValue =
-            formatNumber(
-                data.result
-            );
-
-
-        expression.textContent =
-            operation === "pi"
-                ? "π"
-                : "e";
-
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-    }
-
-    catch (error)
+    if (expression.length === 0)
     {
         showError(
-            error.message
+            "Enter an expression."
         );
+
+        return;
     }
-
-    finally
-    {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// NEGATE
-// ============================================================
-
-async function toggleSign()
-{
-    clearError();
 
 
     try
     {
-        setBusyState(true);
+        setBusyState(
+            true
+        );
 
 
-        const data =
-            await apiRequest(
+        const response =
+            await fetch(
+                API_URL,
                 {
-                    operation:
-                        "negate",
+                    method:
+                        "POST",
 
-                    value:
-                        Number(
-                            currentValue
+                    headers:
+                    {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                expression:
+                                    expression
+                            }
                         )
                 }
             );
 
 
-        currentValue =
-            formatNumber(
-                data.result
-            );
+        let data;
 
 
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-    }
-
-    catch (error)
-    {
-        showError(
-            error.message
-        );
-    }
-
-    finally
-    {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// CHOOSE BINARY OPERATION
-// ============================================================
-
-async function chooseOperation(operation)
-{
-    clearError();
-
-
-    if (
-        firstValue !== null &&
-        pendingOperation !== null &&
-        !waitingForSecondValue
-    )
-    {
-        const successful =
-            await calculateResult();
-
-
-        if (!successful)
+        try
         {
-            return;
+            data =
+                await response.json();
         }
-    }
 
-
-    firstValue =
-        Number(
-            currentValue
-        );
-
-
-    pendingOperation =
-        operation;
-
-
-    waitingForSecondValue =
-        true;
-
-
-    expression.textContent =
-        `${formatNumber(firstValue)} ${operationSymbol(operation)}`;
-}
-
-
-// ============================================================
-// CALCULATE BINARY RESULT
-// ============================================================
-
-async function calculateResult()
-{
-    clearError();
-
-
-    if (
-        firstValue === null ||
-        pendingOperation === null
-    )
-    {
-        return false;
-    }
-
-
-    const secondValue =
-        Number(
-            currentValue
-        );
-
-
-    const originalFirst =
-        firstValue;
-
-
-    const originalOperation =
-        pendingOperation;
-
-
-    try
-    {
-        setBusyState(true);
-
-
-        const data =
-            await apiRequest(
-                {
-                    operation:
-                        originalOperation,
-
-                    left:
-                        originalFirst,
-
-                    right:
-                        secondValue
-                }
+        catch
+        {
+            throw new Error(
+                "The C++ server returned an invalid response."
             );
+        }
 
 
-        expression.textContent =
-            `${formatNumber(originalFirst)} ${operationSymbol(originalOperation)} ${formatNumber(secondValue)} =`;
+        if (
+            !response.ok ||
+            data.error
+        )
+        {
+            throw new Error(
+                data.error ||
+                "Expression evaluation failed."
+            );
+        }
 
 
-        currentValue =
+        lastResult =
+            data.result;
+
+
+        display.textContent =
             formatNumber(
                 data.result
             );
 
 
-        firstValue =
-            null;
-
-
-        pendingOperation =
-            null;
-
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
-
-
-        return true;
-    }
-
-    catch (error)
-    {
-        showError(
-            error.message
-        );
-
-
-        return false;
-    }
-
-    finally
-    {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// SCIENTIFIC UNARY OPERATION
-// ============================================================
-
-async function scientific(operation)
-{
-    clearError();
-
-
-    const input =
-        Number(
-            currentValue
-        );
-
-
-    try
-    {
-        setBusyState(true);
-
-
-        const data =
-            await apiRequest(
-                {
-                    operation:
-                        operation,
-
-                    value:
-                        input
-                }
-            );
-
-
-        expression.textContent =
-            scientificExpression(
-                operation,
-                input
-            );
-
-
-        currentValue =
-            formatNumber(
-                data.result
-            );
-
-
-        waitingForSecondValue =
-            true;
-
-
-        updateDisplay();
+        preview.textContent =
+            expression +
+            " =";
     }
 
     catch (error)
@@ -605,121 +380,18 @@ async function scientific(operation)
 
     finally
     {
-        setBusyState(false);
-    }
-}
-
-
-// ============================================================
-// SCIENTIFIC EXPRESSION LABEL
-// ============================================================
-
-function scientificExpression(
-    operation,
-    value
-)
-{
-    const formatted =
-        formatNumber(
-            value
+        setBusyState(
+            false
         );
 
 
-    switch (operation)
-    {
-        case "sqrt":
-
-            return `√(${formatted})`;
-
-
-        case "square":
-
-            return `${formatted}²`;
-
-
-        case "cube":
-
-            return `${formatted}³`;
-
-
-        case "reciprocal":
-
-            return `1 / ${formatted}`;
-
-
-        case "percent":
-
-            return `${formatted}%`;
-
-
-        case "factorial":
-
-            return `${formatted}!`;
-
-
-        case "sin":
-
-            return `sin(${formatted}°)`;
-
-
-        case "cos":
-
-            return `cos(${formatted}°)`;
-
-
-        case "tan":
-
-            return `tan(${formatted}°)`;
-
-
-        case "log":
-
-            return `log(${formatted})`;
-
-
-        case "ln":
-
-            return `ln(${formatted})`;
-
-
-        default:
-
-            return `${operation}(${formatted})`;
+        expressionInput.focus();
     }
 }
 
 
 // ============================================================
-// BINARY SYMBOLS
-// ============================================================
-
-function operationSymbol(operation)
-{
-    const symbols =
-    {
-        add:
-            "+",
-
-        subtract:
-            "−",
-
-        multiply:
-            "×",
-
-        divide:
-            "÷",
-
-        power:
-            "^"
-    };
-
-
-    return symbols[operation] || "";
-}
-
-
-// ============================================================
-// FORMAT NUMBERS
+// FORMAT NUMBER
 // ============================================================
 
 function formatNumber(number)
@@ -757,24 +429,66 @@ function formatNumber(number)
 
 
 // ============================================================
-// KEYBOARD SUPPORT
+// TEXT INPUT SYNC
 // ============================================================
+
+expressionInput.addEventListener(
+    "input",
+
+    function()
+    {
+        clearError();
+
+        updatePreview();
+    }
+);
+
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+
+expressionInput.addEventListener(
+    "keydown",
+
+    async function(event)
+    {
+        if (event.key === "Enter")
+        {
+            event.preventDefault();
+
+            await evaluateExpression();
+        }
+
+
+        else if (event.key === "Escape")
+        {
+            clearCalculator();
+        }
+    }
+);
+
 
 document.addEventListener(
     "keydown",
 
     async function(event)
     {
-        // ----------------------------------------------------
-        // NUMBERS
-        // ----------------------------------------------------
+        if (
+            document.activeElement ===
+            expressionInput
+        )
+        {
+            return;
+        }
+
 
         if (
             event.key >= "0" &&
             event.key <= "9"
         )
         {
-            inputNumber(
+            appendNumber(
                 event.key
             );
 
@@ -782,135 +496,54 @@ document.addEventListener(
         }
 
 
-        // ----------------------------------------------------
-        // DECIMAL
-        // ----------------------------------------------------
+        if (
+            event.key === "+" ||
+            event.key === "-" ||
+            event.key === "*" ||
+            event.key === "/" ||
+            event.key === "^" ||
+            event.key === "(" ||
+            event.key === ")" ||
+            event.key === "!"
+        )
+        {
+            appendToken(
+                event.key
+            );
+
+            return;
+        }
+
 
         if (event.key === ".")
         {
-            inputDecimal();
+            appendDecimal();
 
             return;
         }
 
 
-        // ----------------------------------------------------
-        // ADD
-        // ----------------------------------------------------
-
-        if (event.key === "+")
-        {
-            await chooseOperation(
-                "add"
-            );
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // SUBTRACT
-        // ----------------------------------------------------
-
-        if (event.key === "-")
-        {
-            await chooseOperation(
-                "subtract"
-            );
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // MULTIPLY
-        // ----------------------------------------------------
-
-        if (event.key === "*")
-        {
-            await chooseOperation(
-                "multiply"
-            );
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // DIVIDE
-        // ----------------------------------------------------
-
-        if (event.key === "/")
+        if (event.key === "Enter")
         {
             event.preventDefault();
 
-
-            await chooseOperation(
-                "divide"
-            );
-
+            await evaluateExpression();
 
             return;
         }
 
-
-        // ----------------------------------------------------
-        // POWER
-        // ----------------------------------------------------
-
-        if (event.key === "^")
-        {
-            await chooseOperation(
-                "power"
-            );
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // EQUALS
-        // ----------------------------------------------------
-
-        if (
-            event.key === "Enter" ||
-            event.key === "="
-        )
-        {
-            event.preventDefault();
-
-
-            await calculateResult();
-
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // BACKSPACE
-        // ----------------------------------------------------
 
         if (event.key === "Backspace")
         {
             event.preventDefault();
 
-
             backspace();
-
 
             return;
         }
 
 
-        // ----------------------------------------------------
-        // CLEAR
-        // ----------------------------------------------------
-
-        if (
-            event.key === "Escape" ||
-            event.key === "Delete"
-        )
+        if (event.key === "Escape")
         {
             clearCalculator();
         }
@@ -922,4 +555,6 @@ document.addEventListener(
 // INITIALIZE
 // ============================================================
 
-updateDisplay();
+updatePreview();
+
+expressionInput.focus();
