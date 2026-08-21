@@ -15,7 +15,24 @@ using namespace drogon;
 
 
 // ============================================================
-// CONSTANTS
+// APPLICATION METADATA
+// ============================================================
+
+constexpr const char *APPLICATION_NAME =
+    "C++ Calculator";
+
+constexpr const char *APPLICATION_VERSION =
+    "9.1";
+
+constexpr const char *APPLICATION_LANGUAGE =
+    "C++";
+
+constexpr const char *APPLICATION_FRAMEWORK =
+    "Drogon";
+
+
+// ============================================================
+// MATHEMATICAL CONSTANTS
 // ============================================================
 
 constexpr double PI =
@@ -130,6 +147,7 @@ HttpResponsePtr errorResponse(
 {
     Json::Value json;
 
+
     json["error"] =
         message;
 
@@ -142,7 +160,7 @@ HttpResponsePtr errorResponse(
 
 
 // ============================================================
-// PORT
+// SERVER PORT
 // ============================================================
 
 int getServerPort()
@@ -241,7 +259,7 @@ double factorial(
 
 
 // ============================================================
-// SCIENTIFIC PARSER
+// SCIENTIFIC EXPRESSION PARSER
 // ============================================================
 
 class ExpressionParser
@@ -1716,6 +1734,404 @@ Json::Value programmerResultJson(
 
 
 // ============================================================
+// API INFORMATION
+// ============================================================
+
+Json::Value buildApiInfo()
+{
+    Json::Value json;
+
+
+    json["name"] =
+        APPLICATION_NAME;
+
+
+    json["version"] =
+        APPLICATION_VERSION;
+
+
+    json["language"] =
+        APPLICATION_LANGUAGE;
+
+
+    json["framework"] =
+        APPLICATION_FRAMEWORK;
+
+
+    json["description"] =
+        "Full-stack scientific and programmer calculator powered by C++ and Drogon.";
+
+
+    // ========================================================
+    // FEATURES
+    // ========================================================
+
+    Json::Value features;
+
+
+    features["scientific"] =
+        true;
+
+
+    features["programmer"] =
+        true;
+
+
+    features["signedIntegers"] =
+        true;
+
+
+    features["unsignedIntegers"] =
+        true;
+
+
+    features["bitEditor"] =
+        true;
+
+
+    features["twoComplement"] =
+        true;
+
+
+    features["persistentFrontendState"] =
+        true;
+
+
+    features["programmerHistory"] =
+        true;
+
+
+    json["features"] =
+        features;
+
+
+    // ========================================================
+    // ANGLE MODES
+    // ========================================================
+
+    Json::Value angleModes(
+        Json::arrayValue
+    );
+
+
+    angleModes.append(
+        "DEG"
+    );
+
+
+    angleModes.append(
+        "RAD"
+    );
+
+
+    json["angleModes"] =
+        angleModes;
+
+
+    // ========================================================
+    // PROGRAMMER BASES
+    // ========================================================
+
+    Json::Value bases(
+        Json::arrayValue
+    );
+
+
+    bases.append(
+        "BIN"
+    );
+
+
+    bases.append(
+        "OCT"
+    );
+
+
+    bases.append(
+        "DEC"
+    );
+
+
+    bases.append(
+        "HEX"
+    );
+
+
+    json["programmerBases"] =
+        bases;
+
+
+    // ========================================================
+    // WORD SIZES
+    // ========================================================
+
+    Json::Value wordSizes(
+        Json::arrayValue
+    );
+
+
+    wordSizes.append(
+        8
+    );
+
+
+    wordSizes.append(
+        16
+    );
+
+
+    wordSizes.append(
+        32
+    );
+
+
+    wordSizes.append(
+        64
+    );
+
+
+    json["wordSizes"] =
+        wordSizes;
+
+
+    // ========================================================
+    // PROGRAMMER OPERATIONS
+    // ========================================================
+
+    Json::Value operations(
+        Json::arrayValue
+    );
+
+
+    operations.append(
+        "CONVERT"
+    );
+
+
+    operations.append(
+        "AND"
+    );
+
+
+    operations.append(
+        "OR"
+    );
+
+
+    operations.append(
+        "XOR"
+    );
+
+
+    operations.append(
+        "NOT"
+    );
+
+
+    operations.append(
+        "SHL"
+    );
+
+
+    operations.append(
+        "SHR"
+    );
+
+
+    operations.append(
+        "ROL"
+    );
+
+
+    operations.append(
+        "ROR"
+    );
+
+
+    operations.append(
+        "TOGGLE"
+    );
+
+
+    json["programmerOperations"] =
+        operations;
+
+
+    // ========================================================
+    // SCIENTIFIC FUNCTIONS
+    // ========================================================
+
+    Json::Value scientificFunctions(
+        Json::arrayValue
+    );
+
+
+    scientificFunctions.append(
+        "sin"
+    );
+
+
+    scientificFunctions.append(
+        "cos"
+    );
+
+
+    scientificFunctions.append(
+        "tan"
+    );
+
+
+    scientificFunctions.append(
+        "log"
+    );
+
+
+    scientificFunctions.append(
+        "ln"
+    );
+
+
+    scientificFunctions.append(
+        "sqrt"
+    );
+
+
+    scientificFunctions.append(
+        "abs"
+    );
+
+
+    scientificFunctions.append(
+        "factorial"
+    );
+
+
+    scientificFunctions.append(
+        "power"
+    );
+
+
+    json["scientificFunctions"] =
+        scientificFunctions;
+
+
+    // ========================================================
+    // API ROUTES
+    // ========================================================
+
+    Json::Value routes(
+        Json::arrayValue
+    );
+
+
+    Json::Value healthRoute;
+
+    healthRoute["method"] =
+        "GET";
+
+    healthRoute["path"] =
+        "/health";
+
+    healthRoute["description"] =
+        "Service health and capability summary";
+
+
+    routes.append(
+        healthRoute
+    );
+
+
+    Json::Value infoRoute;
+
+    infoRoute["method"] =
+        "GET";
+
+    infoRoute["path"] =
+        "/api/info";
+
+    infoRoute["description"] =
+        "Application metadata and supported features";
+
+
+    routes.append(
+        infoRoute
+    );
+
+
+    Json::Value evaluateRoute;
+
+    evaluateRoute["method"] =
+        "POST";
+
+    evaluateRoute["path"] =
+        "/api/evaluate";
+
+    evaluateRoute["description"] =
+        "Evaluate a scientific expression";
+
+
+    routes.append(
+        evaluateRoute
+    );
+
+
+    Json::Value programmerRoute;
+
+    programmerRoute["method"] =
+        "POST";
+
+    programmerRoute["path"] =
+        "/api/programmer";
+
+    programmerRoute["description"] =
+        "Perform programmer calculations and conversions";
+
+
+    routes.append(
+        programmerRoute
+    );
+
+
+    json["routes"] =
+        routes;
+
+
+    // ========================================================
+    // RUNTIME
+    // ========================================================
+
+    Json::Value runtime;
+
+
+    runtime["containerized"] =
+        true;
+
+
+    runtime["container"] =
+        "Docker";
+
+
+    runtime["buildSystem"] =
+        "CMake";
+
+
+    runtime["ci"] =
+        "GitHub Actions";
+
+
+    runtime["overflowPolicy"] =
+        "wrap-to-selected-width";
+
+
+    json["runtime"] =
+        runtime;
+
+
+    return json;
+}
+
+
+// ============================================================
 // MAIN
 // ============================================================
 
@@ -1801,7 +2217,7 @@ int main()
 
 
     // ========================================================
-    // HEALTH
+    // HEALTH ENDPOINT
     // ========================================================
 
     app().registerHandler(
@@ -1821,12 +2237,28 @@ int main()
                 "scientific-calculator-cpp";
 
 
+            json["name"] =
+                APPLICATION_NAME;
+
+
             json["version"] =
-                "8.0";
+                APPLICATION_VERSION;
+
+
+            json["language"] =
+                APPLICATION_LANGUAGE;
+
+
+            json["framework"] =
+                APPLICATION_FRAMEWORK;
 
 
             json["engine"] =
                 "cpp-expression-parser";
+
+
+            json["scientificMode"] =
+                true;
 
 
             json["programmerMode"] =
@@ -1857,9 +2289,36 @@ int main()
                 "BIN,OCT,DEC,HEX";
 
 
+            json["apiInfo"] =
+                "/api/info";
+
+
             callback(
                 jsonResponse(
                     json
+                )
+            );
+        },
+
+        {
+            Get
+        }
+    );
+
+
+    // ========================================================
+    // API INFORMATION ENDPOINT
+    // ========================================================
+
+    app().registerHandler(
+        "/api/info",
+
+        [](const HttpRequestPtr &,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            callback(
+                jsonResponse(
+                    buildApiInfo()
                 )
             );
         },
@@ -1887,6 +2346,7 @@ int main()
             {
                 Json::Value json;
 
+
                 json["status"] =
                     "ok";
 
@@ -1896,6 +2356,7 @@ int main()
                         json
                     )
                 );
+
 
                 return;
             }
@@ -1913,6 +2374,7 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
@@ -1928,6 +2390,7 @@ int main()
                         "Missing expression."
                     )
                 );
+
 
                 return;
             }
@@ -1946,6 +2409,7 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
@@ -1960,6 +2424,7 @@ int main()
                         "Expression is too long."
                     )
                 );
+
 
                 return;
             }
@@ -2059,6 +2524,7 @@ int main()
             {
                 Json::Value json;
 
+
                 json["status"] =
                     "ok";
 
@@ -2068,6 +2534,7 @@ int main()
                         json
                     )
                 );
+
 
                 return;
             }
@@ -2084,6 +2551,7 @@ int main()
                         "Invalid JSON request."
                     )
                 );
+
 
                 return;
             }
@@ -2106,6 +2574,7 @@ int main()
                         "Programmer request requires operation, left and base."
                     )
                 );
+
 
                 return;
             }
@@ -2200,6 +2669,10 @@ int main()
                     left;
 
 
+                // =================================================
+                // CONVERT
+                // =================================================
+
                 if (
                     operation ==
                     "CONVERT"
@@ -2209,6 +2682,10 @@ int main()
                         left;
                 }
 
+
+                // =================================================
+                // NOT
+                // =================================================
 
                 else if (
                     operation ==
@@ -2222,6 +2699,10 @@ int main()
                         mask;
                 }
 
+
+                // =================================================
+                // TOGGLE BIT
+                // =================================================
 
                 else if (
                     operation ==
@@ -2266,6 +2747,10 @@ int main()
                 }
 
 
+                // =================================================
+                // BINARY OPERATIONS
+                // =================================================
+
                 else
                 {
                     if (
@@ -2279,6 +2764,10 @@ int main()
                         );
                     }
 
+
+                    // =============================================
+                    // SHIFT / ROTATION
+                    // =============================================
 
                     if (
                         operation == "SHL" ||
@@ -2297,7 +2786,8 @@ int main()
 
 
                         if (
-                            operation == "SHL"
+                            operation ==
+                            "SHL"
                         )
                         {
                             if (amount >= width)
@@ -2319,7 +2809,8 @@ int main()
 
 
                         else if (
-                            operation == "SHR"
+                            operation ==
+                            "SHR"
                         )
                         {
                             if (amount >= width)
@@ -2365,7 +2856,8 @@ int main()
 
 
                         else if (
-                            operation == "ROL"
+                            operation ==
+                            "ROL"
                         )
                         {
                             result =
@@ -2388,6 +2880,10 @@ int main()
                         }
                     }
 
+
+                    // =============================================
+                    // AND / OR / XOR
+                    // =============================================
 
                     else
                     {
@@ -2460,6 +2956,10 @@ int main()
                     baseName;
 
 
+                responseJson["engineVersion"] =
+                    APPLICATION_VERSION;
+
+
                 callback(
                     jsonResponse(
                         responseJson
@@ -2495,12 +2995,24 @@ int main()
 
 
     std::cout
-        << "C++ Calculator v8.0"
+        << APPLICATION_NAME
+        << " v"
+        << APPLICATION_VERSION
         << std::endl;
 
 
     std::cout
-        << "Advanced programmer mode enabled"
+        << "Scientific expression engine enabled"
+        << std::endl;
+
+
+    std::cout
+        << "Advanced programmer engine enabled"
+        << std::endl;
+
+
+    std::cout
+        << "API metadata available at /api/info"
         << std::endl;
 
 
@@ -2515,7 +3027,9 @@ int main()
             "0.0.0.0",
             port
         )
-        .setThreadNum(2)
+        .setThreadNum(
+            2
+        )
         .run();
 
 
