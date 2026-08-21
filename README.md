@@ -14,7 +14,7 @@ https://scientific-calculator-cpp.onrender.com
 
 ## Current Status
 
-- Portfolio release: **V10.1**
+- Portfolio release: **V10.2**
 - Backend API: **V9.1**
 - Language: **C++**
 - Web framework: **Drogon**
@@ -643,6 +643,17 @@ GitHub presentation polish:
 - table of contents
 - recruiter-oriented project explanation
 - What I Learned section
+
+## V10.2
+
+Desktop interface and programmer-mode reliability release:
+
+- wide 1440p desktop layout
+- independent Scientific and Programmer columns
+- responsive 64-bit binary display
+- corrected section spacing and overlap
+- word-size error recovery
+- versioned frontend assets for reliable deployment updates
 
 # Future Ideas
 
