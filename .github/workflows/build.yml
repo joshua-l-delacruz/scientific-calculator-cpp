@@ -26,36 +26,19 @@ jobs:
 
     steps:
 
-      # ======================================================
-      # CHECKOUT
-      # ======================================================
-
       - name: Checkout repository
-
         uses: actions/checkout@v6
 
 
-      # ======================================================
-      # BUILD
-      # ======================================================
-
       - name: Build Docker image
-
         run: |
-
           docker build \
             -t scientific-calculator-cpp \
             .
 
 
-      # ======================================================
-      # START
-      # ======================================================
-
       - name: Start calculator server
-
         run: |
-
           docker run \
             -d \
             --name scientific-calculator \
@@ -63,14 +46,8 @@ jobs:
             scientific-calculator-cpp
 
 
-      # ======================================================
-      # WAIT
-      # ======================================================
-
       - name: Wait for C++ server
-
         run: |
-
           for i in {1..20}; do
 
             if curl -fsS \
@@ -78,323 +55,195 @@ jobs:
             then
 
               echo
-
               echo "C++ server is healthy."
 
               exit 0
 
             fi
 
-
-            echo "Waiting for C++ server..."
-
+            echo "Waiting for server..."
 
             sleep 2
 
           done
 
-
           docker logs scientific-calculator
-
 
           exit 1
 
 
-      # ======================================================
-      # WEBSITE
-      # ======================================================
-
-      - name: Test website
-
+      - name: Test Version 3 website
         run: |
-
           RESPONSE=$(curl -fsS \
             http://localhost:8080/)
 
+          echo "$RESPONSE" | \
+            grep "v3.0"
 
           echo "$RESPONSE" | \
-            grep "Scientific Calculator"
+            grep "C++ Expression Engine"
 
-
-          echo "$RESPONSE" | \
-            grep "v2.0"
-
-
-      # ======================================================
-      # HEALTH
-      # ======================================================
 
       - name: Test health endpoint
-
         run: |
-
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
 
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep '"version":"3.0"'
+
+          echo "$RESPONSE" | \
+            grep '"engine":"cpp-expression-parser"'
+
+
+      - name: Test arithmetic precedence
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"2+3*4"}')
 
           echo "$RESPONSE"
 
-
           echo "$RESPONSE" | \
-            grep '"status":"ok"'
+            grep '"result":14'
 
 
-          echo "$RESPONSE" | \
-            grep '"version":"2.0"'
-
-
-      # ======================================================
-      # ADDITION
-      # ======================================================
-
-      - name: Test addition
-
+      - name: Test parentheses
         run: |
-
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"add","left":25,"right":15}')
+            -d '{"expression":"(2+3)*4"}')
 
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
-            grep '"result":40'
+            grep '"result":20'
 
-
-      # ======================================================
-      # POWER
-      # ======================================================
 
       - name: Test power
-
         run: |
-
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"power","left":2,"right":8}')
-
+            -d '{"expression":"2^8"}')
 
           echo "$RESPONSE"
-
 
           echo "$RESPONSE" | \
             grep '"result":256'
 
 
-      # ======================================================
-      # SQUARE
-      # ======================================================
-
-      - name: Test square
-
+      - name: Test nested power
         run: |
-
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"square","value":12}')
-
-
-          echo "$RESPONSE" | \
-            grep '"result":144'
-
-
-      # ======================================================
-      # CUBE
-      # ======================================================
-
-      - name: Test cube
-
-        run: |
-
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/calculate \
-            -H "Content-Type: application/json" \
-            -d '{"operation":"cube","value":5}')
-
-
-          echo "$RESPONSE" | \
-            grep '"result":125'
-
-
-      # ======================================================
-      # RECIPROCAL
-      # ======================================================
-
-      - name: Test reciprocal
-
-        run: |
-
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/calculate \
-            -H "Content-Type: application/json" \
-            -d '{"operation":"reciprocal","value":4}')
-
+            -d '{"expression":"(2+3)^4"}')
 
           echo "$RESPONSE"
 
+          echo "$RESPONSE" | \
+            grep '"result":625'
 
-      # ======================================================
-      # PERCENTAGE
-      # ======================================================
-
-      - name: Test percent
-
-        run: |
-
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/calculate \
-            -H "Content-Type: application/json" \
-            -d '{"operation":"percent","value":25}')
-
-
-          echo "$RESPONSE"
-
-
-      # ======================================================
-      # FACTORIAL
-      # ======================================================
 
       - name: Test factorial
-
         run: |
-
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"factorial","value":5}')
-
+            -d '{"expression":"5!"}')
 
           echo "$RESPONSE"
-
 
           echo "$RESPONSE" | \
             grep '"result":120'
 
 
-      # ======================================================
-      # PI
-      # ======================================================
-
-      - name: Test pi
-
-        run: |
-
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/calculate \
-            -H "Content-Type: application/json" \
-            -d '{"operation":"pi"}')
-
-
-          echo "$RESPONSE"
-
-
-          echo "$RESPONSE" | \
-            grep '"operation":"pi"'
-
-
-      # ======================================================
-      # E
-      # ======================================================
-
-      - name: Test Euler constant
-
-        run: |
-
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/calculate \
-            -H "Content-Type: application/json" \
-            -d '{"operation":"e"}')
-
-
-          echo "$RESPONSE"
-
-
-          echo "$RESPONSE" | \
-            grep '"operation":"e"'
-
-
-      # ======================================================
-      # SQRT
-      # ======================================================
-
       - name: Test square root
-
         run: |
-
           RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"sqrt","value":144}')
+            -d '{"expression":"sqrt(144)"}')
 
+          echo "$RESPONSE"
 
           echo "$RESPONSE" | \
             grep '"result":12'
 
 
-      # ======================================================
-      # ERROR — FACTORIAL DECIMAL
-      # ======================================================
-
-      - name: Test invalid factorial
-
+      - name: Test sine
         run: |
-
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"factorial","value":5.5}')
-
+            -d '{"expression":"sin(30)"}')
 
           echo "$RESPONSE"
 
 
-          echo "$RESPONSE" | \
-            grep '"error":"Factorial requires a whole number."'
-
-
-      # ======================================================
-      # ERROR — RECIPROCAL ZERO
-      # ======================================================
-
-      - name: Test reciprocal zero
-
+      - name: Test compound scientific expression
         run: |
-
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -fsS \
             -X POST \
-            http://localhost:8080/api/calculate \
+            http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"operation":"reciprocal","value":0}')
-
+            -d '{"expression":"sin(30)+sqrt(144)"}')
 
           echo "$RESPONSE"
 
 
+      - name: Test constants
+        run: |
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"pi*2"}')
+
+          echo "$RESPONSE"
+
+
+      - name: Test divide by zero
+        run: |
+          RESPONSE=$(curl -s \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"10/0"}')
+
+          echo "$RESPONSE"
+
           echo "$RESPONSE" | \
-            grep '"error":"Cannot calculate the reciprocal of zero."'
+            grep '"error":"Cannot divide by zero."'
 
 
-      # ======================================================
-      # LOGS
-      # ======================================================
+      - name: Test invalid parentheses
+        run: |
+          RESPONSE=$(curl -s \
+            -X POST \
+            http://localhost:8080/api/evaluate \
+            -H "Content-Type: application/json" \
+            -d '{"expression":"(2+3"}')
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | \
+            grep "Missing closing parenthesis"
+
 
       - name: Show container logs
-
         if: always()
-
         run: |
-
-          docker logs scientific-calculator
+          docker logs scientific-calculator 2>/dev/null || true
