@@ -1,3 +1,7 @@
+/* ============================================================
+   GLOBAL
+============================================================ */
+
 * {
     box-sizing: border-box;
 }
@@ -105,23 +109,61 @@ body {
 }
 
 
-.mode-badge {
+/* ============================================================
+   DEG / RAD BUTTON
+============================================================ */
+
+.mode-button {
+    min-width: 58px;
+
     padding:
-        7px
-        10px;
-
-    border-radius: 9px;
-
-    background: #172554;
+        8px
+        11px;
 
     border:
         1px solid
-        rgba(56, 189, 248, 0.15);
+        rgba(56, 189, 248, 0.25);
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    background: #172554;
 
     color: #7dd3fc;
 
+    font-family: inherit;
+
     font-size: 12px;
+
     font-weight: 800;
+
+    letter-spacing: 0.05em;
+
+    transition:
+        transform 0.08s ease,
+        filter 0.15s ease,
+        background 0.15s ease;
+}
+
+
+.mode-button:hover {
+    filter: brightness(1.18);
+}
+
+
+.mode-button:active {
+    transform: scale(0.96);
+}
+
+
+.mode-button.rad {
+    background: #312e81;
+
+    border-color:
+        rgba(196, 181, 253, 0.3);
+
+    color: #c4b5fd;
 }
 
 
@@ -130,13 +172,13 @@ body {
 ============================================================ */
 
 .display {
-    min-height: 130px;
+    min-height: 140px;
 
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
 
-    padding: 20px;
+    padding: 18px 20px 20px;
 
     border-radius: 17px;
 
@@ -152,6 +194,27 @@ body {
     border:
         1px solid
         #1e293b;
+}
+
+
+.display-meta {
+    min-height: 20px;
+
+    display: flex;
+    justify-content: flex-end;
+
+    margin-bottom: 2px;
+}
+
+
+.display-mode {
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+
+    color: #38bdf8;
 }
 
 
@@ -244,7 +307,7 @@ body {
 
 
 /* ============================================================
-   BUTTON
+   BUTTONS
 ============================================================ */
 
 .button {
@@ -288,6 +351,17 @@ body {
 }
 
 
+.button:focus-visible,
+.mode-button:focus-visible,
+.expression-input:focus-visible {
+    outline:
+        2px solid
+        #38bdf8;
+
+    outline-offset: 2px;
+}
+
+
 .button:disabled {
     opacity: 0.6;
 
@@ -296,7 +370,7 @@ body {
 
 
 /* ============================================================
-   SPECIAL BUTTONS
+   BUTTON TYPES
 ============================================================ */
 
 .number {
@@ -381,14 +455,30 @@ body {
 }
 
 
-.raw-expression-section label {
-    display: block;
+.expression-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 12px;
 
     margin-bottom: 7px;
+}
 
+
+.expression-label-row label {
     color: #94a3b8;
 
     font-size: 12px;
+}
+
+
+.expression-mode-label {
+    color: #64748b;
+
+    font-size: 11px;
+
+    text-align: right;
 }
 
 
@@ -478,9 +568,9 @@ body {
 
 
     .display {
-        min-height: 110px;
+        min-height: 120px;
 
-        padding: 15px;
+        padding: 14px 15px 16px;
     }
 
 
@@ -500,6 +590,45 @@ body {
 
     .scientific {
         font-size: 13px;
+    }
+
+
+    .expression-mode-label {
+        font-size: 10px;
+    }
+
+}
+
+
+/* ============================================================
+   VERY SMALL PHONES
+============================================================ */
+
+@media (max-width: 360px) {
+
+    .calculator {
+        padding: 12px;
+    }
+
+
+    .expression-controls,
+    .scientific-grid,
+    .keypad {
+        gap: 6px;
+    }
+
+
+    .button {
+        min-height: 47px;
+
+        padding:
+            8px
+            4px;
+    }
+
+
+    .title-group h1 {
+        font-size: 18px;
     }
 
 }
