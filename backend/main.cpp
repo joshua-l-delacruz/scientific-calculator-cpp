@@ -1,11 +1,18 @@
 #include <drogon/drogon.h>
 
 #include <cmath>
+#include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 using namespace drogon;
+
+
+// ============================================================
+// CONSTANTS
+// ============================================================
 
 constexpr double PI =
     3.141592653589793238462643383279502884;
@@ -13,6 +20,10 @@ constexpr double PI =
 constexpr double EULER_E =
     2.718281828459045235360287471352662498;
 
+
+// ============================================================
+// JSON HELPERS
+// ============================================================
 
 HttpResponsePtr jsonResponse(
     const Json::Value &json,
@@ -58,6 +69,10 @@ HttpResponsePtr errorResponse(
 }
 
 
+// ============================================================
+// PORT
+// ============================================================
+
 int getServerPort()
 {
     const char *portEnvironment =
@@ -87,14 +102,51 @@ int getServerPort()
 }
 
 
-double factorial(int number)
+// ============================================================
+// FACTORIAL
+// ============================================================
+
+double factorial(double value)
 {
+    if (value < 0.0)
+    {
+        throw std::runtime_error(
+            "Factorial requires a non-negative integer."
+        );
+    }
+
+
+    const double rounded =
+        std::round(value);
+
+
+    if (
+        std::abs(
+            value - rounded
+        ) > 1e-12
+    )
+    {
+        throw std::runtime_error(
+            "Factorial requires a whole number."
+        );
+    }
+
+
+    if (rounded > 170.0)
+    {
+        throw std::runtime_error(
+            "Factorial is limited to 170 to avoid overflow."
+        );
+    }
+
+
     double result =
         1.0;
 
+
     for (
         int i = 2;
-        i <= number;
+        i <= static_cast<int>(rounded);
         ++i
     )
     {
@@ -102,9 +154,734 @@ double factorial(int number)
             static_cast<double>(i);
     }
 
+
     return result;
 }
 
+
+// ============================================================
+// C++ EXPRESSION PARSER
+// ============================================================
+
+class ExpressionParser
+{
+private:
+
+    std::string expression;
+
+    std::size_t position =
+        0;
+
+
+public:
+
+    explicit ExpressionParser(
+        std::string input
+    )
+        : expression(
+            std::move(input)
+        )
+    {
+    }
+
+
+    double parse()
+    {
+        position =
+            0;
+
+
+        const double result =
+            parseExpression();
+
+
+        skipWhitespace();
+
+
+        if (
+            position !=
+            expression.length()
+        )
+        {
+            throw std::runtime_error(
+                "Unexpected character near position " +
+                std::to_string(position + 1) +
+                "."
+            );
+        }
+
+
+        if (!std::isfinite(result))
+        {
+            throw std::runtime_error(
+                "The calculation produced an invalid or overflowing result."
+            );
+        }
+
+
+        return result;
+    }
+
+
+private:
+
+    // ========================================================
+    // WHITESPACE
+    // ========================================================
+
+    void skipWhitespace()
+    {
+        while (
+            position <
+            expression.length() &&
+            std::isspace(
+                static_cast<unsigned char>(
+                    expression[position]
+                )
+            )
+        )
+        {
+            ++position;
+        }
+    }
+
+
+    // ========================================================
+    // CHARACTER MATCH
+    // ========================================================
+
+    bool match(char character)
+    {
+        skipWhitespace();
+
+
+        if (
+            position <
+            expression.length() &&
+            expression[position] ==
+            character
+        )
+        {
+            ++position;
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    // ========================================================
+    // EXPRESSION
+    //
+    // Handles:
+    // +
+    // -
+    // ========================================================
+
+    double parseExpression()
+    {
+        double value =
+            parseTerm();
+
+
+        while (true)
+        {
+            if (match('+'))
+            {
+                value +=
+                    parseTerm();
+            }
+
+            else if (match('-'))
+            {
+                value -=
+                    parseTerm();
+            }
+
+            else
+            {
+                break;
+            }
+        }
+
+
+        return value;
+    }
+
+
+    // ========================================================
+    // TERM
+    //
+    // Handles:
+    // *
+    // /
+    // ========================================================
+
+    double parseTerm()
+    {
+        double value =
+            parsePower();
+
+
+        while (true)
+        {
+            if (match('*'))
+            {
+                value *=
+                    parsePower();
+            }
+
+            else if (match('/'))
+            {
+                const double divisor =
+                    parsePower();
+
+
+                if (
+                    std::abs(divisor) <
+                    1e-15
+                )
+                {
+                    throw std::runtime_error(
+                        "Cannot divide by zero."
+                    );
+                }
+
+
+                value /=
+                    divisor;
+            }
+
+            else
+            {
+                break;
+            }
+        }
+
+
+        return value;
+    }
+
+
+    // ========================================================
+    // POWER
+    //
+    // Handles:
+    // ^
+    //
+    // Right associative:
+    //
+    // 2^3^2
+    //
+    // becomes:
+    //
+    // 2^(3^2)
+    // ========================================================
+
+    double parsePower()
+    {
+        double base =
+            parseUnary();
+
+
+        if (match('^'))
+        {
+            const double exponent =
+                parsePower();
+
+
+            base =
+                std::pow(
+                    base,
+                    exponent
+                );
+
+
+            if (!std::isfinite(base))
+            {
+                throw std::runtime_error(
+                    "Invalid power operation."
+                );
+            }
+        }
+
+
+        return base;
+    }
+
+
+    // ========================================================
+    // UNARY
+    //
+    // Handles:
+    // +5
+    // -5
+    // ========================================================
+
+    double parseUnary()
+    {
+        if (match('+'))
+        {
+            return parseUnary();
+        }
+
+
+        if (match('-'))
+        {
+            return -parseUnary();
+        }
+
+
+        return parsePostfix();
+    }
+
+
+    // ========================================================
+    // POSTFIX
+    //
+    // Handles:
+    // !
+    //
+    // Example:
+    // 5!
+    // ========================================================
+
+    double parsePostfix()
+    {
+        double value =
+            parsePrimary();
+
+
+        while (match('!'))
+        {
+            value =
+                factorial(value);
+        }
+
+
+        return value;
+    }
+
+
+    // ========================================================
+    // PRIMARY
+    //
+    // Handles:
+    // numbers
+    // constants
+    // parentheses
+    // functions
+    // ========================================================
+
+    double parsePrimary()
+    {
+        skipWhitespace();
+
+
+        if (
+            position >=
+            expression.length()
+        )
+        {
+            throw std::runtime_error(
+                "Unexpected end of expression."
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // PARENTHESES
+        // ----------------------------------------------------
+
+        if (match('('))
+        {
+            const double value =
+                parseExpression();
+
+
+            if (!match(')'))
+            {
+                throw std::runtime_error(
+                    "Missing closing parenthesis."
+                );
+            }
+
+
+            return value;
+        }
+
+
+        // ----------------------------------------------------
+        // NUMBER
+        // ----------------------------------------------------
+
+        if (
+            std::isdigit(
+                static_cast<unsigned char>(
+                    expression[position]
+                )
+            ) ||
+            expression[position] == '.'
+        )
+        {
+            return parseNumber();
+        }
+
+
+        // ----------------------------------------------------
+        // IDENTIFIER
+        // ----------------------------------------------------
+
+        if (
+            std::isalpha(
+                static_cast<unsigned char>(
+                    expression[position]
+                )
+            )
+        )
+        {
+            const std::string identifier =
+                parseIdentifier();
+
+
+            // ------------------------------------------------
+            // CONSTANT PI
+            // ------------------------------------------------
+
+            if (identifier == "pi")
+            {
+                return PI;
+            }
+
+
+            // ------------------------------------------------
+            // CONSTANT E
+            // ------------------------------------------------
+
+            if (identifier == "e")
+            {
+                return EULER_E;
+            }
+
+
+            // ------------------------------------------------
+            // FUNCTION REQUIRES (
+            // ------------------------------------------------
+
+            if (!match('('))
+            {
+                throw std::runtime_error(
+                    "Expected '(' after function '" +
+                    identifier +
+                    "'."
+                );
+            }
+
+
+            const double argument =
+                parseExpression();
+
+
+            if (!match(')'))
+            {
+                throw std::runtime_error(
+                    "Missing closing parenthesis after function '" +
+                    identifier +
+                    "'."
+                );
+            }
+
+
+            return evaluateFunction(
+                identifier,
+                argument
+            );
+        }
+
+
+        throw std::runtime_error(
+            "Unexpected character near position " +
+            std::to_string(position + 1) +
+            "."
+        );
+    }
+
+
+    // ========================================================
+    // NUMBER
+    // ========================================================
+
+    double parseNumber()
+    {
+        skipWhitespace();
+
+
+        const std::size_t start =
+            position;
+
+
+        bool decimalFound =
+            false;
+
+
+        while (
+            position <
+            expression.length()
+        )
+        {
+            const char character =
+                expression[position];
+
+
+            if (
+                std::isdigit(
+                    static_cast<unsigned char>(
+                        character
+                    )
+                )
+            )
+            {
+                ++position;
+
+                continue;
+            }
+
+
+            if (
+                character == '.' &&
+                !decimalFound
+            )
+            {
+                decimalFound =
+                    true;
+
+                ++position;
+
+                continue;
+            }
+
+
+            break;
+        }
+
+
+        if (
+            start ==
+            position
+        )
+        {
+            throw std::runtime_error(
+                "Expected number."
+            );
+        }
+
+
+        const std::string numberText =
+            expression.substr(
+                start,
+                position - start
+            );
+
+
+        try
+        {
+            return std::stod(
+                numberText
+            );
+        }
+
+        catch (...)
+        {
+            throw std::runtime_error(
+                "Invalid number."
+            );
+        }
+    }
+
+
+    // ========================================================
+    // IDENTIFIER
+    // ========================================================
+
+    std::string parseIdentifier()
+    {
+        skipWhitespace();
+
+
+        const std::size_t start =
+            position;
+
+
+        while (
+            position <
+            expression.length() &&
+            std::isalpha(
+                static_cast<unsigned char>(
+                    expression[position]
+                )
+            )
+        )
+        {
+            ++position;
+        }
+
+
+        std::string identifier =
+            expression.substr(
+                start,
+                position - start
+            );
+
+
+        for (char &character : identifier)
+        {
+            character =
+                static_cast<char>(
+                    std::tolower(
+                        static_cast<unsigned char>(
+                            character
+                        )
+                    )
+                );
+        }
+
+
+        return identifier;
+    }
+
+
+    // ========================================================
+    // FUNCTIONS
+    //
+    // DEG MODE
+    // ========================================================
+
+    double evaluateFunction(
+        const std::string &name,
+        double value
+    )
+    {
+        if (name == "sqrt")
+        {
+            if (value < 0.0)
+            {
+                throw std::runtime_error(
+                    "Square root requires a non-negative number."
+                );
+            }
+
+
+            return std::sqrt(
+                value
+            );
+        }
+
+
+        if (name == "sin")
+        {
+            return std::sin(
+                value *
+                PI /
+                180.0
+            );
+        }
+
+
+        if (name == "cos")
+        {
+            return std::cos(
+                value *
+                PI /
+                180.0
+            );
+        }
+
+
+        if (name == "tan")
+        {
+            const double radians =
+                value *
+                PI /
+                180.0;
+
+
+            const double cosine =
+                std::cos(
+                    radians
+                );
+
+
+            if (
+                std::abs(cosine) <
+                1e-12
+            )
+            {
+                throw std::runtime_error(
+                    "Tangent is undefined for this angle."
+                );
+            }
+
+
+            return std::tan(
+                radians
+            );
+        }
+
+
+        if (name == "log")
+        {
+            if (value <= 0.0)
+            {
+                throw std::runtime_error(
+                    "Logarithm requires a positive number."
+                );
+            }
+
+
+            return std::log10(
+                value
+            );
+        }
+
+
+        if (name == "ln")
+        {
+            if (value <= 0.0)
+            {
+                throw std::runtime_error(
+                    "Natural logarithm requires a positive number."
+                );
+            }
+
+
+            return std::log(
+                value
+            );
+        }
+
+
+        if (name == "abs")
+        {
+            return std::abs(
+                value
+            );
+        }
+
+
+        throw std::runtime_error(
+            "Unknown function: " +
+            name +
+            "."
+        );
+    }
+};
+
+
+// ============================================================
+// MAIN
+// ============================================================
 
 int main()
 {
@@ -190,20 +967,24 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            Json::Value responseJson;
+            Json::Value json;
 
-            responseJson["status"] =
+            json["status"] =
                 "ok";
 
-            responseJson["service"] =
+            json["service"] =
                 "scientific-calculator-cpp";
 
-            responseJson["version"] =
-                "2.0";
+            json["version"] =
+                "3.0";
+
+            json["engine"] =
+                "cpp-expression-parser";
+
 
             callback(
                 jsonResponse(
-                    responseJson
+                    json
                 )
             );
         },
@@ -215,25 +996,25 @@ int main()
 
 
     // ========================================================
-    // CALCULATOR API
+    // EXPRESSION API
     // ========================================================
 
     app().registerHandler(
-        "/api/calculate",
+        "/api/evaluate",
 
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
             if (req->method() == Options)
             {
-                Json::Value responseJson;
+                Json::Value json;
 
-                responseJson["status"] =
+                json["status"] =
                     "ok";
 
                 callback(
                     jsonResponse(
-                        responseJson
+                        json
                     )
                 );
 
@@ -243,6 +1024,7 @@ int main()
 
             auto json =
                 req->getJsonObject();
+
 
             if (!json)
             {
@@ -256,11 +1038,11 @@ int main()
             }
 
 
-            if (!json->isMember("operation"))
+            if (!json->isMember("expression"))
             {
                 callback(
                     errorResponse(
-                        "Missing operation."
+                        "Missing expression."
                     )
                 );
 
@@ -268,385 +1050,71 @@ int main()
             }
 
 
-            const std::string operation =
-                (*json)["operation"].asString();
+            const std::string input =
+                (*json)["expression"].asString();
 
 
-            double result =
-                0.0;
-
-
-            // =================================================
-            // CONSTANTS
-            // =================================================
-
-            if (operation == "pi")
+            if (input.empty())
             {
-                result =
-                    PI;
-            }
+                callback(
+                    errorResponse(
+                        "Expression cannot be empty."
+                    )
+                );
 
-            else if (operation == "e")
-            {
-                result =
-                    EULER_E;
+                return;
             }
 
 
-            // =================================================
-            // BINARY OPERATIONS
-            // =================================================
+            if (input.length() > 500)
+            {
+                callback(
+                    errorResponse(
+                        "Expression is too long."
+                    )
+                );
 
-            else if (
-                operation == "add" ||
-                operation == "subtract" ||
-                operation == "multiply" ||
-                operation == "divide" ||
-                operation == "power"
+                return;
+            }
+
+
+            try
+            {
+                ExpressionParser parser(
+                    input
+                );
+
+
+                const double result =
+                    parser.parse();
+
+
+                Json::Value responseJson;
+
+                responseJson["expression"] =
+                    input;
+
+                responseJson["result"] =
+                    result;
+
+
+                callback(
+                    jsonResponse(
+                        responseJson
+                    )
+                );
+            }
+
+            catch (
+                const std::exception &error
             )
             {
-                if (
-                    !json->isMember("left") ||
-                    !json->isMember("right")
-                )
-                {
-                    callback(
-                        errorResponse(
-                            "Missing left or right value."
-                        )
-                    );
-
-                    return;
-                }
-
-
-                const double left =
-                    (*json)["left"].asDouble();
-
-                const double right =
-                    (*json)["right"].asDouble();
-
-
-                if (operation == "add")
-                {
-                    result =
-                        left + right;
-                }
-
-                else if (operation == "subtract")
-                {
-                    result =
-                        left - right;
-                }
-
-                else if (operation == "multiply")
-                {
-                    result =
-                        left * right;
-                }
-
-                else if (operation == "divide")
-                {
-                    if (right == 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Cannot divide by zero."
-                            )
-                        );
-
-                        return;
-                    }
-
-                    result =
-                        left / right;
-                }
-
-                else if (operation == "power")
-                {
-                    result =
-                        std::pow(
-                            left,
-                            right
-                        );
-                }
-            }
-
-
-            // =================================================
-            // UNARY OPERATIONS
-            // =================================================
-
-            else
-            {
-                if (!json->isMember("value"))
-                {
-                    callback(
-                        errorResponse(
-                            "Missing value."
-                        )
-                    );
-
-                    return;
-                }
-
-
-                const double value =
-                    (*json)["value"].asDouble();
-
-
-                if (operation == "sqrt")
-                {
-                    if (value < 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Square root requires a non-negative number."
-                            )
-                        );
-
-                        return;
-                    }
-
-                    result =
-                        std::sqrt(value);
-                }
-
-                else if (operation == "square")
-                {
-                    result =
-                        value * value;
-                }
-
-                else if (operation == "cube")
-                {
-                    result =
-                        value * value * value;
-                }
-
-                else if (operation == "reciprocal")
-                {
-                    if (value == 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Cannot calculate the reciprocal of zero."
-                            )
-                        );
-
-                        return;
-                    }
-
-                    result =
-                        1.0 / value;
-                }
-
-                else if (operation == "percent")
-                {
-                    result =
-                        value / 100.0;
-                }
-
-                else if (operation == "factorial")
-                {
-                    if (value < 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Factorial requires a non-negative integer."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    const double rounded =
-                        std::round(value);
-
-
-                    if (
-                        std::abs(
-                            value - rounded
-                        ) > 1e-12
-                    )
-                    {
-                        callback(
-                            errorResponse(
-                                "Factorial requires a whole number."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    if (rounded > 170.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Factorial is limited to 170 to avoid overflow."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    result =
-                        factorial(
-                            static_cast<int>(
-                                rounded
-                            )
-                        );
-                }
-
-                else if (operation == "sin")
-                {
-                    const double radians =
-                        value *
-                        PI /
-                        180.0;
-
-                    result =
-                        std::sin(
-                            radians
-                        );
-                }
-
-                else if (operation == "cos")
-                {
-                    const double radians =
-                        value *
-                        PI /
-                        180.0;
-
-                    result =
-                        std::cos(
-                            radians
-                        );
-                }
-
-                else if (operation == "tan")
-                {
-                    const double radians =
-                        value *
-                        PI /
-                        180.0;
-
-
-                    const double cosine =
-                        std::cos(
-                            radians
-                        );
-
-
-                    if (
-                        std::abs(cosine) <
-                        1e-12
-                    )
-                    {
-                        callback(
-                            errorResponse(
-                                "Tangent is undefined for this angle."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    result =
-                        std::tan(
-                            radians
-                        );
-                }
-
-                else if (operation == "log")
-                {
-                    if (value <= 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Logarithm requires a positive number."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    result =
-                        std::log10(
-                            value
-                        );
-                }
-
-                else if (operation == "ln")
-                {
-                    if (value <= 0.0)
-                    {
-                        callback(
-                            errorResponse(
-                                "Natural logarithm requires a positive number."
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    result =
-                        std::log(
-                            value
-                        );
-                }
-
-                else if (operation == "negate")
-                {
-                    result =
-                        -value;
-                }
-
-                else
-                {
-                    callback(
-                        errorResponse(
-                            "Unsupported calculator operation."
-                        )
-                    );
-
-                    return;
-                }
-            }
-
-
-            if (!std::isfinite(result))
-            {
                 callback(
                     errorResponse(
-                        "The calculation produced an invalid or overflowing result."
+                        error.what()
                     )
                 );
-
-                return;
             }
-
-
-            Json::Value responseJson;
-
-            responseJson["operation"] =
-                operation;
-
-            responseJson["result"] =
-                result;
-
-
-            callback(
-                jsonResponse(
-                    responseJson
-                )
-            );
         },
 
         {
@@ -656,12 +1124,20 @@ int main()
     );
 
 
+    // ========================================================
+    // SERVER
+    // ========================================================
+
     const int port =
         getServerPort();
 
 
     std::cout
-        << "C++ Scientific Calculator v2.0"
+        << "C++ Scientific Calculator v3.0"
+        << std::endl;
+
+    std::cout
+        << "Expression parser enabled"
         << std::endl;
 
     std::cout
