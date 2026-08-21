@@ -136,7 +136,7 @@ const historyCount =
 
 
 // ============================================================
-// STORAGE HELPERS
+// STORAGE
 // ============================================================
 
 function getStoredNumber(key)
@@ -252,7 +252,7 @@ function showError(message)
 
 
 // ============================================================
-// ANGLE MODE
+// MODE
 // ============================================================
 
 function updateAngleModeInterface()
@@ -465,8 +465,40 @@ function appendAnswer()
 
 
 // ============================================================
-// NUMERIC INSERTION
+// INSERTION HELPERS
 // ============================================================
+
+function expressionNeedsMultiplicationBeforeValue()
+{
+    const expression =
+        expressionInput.value.trimEnd();
+
+
+    if (
+        expression.length ===
+        0
+    )
+    {
+        return false;
+    }
+
+
+    const lastCharacter =
+        expression[
+            expression.length - 1
+        ];
+
+
+    return (
+        lastCharacter === ')' ||
+        lastCharacter === '!' ||
+        lastCharacter === '.' ||
+        /[0-9a-zA-Z]/.test(
+            lastCharacter
+        )
+    );
+}
+
 
 function appendNumericValue(value)
 {
@@ -476,19 +508,34 @@ function appendNumericValue(value)
         );
 
 
+    let valueExpression =
+        text;
+
+
     if (value < 0)
     {
-        appendToken(
-            `(${text})`
-        );
+        valueExpression =
+            `(${text})`;
     }
 
-    else
+
+    if (
+        expressionNeedsMultiplicationBeforeValue()
+    )
     {
-        appendToken(
-            text
-        );
+        expressionInput.value +=
+            "*";
     }
+
+
+    expressionInput.value +=
+        valueExpression;
+
+
+    updatePreview();
+
+
+    expressionInput.focus();
 }
 
 
@@ -517,7 +564,7 @@ function updatePreview()
 
 
 // ============================================================
-// APPENDING
+// APPEND
 // ============================================================
 
 function appendToken(token)
@@ -562,18 +609,52 @@ function appendOperator(operator)
 
 function appendConstant(constant)
 {
-    appendToken(
-        constant
-    );
+    clearError();
+
+
+    if (
+        expressionNeedsMultiplicationBeforeValue()
+    )
+    {
+        expressionInput.value +=
+            "*";
+    }
+
+
+    expressionInput.value +=
+        constant;
+
+
+    updatePreview();
+
+
+    expressionInput.focus();
 }
 
 
 function appendFunction(functionName)
 {
-    appendToken(
+    clearError();
+
+
+    if (
+        expressionNeedsMultiplicationBeforeValue()
+    )
+    {
+        expressionInput.value +=
+            "*";
+    }
+
+
+    expressionInput.value +=
         functionName +
-        "("
-    );
+        "(";
+
+
+    updatePreview();
+
+
+    expressionInput.focus();
 }
 
 
@@ -671,7 +752,7 @@ function backspace()
 
 
 // ============================================================
-// CLEAR CURRENT CALCULATION
+// CLEAR
 // ============================================================
 
 function clearCalculator()
@@ -696,7 +777,7 @@ function clearCalculator()
 
 
 // ============================================================
-// BUSY STATE
+// BUSY
 // ============================================================
 
 function setBusyState(isBusy)
@@ -724,7 +805,7 @@ function setBusyState(isBusy)
 
 
 // ============================================================
-// API EVALUATION
+// EVALUATE
 // ============================================================
 
 async function evaluateExpression()
@@ -1190,7 +1271,7 @@ expressionInput.addEventListener(
 
 
 // ============================================================
-// KEYBOARD — INPUT FIELD
+// KEYBOARD — INPUT
 // ============================================================
 
 expressionInput.addEventListener(
