@@ -1688,6 +1688,25 @@ input:focus-visible {
     }
 
 
+    #programmerMode:has(#baseBIN.active) .programmer-main-value {
+        font-size: 18px;
+
+        letter-spacing: 0.02em;
+
+        overflow-x: hidden;
+    }
+
+
+    #programmerMode:has(#baseOCT.active) .programmer-main-value {
+        font-size: 24px;
+    }
+
+
+    #programmerMode:has(#baseHEX.active) .programmer-main-value {
+        font-size: 27px;
+    }
+
+
     .display {
         min-height: 165px;
     }
