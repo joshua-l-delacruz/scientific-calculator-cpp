@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>C++ Scientific Calculator</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="calculator">
+
+        <h1>Scientific Calculator</h1>
+        <p class="subtitle">Powered by C++</p>
+
+        <input
+            type="number"
+            id="value"
+            placeholder="Enter a number"
+        >
+
+        <div class="buttons">
+
+            <button onclick="calculate('sqrt')">√x</button>
+            <button onclick="calculate('sin')">sin</button>
+            <button onclick="calculate('cos')">cos</button>
+
+            <button onclick="calculate('tan')">tan</button>
+            <button onclick="calculate('log')">log</button>
+            <button onclick="calculate('ln')">ln</button>
+
+        </div>
+
+        <div class="result">
+            Result:
+            <span id="result">0</span>
+        </div>
+
+        <div id="error" class="error"></div>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
