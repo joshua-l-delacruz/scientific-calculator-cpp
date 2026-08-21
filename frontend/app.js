@@ -2501,8 +2501,29 @@ async function setProgrammerWidth(width)
     clearProgrammerError();
 
 
+    const previousWidth =
+        programmerWidth;
+
+
+    const previousBase =
+        programmerBase;
+
+
+    const previousValue =
+        programmerValue;
+
+
     try
     {
+        /*
+         * Normalize with the widest supported word first. This allows
+         * the user to recover after entering a value that no longer fits
+         * the currently selected width.
+         */
+        programmerWidth =
+            64;
+
+
         const oldData =
             await programmerRequest(
                 {
@@ -2592,6 +2613,21 @@ async function setProgrammerWidth(width)
 
     catch (error)
     {
+        programmerWidth =
+            previousWidth;
+
+
+        programmerBase =
+            previousBase;
+
+
+        programmerValue =
+            previousValue;
+
+
+        updateProgrammerDisplay();
+
+
         showProgrammerError(
             error.message
         );
