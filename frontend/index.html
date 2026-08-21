@@ -9,11 +9,16 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="A web-based scientific calculator powered by C++ and Drogon."
+    >
+
     <title>C++ Scientific Calculator</title>
 
     <link
         rel="stylesheet"
-        href="style.css"
+        href="/style.css"
     >
 </head>
 
@@ -23,21 +28,29 @@
 
         <header class="calculator-header">
 
-            <div>
-                <h1>Scientific Calculator</h1>
+            <div class="title-group">
+
+                <h1>
+                    Scientific Calculator
+                </h1>
 
                 <p>
                     Powered by C++ & Drogon
                 </p>
+
             </div>
 
-            <span class="mode">
+            <div class="mode-badge">
                 DEG
-            </span>
+            </div>
 
         </header>
 
-        <section class="display">
+
+        <section
+            class="display"
+            aria-live="polite"
+        >
 
             <div
                 id="expression"
@@ -53,159 +66,232 @@
 
         </section>
 
+
         <div
             id="error"
             class="error"
+            role="alert"
         ></div>
 
-        <section class="buttons">
 
-            <!-- Scientific functions -->
+        <section
+            class="buttons"
+            aria-label="Scientific calculator keypad"
+        >
+
+            <!-- ========================================= -->
+            <!-- SCIENTIFIC FUNCTIONS -->
+            <!-- ========================================= -->
 
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('sin')"
             >
                 sin
             </button>
 
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('cos')"
             >
                 cos
             </button>
 
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('tan')"
             >
                 tan
             </button>
 
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('log')"
             >
                 log
             </button>
 
+
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('ln')"
             >
                 ln
             </button>
 
             <button
-                class="scientific"
+                class="button scientific"
+                type="button"
                 onclick="scientific('sqrt')"
             >
                 √x
             </button>
 
-            <!-- Controls -->
-
             <button
-                class="control"
-                onclick="clearCalculator()"
-            >
-                C
-            </button>
-
-            <button
-                class="control"
-                onclick="backspace()"
-            >
-                ⌫
-            </button>
-
-            <button
-                class="control"
+                class="button control"
+                type="button"
                 onclick="toggleSign()"
             >
                 +/−
             </button>
 
             <button
-                class="operator"
+                class="button danger"
+                type="button"
+                onclick="clearCalculator()"
+            >
+                C
+            </button>
+
+
+            <!-- ========================================= -->
+            <!-- NUMBER PAD -->
+            <!-- ========================================= -->
+
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('7')"
+            >
+                7
+            </button>
+
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('8')"
+            >
+                8
+            </button>
+
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('9')"
+            >
+                9
+            </button>
+
+            <button
+                class="button operator"
+                type="button"
                 onclick="chooseOperation('divide')"
             >
                 ÷
             </button>
 
-            <!-- Number row -->
 
-            <button onclick="inputNumber('7')">
-                7
-            </button>
-
-            <button onclick="inputNumber('8')">
-                8
-            </button>
-
-            <button onclick="inputNumber('9')">
-                9
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('4')"
+            >
+                4
             </button>
 
             <button
-                class="operator"
+                class="button number"
+                type="button"
+                onclick="inputNumber('5')"
+            >
+                5
+            </button>
+
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('6')"
+            >
+                6
+            </button>
+
+            <button
+                class="button operator"
+                type="button"
                 onclick="chooseOperation('multiply')"
             >
                 ×
             </button>
 
-            <button onclick="inputNumber('4')">
-                4
-            </button>
 
-            <button onclick="inputNumber('5')">
-                5
-            </button>
-
-            <button onclick="inputNumber('6')">
-                6
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('1')"
+            >
+                1
             </button>
 
             <button
-                class="operator"
+                class="button number"
+                type="button"
+                onclick="inputNumber('2')"
+            >
+                2
+            </button>
+
+            <button
+                class="button number"
+                type="button"
+                onclick="inputNumber('3')"
+            >
+                3
+            </button>
+
+            <button
+                class="button operator"
+                type="button"
                 onclick="chooseOperation('subtract')"
             >
                 −
             </button>
 
-            <button onclick="inputNumber('1')">
-                1
-            </button>
-
-            <button onclick="inputNumber('2')">
-                2
-            </button>
-
-            <button onclick="inputNumber('3')">
-                3
-            </button>
 
             <button
-                class="operator"
-                onclick="chooseOperation('add')"
-            >
-                +
-            </button>
-
-            <button
-                class="zero"
+                class="button number zero"
+                type="button"
                 onclick="inputNumber('0')"
             >
                 0
             </button>
 
-            <button onclick="inputDecimal()">
+            <button
+                class="button number"
+                type="button"
+                onclick="inputDecimal()"
+            >
                 .
             </button>
 
             <button
-                class="equals"
+                class="button operator"
+                type="button"
+                onclick="chooseOperation('add')"
+            >
+                +
+            </button>
+
+
+            <!-- ========================================= -->
+            <!-- ACTION ROW -->
+            <!-- ========================================= -->
+
+            <button
+                class="button backspace"
+                type="button"
+                onclick="backspace()"
+            >
+                ⌫
+            </button>
+
+            <button
+                class="button equals"
+                type="button"
                 onclick="calculateResult()"
             >
                 =
@@ -213,15 +299,23 @@
 
         </section>
 
-        <footer>
 
-            C++ Scientific Calculator
+        <footer class="calculator-footer">
+
+            <span>
+                C++ Scientific Calculator
+            </span>
+
+            <span class="version">
+                v1.2
+            </span>
 
         </footer>
 
     </main>
 
-    <script src="app.js"></script>
+
+    <script src="/app.js"></script>
 
 </body>
 
