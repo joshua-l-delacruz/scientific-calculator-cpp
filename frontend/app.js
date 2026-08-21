@@ -1,5 +1,9 @@
-const API_URL =
+const SCIENTIFIC_API =
     "/api/evaluate";
+
+
+const PROGRAMMER_API =
+    "/api/programmer";
 
 
 // ============================================================
@@ -21,7 +25,10 @@ const STORAGE_KEYS =
         "scientificCalculatorHistory",
 
     theme:
-        "scientificCalculatorTheme"
+        "scientificCalculatorTheme",
+
+    calculatorMode:
+        "scientificCalculatorMode"
 };
 
 
@@ -30,7 +37,7 @@ const MAX_HISTORY_ITEMS =
 
 
 // ============================================================
-// STATE
+// SCIENTIFIC STATE
 // ============================================================
 
 let angleMode =
@@ -39,29 +46,12 @@ let angleMode =
     ) || "DEG";
 
 
-if (
-    angleMode !== "DEG" &&
-    angleMode !== "RAD"
-)
-{
-    angleMode =
-        "DEG";
-}
-
-
 let memoryValue =
     Number(
         sessionStorage.getItem(
             STORAGE_KEYS.memory
         ) || "0"
     );
-
-
-if (!Number.isFinite(memoryValue))
-{
-    memoryValue =
-        0;
-}
 
 
 let lastResult =
@@ -74,29 +64,111 @@ let calculationHistory =
     loadHistory();
 
 
+let historyCollapsed =
+    false;
+
+
+// ============================================================
+// APPLICATION STATE
+// ============================================================
+
 let theme =
     localStorage.getItem(
         STORAGE_KEYS.theme
     ) || "dark";
 
 
-if (
-    theme !== "dark" &&
-    theme !== "light"
-)
-{
-    theme =
-        "dark";
-}
+let calculatorMode =
+    sessionStorage.getItem(
+        STORAGE_KEYS.calculatorMode
+    ) || "scientific";
 
 
-let historyCollapsed =
+// ============================================================
+// PROGRAMMER STATE
+// ============================================================
+
+let programmerBase =
+    "DEC";
+
+
+let programmerValue =
+    "0";
+
+
+let programmerLeft =
+    null;
+
+
+let programmerPendingOperation =
+    null;
+
+
+let programmerWaitingForRight =
     false;
+
+
+let programmerConversions =
+{
+    BIN:
+        "0",
+
+    OCT:
+        "0",
+
+    DEC:
+        "0",
+
+    HEX:
+        "0"
+};
 
 
 // ============================================================
 // DOM
 // ============================================================
+
+const scientificMode =
+    document.getElementById(
+        "scientificMode"
+    );
+
+
+const programmerMode =
+    document.getElementById(
+        "programmerMode"
+    );
+
+
+const scientificModeButton =
+    document.getElementById(
+        "scientificModeButton"
+    );
+
+
+const programmerModeButton =
+    document.getElementById(
+        "programmerModeButton"
+    );
+
+
+const engineSubtitle =
+    document.getElementById(
+        "engineSubtitle"
+    );
+
+
+const themeButton =
+    document.getElementById(
+        "themeButton"
+    );
+
+
+const modeButton =
+    document.getElementById(
+        "modeButton"
+    );
+
 
 const display =
     document.getElementById(
@@ -125,18 +197,6 @@ const statusMessage =
 const expressionInput =
     document.getElementById(
         "expressionInput"
-    );
-
-
-const modeButton =
-    document.getElementById(
-        "modeButton"
-    );
-
-
-const themeButton =
-    document.getElementById(
-        "themeButton"
     );
 
 
@@ -179,6 +239,62 @@ const toggleHistoryButton =
 const equalsButton =
     document.getElementById(
         "equalsButton"
+    );
+
+
+// Programmer DOM
+
+const programmerBaseBadge =
+    document.getElementById(
+        "programmerBaseBadge"
+    );
+
+
+const programmerExpression =
+    document.getElementById(
+        "programmerExpression"
+    );
+
+
+const programmerMainValue =
+    document.getElementById(
+        "programmerMainValue"
+    );
+
+
+const programmerError =
+    document.getElementById(
+        "programmerError"
+    );
+
+
+const programmerStatus =
+    document.getElementById(
+        "programmerStatus"
+    );
+
+
+const conversionBIN =
+    document.getElementById(
+        "conversionBIN"
+    );
+
+
+const conversionOCT =
+    document.getElementById(
+        "conversionOCT"
+    );
+
+
+const conversionDEC =
+    document.getElementById(
+        "conversionDEC"
+    );
+
+
+const conversionHEX =
+    document.getElementById(
+        "conversionHEX"
     );
 
 
@@ -233,33 +349,12 @@ function loadHistory()
             JSON.parse(raw);
 
 
-        if (!Array.isArray(parsed))
-        {
-            return [];
-        }
-
-
-        return parsed
-            .filter(
-                function(item)
-                {
-                    return (
-                        item &&
-                        typeof item.expression ===
-                            "string" &&
-                        typeof item.result ===
-                            "number" &&
-                        (
-                            item.mode === "DEG" ||
-                            item.mode === "RAD"
-                        )
-                    );
-                }
-            )
-            .slice(
+        return Array.isArray(parsed)
+            ? parsed.slice(
                 0,
                 MAX_HISTORY_ITEMS
-            );
+            )
+            : [];
     }
 
     catch
@@ -276,47 +371,6 @@ function saveHistory()
         JSON.stringify(
             calculationHistory
         )
-    );
-}
-
-
-// ============================================================
-// STATUS / ERROR
-// ============================================================
-
-function clearError()
-{
-    errorElement.textContent =
-        "";
-}
-
-
-function showError(message)
-{
-    errorElement.textContent =
-        message;
-}
-
-
-function showStatus(message)
-{
-    statusMessage.textContent =
-        message;
-
-
-    window.setTimeout(
-        function()
-        {
-            if (
-                statusMessage.textContent ===
-                message
-            )
-            {
-                statusMessage.textContent =
-                    "";
-            }
-        },
-        1800
     );
 }
 
@@ -359,6 +413,113 @@ function toggleTheme()
 
 
 // ============================================================
+// CALCULATOR MODE
+// ============================================================
+
+function switchCalculatorMode(mode)
+{
+    calculatorMode =
+        mode;
+
+
+    sessionStorage.setItem(
+        STORAGE_KEYS.calculatorMode,
+        calculatorMode
+    );
+
+
+    const scientific =
+        calculatorMode ===
+        "scientific";
+
+
+    scientificMode.classList.toggle(
+        "hidden",
+        !scientific
+    );
+
+
+    programmerMode.classList.toggle(
+        "hidden",
+        scientific
+    );
+
+
+    scientificModeButton.classList.toggle(
+        "active",
+        scientific
+    );
+
+
+    programmerModeButton.classList.toggle(
+        "active",
+        !scientific
+    );
+
+
+    modeButton.classList.toggle(
+        "hidden",
+        !scientific
+    );
+
+
+    engineSubtitle.textContent =
+        scientific
+            ? "Scientific Expression Engine"
+            : "64-bit C++ Programmer Engine";
+
+
+    if (!scientific)
+    {
+        updateProgrammerDisplay();
+
+        refreshProgrammerConversions();
+    }
+}
+
+
+// ============================================================
+// SCIENTIFIC ERROR / STATUS
+// ============================================================
+
+function clearError()
+{
+    errorElement.textContent =
+        "";
+}
+
+
+function showError(message)
+{
+    errorElement.textContent =
+        message;
+}
+
+
+function showStatus(message)
+{
+    statusMessage.textContent =
+        message;
+
+
+    setTimeout(
+        function()
+        {
+            if (
+                statusMessage.textContent ===
+                message
+            )
+            {
+                statusMessage.textContent =
+                    "";
+            }
+        },
+        1800
+    );
+}
+
+
+// ============================================================
 // ANGLE MODE
 // ============================================================
 
@@ -372,35 +533,26 @@ function updateAngleModeInterface()
         angleMode;
 
 
-    if (angleMode === "RAD")
-    {
-        modeButton.classList.add(
-            "rad"
-        );
+    const rad =
+        angleMode ===
+        "RAD";
 
 
-        expressionModeLabel.textContent =
-            "Trigonometry: Radians";
-    }
-
-    else
-    {
-        modeButton.classList.remove(
-            "rad"
-        );
+    modeButton.classList.toggle(
+        "rad",
+        rad
+    );
 
 
-        expressionModeLabel.textContent =
-            "Trigonometry: Degrees";
-    }
+    expressionModeLabel.textContent =
+        rad
+            ? "Trigonometry: Radians"
+            : "Trigonometry: Degrees";
 }
 
 
 function toggleAngleMode()
 {
-    clearError();
-
-
     angleMode =
         angleMode === "DEG"
             ? "RAD"
@@ -416,8 +568,6 @@ function toggleAngleMode()
     updateAngleModeInterface();
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
 
@@ -425,13 +575,21 @@ function toggleAngleMode()
 // MEMORY
 // ============================================================
 
+function updateMemoryIndicator()
+{
+    memoryIndicator.textContent =
+        Math.abs(memoryValue) <
+        1e-15
+            ? ""
+            : `M: ${formatNumber(memoryValue)}`;
+}
+
+
 function saveMemory()
 {
     sessionStorage.setItem(
         STORAGE_KEYS.memory,
-        String(
-            memoryValue
-        )
+        String(memoryValue)
     );
 
 
@@ -439,67 +597,30 @@ function saveMemory()
 }
 
 
-function updateMemoryIndicator()
-{
-    if (
-        Math.abs(memoryValue) <
-        1e-15
-    )
-    {
-        memoryIndicator.textContent =
-            "";
-
-        return;
-    }
-
-
-    memoryIndicator.textContent =
-        `M: ${formatNumber(memoryValue)}`;
-}
-
-
 function memoryClear()
 {
-    clearError();
-
-
     memoryValue =
         0;
 
 
     saveMemory();
 
-
     showStatus(
         "Memory cleared."
     );
-
-
-    expressionInput.focus();
 }
 
 
 function memoryRecall()
 {
-    clearError();
-
-
     appendNumericValue(
         memoryValue
-    );
-
-
-    showStatus(
-        "Memory recalled."
     );
 }
 
 
 function memoryAdd()
 {
-    clearError();
-
-
     if (
         lastResult ===
         null
@@ -519,21 +640,14 @@ function memoryAdd()
 
     saveMemory();
 
-
     showStatus(
-        "Result added to memory."
+        "Added to memory."
     );
-
-
-    expressionInput.focus();
 }
 
 
 function memorySubtract()
 {
-    clearError();
-
-
     if (
         lastResult ===
         null
@@ -553,32 +667,21 @@ function memorySubtract()
 
     saveMemory();
 
-
     showStatus(
-        "Result subtracted from memory."
+        "Subtracted from memory."
     );
-
-
-    expressionInput.focus();
 }
 
 
-// ============================================================
-// ANSWER
-// ============================================================
-
 function appendAnswer()
 {
-    clearError();
-
-
     if (
         lastResult ===
         null
     )
     {
         showError(
-            "No previous answer is available."
+            "No previous answer."
         );
 
         return;
@@ -592,55 +695,38 @@ function appendAnswer()
 
 
 // ============================================================
-// INSERTION HELPERS
+// SCIENTIFIC INPUT
 // ============================================================
 
 function expressionNeedsMultiplicationBeforeValue()
 {
-    const expression =
+    const text =
         expressionInput.value.trimEnd();
 
 
-    if (
-        expression.length ===
-        0
-    )
+    if (!text)
     {
         return false;
     }
 
 
-    const lastCharacter =
-        expression[
-            expression.length - 1
-        ];
-
-
-    return (
-        lastCharacter === ')' ||
-        lastCharacter === '!' ||
-        /[0-9a-zA-Z]/.test(
-            lastCharacter
-        )
+    return /[0-9A-Za-z)!]$/.test(
+        text
     );
 }
 
 
 function appendNumericValue(value)
 {
-    const text =
+    let text =
         serializeNumber(
             value
         );
 
 
-    let valueExpression =
-        text;
-
-
     if (value < 0)
     {
-        valueExpression =
+        text =
             `(${text})`;
     }
 
@@ -655,42 +741,12 @@ function appendNumericValue(value)
 
 
     expressionInput.value +=
-        valueExpression;
+        text;
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
-
-// ============================================================
-// PREVIEW
-// ============================================================
-
-function updatePreview()
-{
-    const expression =
-        expressionInput.value;
-
-
-    if (expression.length > 0)
-    {
-        preview.textContent =
-            `${expression} [${angleMode}]`;
-    }
-
-    else
-    {
-        preview.textContent =
-            "Ready";
-    }
-}
-
-
-// ============================================================
-// APPEND
-// ============================================================
 
 function appendToken(token)
 {
@@ -702,8 +758,6 @@ function appendToken(token)
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
 
@@ -733,9 +787,6 @@ function appendOperator(operator)
 
 function appendConstant(constant)
 {
-    clearError();
-
-
     if (
         expressionNeedsMultiplicationBeforeValue()
     )
@@ -750,16 +801,11 @@ function appendConstant(constant)
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
 
-function appendFunction(functionName)
+function appendFunction(name)
 {
-    clearError();
-
-
     if (
         expressionNeedsMultiplicationBeforeValue()
     )
@@ -770,13 +816,10 @@ function appendFunction(functionName)
 
 
     expressionInput.value +=
-        functionName +
-        "(";
+        `${name}(`;
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
 
@@ -804,20 +847,13 @@ function appendFactorial()
 }
 
 
-// ============================================================
-// SIGN
-// ============================================================
-
 function toggleSignExpression()
 {
-    clearError();
-
-
     const expression =
         expressionInput.value.trim();
 
 
-    if (expression.length === 0)
+    if (!expression)
     {
         appendToken(
             "-"
@@ -828,35 +864,15 @@ function toggleSignExpression()
 
 
     expressionInput.value =
-        "-(" +
-        expression +
-        ")";
+        `-(${expression})`;
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
 
-// ============================================================
-// BACKSPACE
-// ============================================================
-
 function backspace()
 {
-    clearError();
-
-
-    if (
-        expressionInput.value.length ===
-        0
-    )
-    {
-        return;
-    }
-
-
     expressionInput.value =
         expressionInput.value.slice(
             0,
@@ -865,14 +881,8 @@ function backspace()
 
 
     updatePreview();
-
-    expressionInput.focus();
 }
 
-
-// ============================================================
-// CLEAR
-// ============================================================
 
 function clearCalculator()
 {
@@ -889,79 +899,20 @@ function clearCalculator()
 
 
     clearError();
-
-
-    showStatus(
-        "Calculator cleared."
-    );
-
-
-    expressionInput.focus();
 }
 
 
-// ============================================================
-// BUSY STATE
-// ============================================================
-
-function setBusyState(isBusy)
+function updatePreview()
 {
-    document
-        .querySelectorAll(
-            ".button, .memory-button"
-        )
-        .forEach(
-            function(button)
-            {
-                button.disabled =
-                    isBusy;
-            }
-        );
-
-
-    modeButton.disabled =
-        isBusy;
-
-
-    themeButton.disabled =
-        isBusy;
-
-
-    expressionInput.disabled =
-        isBusy;
-
-
-    equalsButton.classList.toggle(
-        "loading",
-        isBusy
-    );
-
-
-    equalsButton.textContent =
-        isBusy
-            ? "…"
-            : "=";
-
-
-    if (isBusy)
-    {
-        statusMessage.textContent =
-            "Calculating with C++...";
-    }
-
-    else if (
-        statusMessage.textContent ===
-        "Calculating with C++..."
-    )
-    {
-        statusMessage.textContent =
-            "";
-    }
+    preview.textContent =
+        expressionInput.value
+            ? `${expressionInput.value} [${angleMode}]`
+            : "Ready";
 }
 
 
 // ============================================================
-// EVALUATE
+// SCIENTIFIC EVALUATION
 // ============================================================
 
 async function evaluateExpression()
@@ -973,10 +924,7 @@ async function evaluateExpression()
         expressionInput.value.trim();
 
 
-    if (
-        expression.length ===
-        0
-    )
+    if (!expression)
     {
         showError(
             "Enter an expression."
@@ -986,16 +934,15 @@ async function evaluateExpression()
     }
 
 
+    equalsButton.textContent =
+        "…";
+
+
     try
     {
-        setBusyState(
-            true
-        );
-
-
         const response =
             await fetch(
-                API_URL,
+                SCIENTIFIC_API,
                 {
                     method:
                         "POST",
@@ -1020,21 +967,8 @@ async function evaluateExpression()
             );
 
 
-        let data;
-
-
-        try
-        {
-            data =
-                await response.json();
-        }
-
-        catch
-        {
-            throw new Error(
-                "The C++ server returned an invalid response."
-            );
-        }
+        const data =
+            await response.json();
 
 
         if (
@@ -1044,7 +978,7 @@ async function evaluateExpression()
         {
             throw new Error(
                 data.error ||
-                "Expression evaluation failed."
+                "Calculation failed."
             );
         }
 
@@ -1057,9 +991,7 @@ async function evaluateExpression()
 
         sessionStorage.setItem(
             STORAGE_KEYS.lastResult,
-            String(
-                lastResult
-            )
+            String(lastResult)
         );
 
 
@@ -1089,97 +1021,8 @@ async function evaluateExpression()
 
     finally
     {
-        setBusyState(
-            false
-        );
-
-
-        expressionInput.focus();
-    }
-}
-
-
-// ============================================================
-// COPY
-// ============================================================
-
-async function copyExpression()
-{
-    clearError();
-
-
-    const value =
-        expressionInput.value.trim();
-
-
-    if (!value)
-    {
-        showError(
-            "There is no expression to copy."
-        );
-
-        return;
-    }
-
-
-    try
-    {
-        await navigator.clipboard.writeText(
-            value
-        );
-
-
-        showStatus(
-            "Expression copied."
-        );
-    }
-
-    catch
-    {
-        showError(
-            "Could not copy the expression."
-        );
-    }
-}
-
-
-async function copyResult()
-{
-    clearError();
-
-
-    if (
-        lastResult ===
-        null
-    )
-    {
-        showError(
-            "There is no result to copy."
-        );
-
-        return;
-    }
-
-
-    try
-    {
-        await navigator.clipboard.writeText(
-            serializeNumber(
-                lastResult
-            )
-        );
-
-
-        showStatus(
-            "Result copied."
-        );
-    }
-
-    catch
-    {
-        showError(
-            "Could not copy the result."
-        );
+        equalsButton.textContent =
+            "=";
     }
 }
 
@@ -1203,10 +1046,7 @@ function addHistoryItem(
                 result,
 
             mode:
-                mode,
-
-            timestamp:
-                Date.now()
+                mode
         }
     );
 
@@ -1230,17 +1070,16 @@ function renderHistory()
         "";
 
 
-    const count =
-        calculationHistory.length;
-
-
     historyCount.textContent =
-        count === 1
+        calculationHistory.length === 1
             ? "1 calculation"
-            : `${count} calculations`;
+            : `${calculationHistory.length} calculations`;
 
 
-    if (count === 0)
+    if (
+        calculationHistory.length ===
+        0
+    )
     {
         const empty =
             document.createElement(
@@ -1274,96 +1113,67 @@ function renderHistory()
                 );
 
 
-            button.type =
-                "button";
-
-
             button.className =
                 "history-item";
 
 
-            const expressionElement =
-                document.createElement(
-                    "span"
-                );
+            button.innerHTML =
+                `
+                    <span class="history-expression"></span>
+
+                    <span class="history-result-row">
+
+                        <span class="history-result"></span>
+
+                        <span class="history-mode"></span>
+
+                    </span>
+                `;
 
 
-            expressionElement.className =
-                "history-expression";
-
-
-            expressionElement.textContent =
+            button.querySelector(
+                ".history-expression"
+            ).textContent =
                 item.expression;
 
 
-            const resultRow =
-                document.createElement(
-                    "span"
-                );
-
-
-            resultRow.className =
-                "history-result-row";
-
-
-            const resultElement =
-                document.createElement(
-                    "span"
-                );
-
-
-            resultElement.className =
-                "history-result";
-
-
-            resultElement.textContent =
+            button.querySelector(
+                ".history-result"
+            ).textContent =
                 `= ${formatNumber(item.result)}`;
 
 
-            const modeElement =
-                document.createElement(
-                    "span"
-                );
-
-
-            modeElement.className =
-                "history-mode";
-
-
-            modeElement.textContent =
+            button.querySelector(
+                ".history-mode"
+            ).textContent =
                 item.mode;
 
 
-            resultRow.appendChild(
-                resultElement
-            );
-
-
-            resultRow.appendChild(
-                modeElement
-            );
-
-
-            button.appendChild(
-                expressionElement
-            );
-
-
-            button.appendChild(
-                resultRow
-            );
-
-
-            button.addEventListener(
-                "click",
-
+            button.onclick =
                 function()
                 {
-                    reuseHistoryItem(
-                        item
-                    );
-                }
-            );
+                    expressionInput.value =
+                        item.expression;
+
+
+                    angleMode =
+                        item.mode;
+
+
+                    lastResult =
+                        item.result;
+
+
+                    updateAngleModeInterface();
+
+                    updatePreview();
+
+
+                    display.textContent =
+                        formatNumber(
+                            item.result
+                        );
+                };
 
 
             historyList.appendChild(
@@ -1371,52 +1181,6 @@ function renderHistory()
             );
         }
     );
-}
-
-
-function reuseHistoryItem(item)
-{
-    clearError();
-
-
-    expressionInput.value =
-        item.expression;
-
-
-    angleMode =
-        item.mode;
-
-
-    sessionStorage.setItem(
-        STORAGE_KEYS.angleMode,
-        angleMode
-    );
-
-
-    updateAngleModeInterface();
-
-    updatePreview();
-
-
-    display.textContent =
-        formatNumber(
-            item.result
-        );
-
-
-    lastResult =
-        item.result;
-
-
-    sessionStorage.setItem(
-        STORAGE_KEYS.lastResult,
-        String(
-            lastResult
-        )
-    );
-
-
-    expressionInput.focus();
 }
 
 
@@ -1432,14 +1196,6 @@ function clearHistory()
 
 
     renderHistory();
-
-
-    showStatus(
-        "History cleared."
-    );
-
-
-    expressionInput.focus();
 }
 
 
@@ -1459,6 +1215,753 @@ function toggleHistory()
         historyCollapsed
             ? "Expand"
             : "Collapse";
+}
+
+
+// ============================================================
+// COPY
+// ============================================================
+
+async function copyExpression()
+{
+    const value =
+        expressionInput.value.trim();
+
+
+    if (!value)
+    {
+        showError(
+            "There is no expression to copy."
+        );
+
+        return;
+    }
+
+
+    try
+    {
+        await navigator.clipboard.writeText(
+            value
+        );
+
+
+        showStatus(
+            "Expression copied."
+        );
+    }
+
+    catch
+    {
+        showError(
+            "Could not copy expression."
+        );
+    }
+}
+
+
+async function copyResult()
+{
+    if (
+        lastResult ===
+        null
+    )
+    {
+        showError(
+            "There is no result to copy."
+        );
+
+        return;
+    }
+
+
+    try
+    {
+        await navigator.clipboard.writeText(
+            serializeNumber(
+                lastResult
+            )
+        );
+
+
+        showStatus(
+            "Result copied."
+        );
+    }
+
+    catch
+    {
+        showError(
+            "Could not copy result."
+        );
+    }
+}
+
+
+// ============================================================
+// PROGRAMMER HELPERS
+// ============================================================
+
+function clearProgrammerError()
+{
+    programmerError.textContent =
+        "";
+}
+
+
+function showProgrammerError(message)
+{
+    programmerError.textContent =
+        message;
+}
+
+
+function showProgrammerStatus(message)
+{
+    programmerStatus.textContent =
+        message;
+
+
+    setTimeout(
+        function()
+        {
+            if (
+                programmerStatus.textContent ===
+                message
+            )
+            {
+                programmerStatus.textContent =
+                    "";
+            }
+        },
+        1500
+    );
+}
+
+
+function programmerDigitAllowed(digit)
+{
+    const value =
+        parseInt(
+            digit,
+            16
+        );
+
+
+    switch (programmerBase)
+    {
+        case "BIN":
+            return value <= 1;
+
+        case "OCT":
+            return value <= 7;
+
+        case "DEC":
+            return value <= 9;
+
+        case "HEX":
+            return value <= 15;
+
+        default:
+            return false;
+    }
+}
+
+
+function updateProgrammerKeyAvailability()
+{
+    const digits =
+        [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+        ];
+
+
+    digits.forEach(
+        function(digit)
+        {
+            const id =
+                /^[A-F]$/.test(digit)
+                    ? `hex${digit}`
+                    : `prog${digit}`;
+
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            if (element)
+            {
+                element.disabled =
+                    !programmerDigitAllowed(
+                        digit
+                    );
+            }
+        }
+    );
+}
+
+
+function updateProgrammerDisplay()
+{
+    programmerMainValue.textContent =
+        programmerValue;
+
+
+    programmerBaseBadge.textContent =
+        programmerBase;
+
+
+    document
+        .querySelectorAll(
+            ".base-button"
+        )
+        .forEach(
+            function(button)
+            {
+                button.classList.remove(
+                    "active"
+                );
+            }
+        );
+
+
+    document.getElementById(
+        `base${programmerBase}`
+    ).classList.add(
+        "active"
+    );
+
+
+    updateProgrammerKeyAvailability();
+}
+
+
+function appendProgrammerDigit(digit)
+{
+    clearProgrammerError();
+
+
+    if (
+        !programmerDigitAllowed(
+            digit
+        )
+    )
+    {
+        return;
+    }
+
+
+    if (programmerWaitingForRight)
+    {
+        programmerValue =
+            digit;
+
+
+        programmerWaitingForRight =
+            false;
+    }
+
+    else if (
+        programmerValue ===
+        "0"
+    )
+    {
+        programmerValue =
+            digit;
+    }
+
+    else
+    {
+        programmerValue +=
+            digit;
+    }
+
+
+    updateProgrammerDisplay();
+
+    refreshProgrammerConversions();
+}
+
+
+function programmerBackspace()
+{
+    programmerValue =
+        programmerValue.length <= 1
+            ? "0"
+            : programmerValue.slice(
+                0,
+                -1
+            );
+
+
+    updateProgrammerDisplay();
+
+    refreshProgrammerConversions();
+}
+
+
+function clearProgrammer()
+{
+    programmerValue =
+        "0";
+
+
+    programmerLeft =
+        null;
+
+
+    programmerPendingOperation =
+        null;
+
+
+    programmerWaitingForRight =
+        false;
+
+
+    programmerExpression.textContent =
+        "Ready";
+
+
+    clearProgrammerError();
+
+    updateProgrammerDisplay();
+
+    refreshProgrammerConversions();
+}
+
+
+// ============================================================
+// PROGRAMMER API
+// ============================================================
+
+async function programmerRequest(payload)
+{
+    const response =
+        await fetch(
+            PROGRAMMER_API,
+            {
+                method:
+                    "POST",
+
+                headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        data.error
+    )
+    {
+        throw new Error(
+            data.error ||
+            "Programmer calculation failed."
+        );
+    }
+
+
+    return data;
+}
+
+
+async function refreshProgrammerConversions()
+{
+    try
+    {
+        const data =
+            await programmerRequest(
+                {
+                    operation:
+                        "CONVERT",
+
+                    left:
+                        programmerValue,
+
+                    base:
+                        programmerBase
+                }
+            );
+
+
+        programmerConversions =
+        {
+            BIN:
+                data.bin,
+
+            OCT:
+                data.oct,
+
+            DEC:
+                data.dec,
+
+            HEX:
+                data.hex
+        };
+
+
+        conversionBIN.textContent =
+            data.bin;
+
+
+        conversionOCT.textContent =
+            data.oct;
+
+
+        conversionDEC.textContent =
+            data.dec;
+
+
+        conversionHEX.textContent =
+            data.hex;
+    }
+
+    catch (error)
+    {
+        showProgrammerError(
+            error.message
+        );
+    }
+}
+
+
+// ============================================================
+// PROGRAMMER BASE
+// ============================================================
+
+async function setProgrammerBase(base)
+{
+    clearProgrammerError();
+
+
+    try
+    {
+        const data =
+            await programmerRequest(
+                {
+                    operation:
+                        "CONVERT",
+
+                    left:
+                        programmerValue,
+
+                    base:
+                        programmerBase
+                }
+            );
+
+
+        programmerBase =
+            base;
+
+
+        switch (base)
+        {
+            case "BIN":
+                programmerValue =
+                    data.bin;
+                break;
+
+            case "OCT":
+                programmerValue =
+                    data.oct;
+                break;
+
+            case "DEC":
+                programmerValue =
+                    data.dec;
+                break;
+
+            case "HEX":
+                programmerValue =
+                    data.hex;
+                break;
+        }
+
+
+        updateProgrammerDisplay();
+
+        await refreshProgrammerConversions();
+    }
+
+    catch (error)
+    {
+        showProgrammerError(
+            error.message
+        );
+    }
+}
+
+
+// ============================================================
+// PROGRAMMER OPERATIONS
+// ============================================================
+
+function chooseProgrammerOperation(operation)
+{
+    clearProgrammerError();
+
+
+    programmerLeft =
+        programmerValue;
+
+
+    programmerPendingOperation =
+        operation;
+
+
+    programmerWaitingForRight =
+        true;
+
+
+    programmerExpression.textContent =
+        `${programmerLeft} ${programmerOperatorLabel(operation)}`;
+}
+
+
+function programmerOperatorLabel(operation)
+{
+    const labels =
+    {
+        AND:
+            "AND",
+
+        OR:
+            "OR",
+
+        XOR:
+            "XOR",
+
+        SHL:
+            "<<",
+
+        SHR:
+            ">>"
+    };
+
+
+    return labels[operation] ||
+        operation;
+}
+
+
+async function executeProgrammerOperation()
+{
+    clearProgrammerError();
+
+
+    if (
+        programmerPendingOperation ===
+        null ||
+        programmerLeft ===
+        null
+    )
+    {
+        await refreshProgrammerConversions();
+
+        return;
+    }
+
+
+    try
+    {
+        const right =
+            programmerValue;
+
+
+        const data =
+            await programmerRequest(
+                {
+                    operation:
+                        programmerPendingOperation,
+
+                    left:
+                        programmerLeft,
+
+                    right:
+                        right,
+
+                    base:
+                        programmerBase
+                }
+            );
+
+
+        programmerExpression.textContent =
+            `${programmerLeft} ${programmerOperatorLabel(programmerPendingOperation)} ${right} =`;
+
+
+        programmerValue =
+            valueForProgrammerBase(
+                data
+            );
+
+
+        programmerLeft =
+            null;
+
+
+        programmerPendingOperation =
+            null;
+
+
+        programmerWaitingForRight =
+            true;
+
+
+        updateConversionsFromResponse(
+            data
+        );
+
+
+        updateProgrammerDisplay();
+    }
+
+    catch (error)
+    {
+        showProgrammerError(
+            error.message
+        );
+    }
+}
+
+
+async function performProgrammerNot()
+{
+    clearProgrammerError();
+
+
+    try
+    {
+        const original =
+            programmerValue;
+
+
+        const data =
+            await programmerRequest(
+                {
+                    operation:
+                        "NOT",
+
+                    left:
+                        original,
+
+                    base:
+                        programmerBase
+                }
+            );
+
+
+        programmerExpression.textContent =
+            `NOT ${original} =`;
+
+
+        programmerValue =
+            valueForProgrammerBase(
+                data
+            );
+
+
+        programmerWaitingForRight =
+            true;
+
+
+        updateConversionsFromResponse(
+            data
+        );
+
+
+        updateProgrammerDisplay();
+    }
+
+    catch (error)
+    {
+        showProgrammerError(
+            error.message
+        );
+    }
+}
+
+
+function valueForProgrammerBase(data)
+{
+    switch (programmerBase)
+    {
+        case "BIN":
+            return data.bin;
+
+        case "OCT":
+            return data.oct;
+
+        case "HEX":
+            return data.hex;
+
+        default:
+            return data.dec;
+    }
+}
+
+
+function updateConversionsFromResponse(data)
+{
+    programmerConversions =
+    {
+        BIN:
+            data.bin,
+
+        OCT:
+            data.oct,
+
+        DEC:
+            data.dec,
+
+        HEX:
+            data.hex
+    };
+
+
+    conversionBIN.textContent =
+        data.bin;
+
+
+    conversionOCT.textContent =
+        data.oct;
+
+
+    conversionDEC.textContent =
+        data.dec;
+
+
+    conversionHEX.textContent =
+        data.hex;
 }
 
 
@@ -1519,7 +2022,7 @@ function formatNumber(number)
 
 
 // ============================================================
-// INPUT EVENTS
+// SCIENTIFIC INPUT EVENTS
 // ============================================================
 
 expressionInput.addEventListener(
@@ -1546,108 +2049,7 @@ expressionInput.addEventListener(
         {
             event.preventDefault();
 
-
             await evaluateExpression();
-        }
-
-
-        else if (
-            event.key ===
-            "Escape"
-        )
-        {
-            clearCalculator();
-        }
-    }
-);
-
-
-// ============================================================
-// GLOBAL KEYBOARD
-// ============================================================
-
-document.addEventListener(
-    "keydown",
-
-    async function(event)
-    {
-        if (
-            document.activeElement ===
-            expressionInput
-        )
-        {
-            return;
-        }
-
-
-        if (
-            event.key >= "0" &&
-            event.key <= "9"
-        )
-        {
-            appendNumber(
-                event.key
-            );
-
-            return;
-        }
-
-
-        if (
-            event.key === "+" ||
-            event.key === "-" ||
-            event.key === "*" ||
-            event.key === "/" ||
-            event.key === "^" ||
-            event.key === "(" ||
-            event.key === ")" ||
-            event.key === "!"
-        )
-        {
-            appendToken(
-                event.key
-            );
-
-            return;
-        }
-
-
-        if (
-            event.key ===
-            "."
-        )
-        {
-            appendDecimal();
-
-            return;
-        }
-
-
-        if (
-            event.key ===
-            "Enter"
-        )
-        {
-            event.preventDefault();
-
-
-            await evaluateExpression();
-
-            return;
-        }
-
-
-        if (
-            event.key ===
-            "Backspace"
-        )
-        {
-            event.preventDefault();
-
-
-            backspace();
-
-            return;
         }
 
 
@@ -1663,7 +2065,7 @@ document.addEventListener(
 
 
 // ============================================================
-// INITIALIZE
+// INITIALIZATION
 // ============================================================
 
 applyTheme();
@@ -1676,6 +2078,14 @@ renderHistory();
 
 updatePreview();
 
+updateProgrammerDisplay();
+
+refreshProgrammerConversions();
+
+switchCalculatorMode(
+    calculatorMode
+);
+
 
 if (
     lastResult !==
@@ -1687,6 +2097,3 @@ if (
             lastResult
         );
 }
-
-
-expressionInput.focus();
