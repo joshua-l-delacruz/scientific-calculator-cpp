@@ -1,83 +1,113 @@
 const API_URL =
-    "http://localhost:8080/api/calculate";
+    "/api/calculate";
 
-let currentValue = "0";
 
-let firstValue = null;
+let currentValue =
+    "0";
 
-let pendingOperation = null;
+let firstValue =
+    null;
 
-let waitingForSecondValue = false;
+let pendingOperation =
+    null;
+
+let waitingForSecondValue =
+    false;
+
+
+// ============================================================
+// DOM ELEMENTS
+// ============================================================
 
 const display =
-    document.getElementById("display");
+    document.getElementById(
+        "display"
+    );
 
 const expression =
-    document.getElementById("expression");
+    document.getElementById(
+        "expression"
+    );
 
 const errorElement =
-    document.getElementById("error");
+    document.getElementById(
+        "error"
+    );
 
 
-function updateDisplay() {
+// ============================================================
+// DISPLAY
+// ============================================================
 
+function updateDisplay()
+{
     display.textContent =
         currentValue;
-
 }
 
 
-function clearError() {
-
+function clearError()
+{
     errorElement.textContent =
         "";
-
 }
 
 
-function showError(message) {
-
+function showError(message)
+{
     errorElement.textContent =
         message;
-
 }
 
 
-function inputNumber(number) {
+// ============================================================
+// NUMBER INPUT
+// ============================================================
 
+function inputNumber(number)
+{
     clearError();
+
 
     if (
         currentValue === "0" ||
         waitingForSecondValue
-    ) {
-
+    )
+    {
         currentValue =
             number;
 
         waitingForSecondValue =
             false;
-
     }
 
-    else {
+    else
+    {
+        if (currentValue.length >= 16)
+        {
+            return;
+        }
 
         currentValue +=
             number;
-
     }
 
-    updateDisplay();
 
+    updateDisplay();
 }
 
 
-function inputDecimal() {
+// ============================================================
+// DECIMAL INPUT
+// ============================================================
 
+function inputDecimal()
+{
     clearError();
 
-    if (waitingForSecondValue) {
 
+    if (waitingForSecondValue)
+    {
         currentValue =
             "0.";
 
@@ -87,22 +117,26 @@ function inputDecimal() {
         updateDisplay();
 
         return;
-
     }
 
-    if (!currentValue.includes(".")) {
 
-        currentValue += ".";
-
+    if (!currentValue.includes("."))
+    {
+        currentValue +=
+            ".";
     }
+
 
     updateDisplay();
-
 }
 
 
-function clearCalculator() {
+// ============================================================
+// CLEAR
+// ============================================================
 
+function clearCalculator()
+{
     currentValue =
         "0";
 
@@ -121,17 +155,23 @@ function clearCalculator() {
     clearError();
 
     updateDisplay();
-
 }
 
 
-function backspace() {
+// ============================================================
+// BACKSPACE
+// ============================================================
 
+function backspace()
+{
     clearError();
 
-    if (waitingForSecondValue) {
+
+    if (waitingForSecondValue)
+    {
         return;
     }
+
 
     if (
         currentValue.length <= 1 ||
@@ -139,62 +179,82 @@ function backspace() {
             currentValue.length === 2 &&
             currentValue.startsWith("-")
         )
-    ) {
-
+    )
+    {
         currentValue =
             "0";
-
     }
 
-    else {
-
+    else
+    {
         currentValue =
             currentValue.slice(
                 0,
                 -1
             );
-
     }
 
-    updateDisplay();
 
+    updateDisplay();
 }
 
 
-async function toggleSign() {
+// ============================================================
+// CHANGE SIGN
+// ============================================================
 
+async function toggleSign()
+{
     clearError();
 
-    try {
 
+    try
+    {
         const data =
             await sendUnaryOperation(
                 "negate"
             );
+
 
         currentValue =
             formatNumber(
                 data.result
             );
 
-        updateDisplay();
 
+        updateDisplay();
     }
 
-    catch (error) {
-
+    catch (error)
+    {
         showError(
             error.message
         );
-
     }
-
 }
 
 
-function chooseOperation(operation) {
+// ============================================================
+// CHOOSE BINARY OPERATION
+// ============================================================
 
+async function chooseOperation(operation)
+{
     clearError();
+
+
+    // If another operation is already pending and
+    // the second number has been entered, calculate first.
+
+    if (
+        firstValue !== null &&
+        pendingOperation !== null &&
+        !waitingForSecondValue
+    )
+    {
+        await calculateResult();
+    }
+
 
     firstValue =
         Number(currentValue);
@@ -205,27 +265,33 @@ function chooseOperation(operation) {
     waitingForSecondValue =
         true;
 
+
     expression.textContent =
         `${formatNumber(firstValue)} ${operationSymbol(operation)}`;
-
 }
 
 
-async function calculateResult() {
+// ============================================================
+// CALCULATE RESULT
+// ============================================================
 
+async function calculateResult()
+{
     clearError();
+
 
     if (
         firstValue === null ||
         pendingOperation === null
-    ) {
-
+    )
+    {
         return;
-
     }
+
 
     const secondValue =
         Number(currentValue);
+
 
     const originalFirst =
         firstValue;
@@ -233,55 +299,64 @@ async function calculateResult() {
     const originalOperation =
         pendingOperation;
 
-    try {
 
+    try
+    {
         const response =
             await fetch(
                 API_URL,
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
-                    headers: {
+                    headers:
+                    {
                         "Content-Type":
                             "application/json"
                     },
 
                     body:
-                        JSON.stringify({
-                            operation:
-                                originalOperation,
+                        JSON.stringify(
+                            {
+                                operation:
+                                    originalOperation,
 
-                            left:
-                                originalFirst,
+                                left:
+                                    originalFirst,
 
-                            right:
-                                secondValue
-                        })
+                                right:
+                                    secondValue
+                            }
+                        )
                 }
             );
+
 
         const data =
             await response.json();
 
+
         if (
             !response.ok ||
             data.error
-        ) {
-
+        )
+        {
             throw new Error(
                 data.error ||
                 "Calculation failed."
             );
-
         }
+
 
         expression.textContent =
             `${formatNumber(originalFirst)} ${operationSymbol(originalOperation)} ${formatNumber(secondValue)} =`;
+
 
         currentValue =
             formatNumber(
                 data.result
             );
+
 
         firstValue =
             null;
@@ -292,267 +367,318 @@ async function calculateResult() {
         waitingForSecondValue =
             true;
 
-        updateDisplay();
 
+        updateDisplay();
     }
 
-    catch (error) {
-
+    catch (error)
+    {
         showError(
             error.message
         );
-
     }
-
 }
 
 
-async function scientific(operation) {
+// ============================================================
+// SCIENTIFIC OPERATIONS
+// ============================================================
 
+async function scientific(operation)
+{
     clearError();
+
 
     const input =
         Number(currentValue);
 
-    try {
 
+    try
+    {
         const data =
             await sendUnaryOperation(
                 operation
             );
 
+
         expression.textContent =
             `${operationLabel(operation)}(${formatNumber(input)})`;
+
 
         currentValue =
             formatNumber(
                 data.result
             );
 
+
         waitingForSecondValue =
             true;
 
-        updateDisplay();
 
+        updateDisplay();
     }
 
-    catch (error) {
-
+    catch (error)
+    {
         showError(
             error.message
         );
-
     }
-
 }
 
 
-async function sendUnaryOperation(operation) {
+// ============================================================
+// SEND UNARY OPERATION TO C++
+// ============================================================
 
+async function sendUnaryOperation(operation)
+{
     const value =
         Number(currentValue);
+
 
     const response =
         await fetch(
             API_URL,
             {
-                method: "POST",
+                method:
+                    "POST",
 
-                headers: {
+                headers:
+                {
                     "Content-Type":
                         "application/json"
                 },
 
                 body:
-                    JSON.stringify({
-                        operation:
-                            operation,
+                    JSON.stringify(
+                        {
+                            operation:
+                                operation,
 
-                        value:
-                            value
-                    })
+                            value:
+                                value
+                        }
+                    )
             }
         );
+
 
     const data =
         await response.json();
 
+
     if (
         !response.ok ||
         data.error
-    ) {
-
+    )
+    {
         throw new Error(
             data.error ||
             "Calculation failed."
         );
-
     }
+
 
     return data;
-
 }
 
 
-function operationSymbol(operation) {
+// ============================================================
+// OPERATION SYMBOL
+// ============================================================
 
-    const symbols = {
+function operationSymbol(operation)
+{
+    const symbols =
+    {
+        add:
+            "+",
 
-        add: "+",
+        subtract:
+            "−",
 
-        subtract: "−",
+        multiply:
+            "×",
 
-        multiply: "×",
-
-        divide: "÷"
-
+        divide:
+            "÷"
     };
+
 
     return symbols[operation] || "";
-
 }
 
 
-function operationLabel(operation) {
+// ============================================================
+// SCIENTIFIC FUNCTION LABEL
+// ============================================================
 
-    const labels = {
+function operationLabel(operation)
+{
+    const labels =
+    {
+        sqrt:
+            "√",
 
-        sqrt: "√",
+        sin:
+            "sin",
 
-        sin: "sin",
+        cos:
+            "cos",
 
-        cos: "cos",
+        tan:
+            "tan",
 
-        tan: "tan",
+        log:
+            "log",
 
-        log: "log",
-
-        ln: "ln"
-
+        ln:
+            "ln"
     };
 
-    return labels[operation] || operation;
 
+    return labels[operation] || operation;
 }
 
 
-function formatNumber(number) {
+// ============================================================
+// FORMAT NUMBERS
+// ============================================================
 
-    if (!Number.isFinite(number)) {
-
-        return String(number);
-
+function formatNumber(number)
+{
+    if (!Number.isFinite(number))
+    {
+        return "Error";
     }
+
 
     if (
-        Math.abs(number) < 1e-12
-    ) {
-
+        Math.abs(number) <
+        1e-12
+    )
+    {
         return "0";
-
     }
+
+
+    if (
+        Math.abs(number) >= 1e12 ||
+        Math.abs(number) < 1e-9
+    )
+    {
+        return number.toExponential(10);
+    }
+
 
     return Number(
         number.toPrecision(12)
     ).toString();
-
 }
 
 
-// Keyboard support
+// ============================================================
+// KEYBOARD SUPPORT
+// ============================================================
 
 document.addEventListener(
     "keydown",
-    function (event) {
 
+    async function(event)
+    {
         if (
             event.key >= "0" &&
             event.key <= "9"
-        ) {
-
+        )
+        {
             inputNumber(
                 event.key
             );
-
         }
+
 
         else if (
             event.key === "."
-        ) {
-
+        )
+        {
             inputDecimal();
-
         }
+
 
         else if (
             event.key === "+"
-        ) {
-
-            chooseOperation(
+        )
+        {
+            await chooseOperation(
                 "add"
             );
-
         }
+
 
         else if (
             event.key === "-"
-        ) {
-
-            chooseOperation(
+        )
+        {
+            await chooseOperation(
                 "subtract"
             );
-
         }
+
 
         else if (
             event.key === "*"
-        ) {
-
-            chooseOperation(
+        )
+        {
+            await chooseOperation(
                 "multiply"
             );
-
         }
+
 
         else if (
             event.key === "/"
-        ) {
-
+        )
+        {
             event.preventDefault();
 
-            chooseOperation(
+            await chooseOperation(
                 "divide"
             );
-
         }
+
 
         else if (
             event.key === "Enter" ||
             event.key === "="
-        ) {
+        )
+        {
+            event.preventDefault();
 
-            calculateResult();
-
+            await calculateResult();
         }
+
 
         else if (
             event.key === "Backspace"
-        ) {
-
+        )
+        {
             backspace();
-
         }
+
 
         else if (
             event.key === "Escape"
-        ) {
-
+        )
+        {
             clearCalculator();
-
         }
-
     }
 );
 
+
+// ============================================================
+// INITIALIZE
+// ============================================================
 
 updateDisplay();
