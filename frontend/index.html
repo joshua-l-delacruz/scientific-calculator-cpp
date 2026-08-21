@@ -12,7 +12,12 @@
 
     <meta
         name="description"
-        content="Advanced C++ scientific and programmer calculator powered by Drogon."
+        content="Advanced scientific and programmer calculator powered by C++, Drogon, Docker and a custom expression engine."
+    >
+
+    <meta
+        name="theme-color"
+        content="#020617"
     >
 
     <title>
@@ -59,7 +64,8 @@
                         class="small-header-button"
                         type="button"
                         onclick="toggleTheme()"
-                        aria-label="Toggle theme"
+                        aria-label="Toggle light and dark theme"
+                        title="Toggle theme"
                     >
                         ☾
                     </button>
@@ -70,7 +76,8 @@
                         class="mode-button"
                         type="button"
                         onclick="toggleAngleMode()"
-                        aria-label="Switch between degrees and radians"
+                        aria-label="Switch between degree and radian mode"
+                        title="Switch angle mode"
                     >
                         DEG
                     </button>
@@ -81,10 +88,13 @@
 
 
             <!-- ==================================================
-                 MAIN MODE
+                 MAIN MODE SWITCH
             =================================================== -->
 
-            <nav class="calculator-mode-switch">
+            <nav
+                class="calculator-mode-switch"
+                aria-label="Calculator mode"
+            >
 
                 <button
                     id="scientificModeButton"
@@ -114,7 +124,10 @@
 
             <div id="scientificMode">
 
-                <section class="display">
+                <section
+                    class="display"
+                    aria-live="polite"
+                >
 
                     <div class="display-meta">
 
@@ -155,16 +168,27 @@
                 <div
                     id="statusMessage"
                     class="status-message"
+                    role="status"
+                    aria-live="polite"
                 ></div>
 
 
                 <div
                     id="error"
                     class="error"
+                    role="alert"
+                    aria-live="assertive"
                 ></div>
 
 
-                <section class="memory-grid">
+                <!-- ==============================================
+                     SCIENTIFIC MEMORY
+                =============================================== -->
+
+                <section
+                    class="memory-grid"
+                    aria-label="Scientific calculator memory controls"
+                >
 
                     <button
                         class="memory-button"
@@ -213,6 +237,10 @@
                 </section>
 
 
+                <!-- ==============================================
+                     SCIENTIFIC EXPRESSION CONTROLS
+                =============================================== -->
+
                 <section class="expression-controls">
 
                     <button
@@ -252,6 +280,10 @@
 
                 </section>
 
+
+                <!-- ==============================================
+                     SCIENTIFIC FUNCTIONS
+                =============================================== -->
 
                 <section class="scientific-grid">
 
@@ -365,32 +397,37 @@
                 </section>
 
 
+                <!-- ==============================================
+                     SCIENTIFIC KEYPAD
+                =============================================== -->
+
                 <section class="keypad">
 
-                    <button class="button number" onclick="appendNumber('7')">7</button>
-                    <button class="button number" onclick="appendNumber('8')">8</button>
-                    <button class="button number" onclick="appendNumber('9')">9</button>
-                    <button class="button operator" onclick="appendOperator('/')">÷</button>
+                    <button class="button number" type="button" onclick="appendNumber('7')">7</button>
+                    <button class="button number" type="button" onclick="appendNumber('8')">8</button>
+                    <button class="button number" type="button" onclick="appendNumber('9')">9</button>
+                    <button class="button operator" type="button" onclick="appendOperator('/')">÷</button>
 
-                    <button class="button number" onclick="appendNumber('4')">4</button>
-                    <button class="button number" onclick="appendNumber('5')">5</button>
-                    <button class="button number" onclick="appendNumber('6')">6</button>
-                    <button class="button operator" onclick="appendOperator('*')">×</button>
+                    <button class="button number" type="button" onclick="appendNumber('4')">4</button>
+                    <button class="button number" type="button" onclick="appendNumber('5')">5</button>
+                    <button class="button number" type="button" onclick="appendNumber('6')">6</button>
+                    <button class="button operator" type="button" onclick="appendOperator('*')">×</button>
 
-                    <button class="button number" onclick="appendNumber('1')">1</button>
-                    <button class="button number" onclick="appendNumber('2')">2</button>
-                    <button class="button number" onclick="appendNumber('3')">3</button>
-                    <button class="button operator" onclick="appendOperator('-')">−</button>
+                    <button class="button number" type="button" onclick="appendNumber('1')">1</button>
+                    <button class="button number" type="button" onclick="appendNumber('2')">2</button>
+                    <button class="button number" type="button" onclick="appendNumber('3')">3</button>
+                    <button class="button operator" type="button" onclick="appendOperator('-')">−</button>
 
-                    <button class="button number zero" onclick="appendNumber('0')">0</button>
-                    <button class="button number" onclick="appendDecimal()">.</button>
-                    <button class="button operator" onclick="appendOperator('+')">+</button>
+                    <button class="button number zero" type="button" onclick="appendNumber('0')">0</button>
+                    <button class="button number" type="button" onclick="appendDecimal()">.</button>
+                    <button class="button operator" type="button" onclick="appendOperator('+')">+</button>
 
-                    <button class="button backspace" onclick="backspace()">⌫</button>
+                    <button class="button backspace" type="button" onclick="backspace()">⌫</button>
 
                     <button
                         id="equalsButton"
                         class="button equals"
+                        type="button"
                         onclick="evaluateExpression()"
                     >
                         =
@@ -398,6 +435,10 @@
 
                 </section>
 
+
+                <!-- ==============================================
+                     SCIENTIFIC RAW EXPRESSION
+                =============================================== -->
 
                 <section class="raw-expression-section">
 
@@ -452,6 +493,10 @@
                 </section>
 
 
+                <!-- ==============================================
+                     SCIENTIFIC HISTORY
+                =============================================== -->
+
                 <section class="history-section">
 
                     <div class="history-header">
@@ -459,7 +504,7 @@
                         <div>
 
                             <h2>
-                                History
+                                Scientific History
                             </h2>
 
                             <span id="historyCount">
@@ -514,7 +559,7 @@
             >
 
                 <!-- ==============================================
-                     WORD SIZE + SIGNED MODE
+                     SETTINGS
                 =============================================== -->
 
                 <section class="programmer-settings">
@@ -608,10 +653,13 @@
 
 
                 <!-- ==============================================
-                     DISPLAY
+                     PROGRAMMER DISPLAY
                 =============================================== -->
 
-                <section class="programmer-display">
+                <section
+                    class="programmer-display"
+                    aria-live="polite"
+                >
 
                     <div class="programmer-display-header">
 
@@ -642,23 +690,35 @@
                         0
                     </div>
 
+
+                    <div
+                        id="programmerOperationState"
+                        class="programmer-operation-state"
+                    >
+                        No pending operation
+                    </div>
+
                 </section>
 
 
                 <div
                     id="programmerStatus"
                     class="status-message"
+                    role="status"
+                    aria-live="polite"
                 ></div>
 
 
                 <div
                     id="programmerError"
                     class="error"
+                    role="alert"
+                    aria-live="assertive"
                 ></div>
 
 
                 <!-- ==============================================
-                     BASE
+                     BASE SELECTOR
                 =============================================== -->
 
                 <section class="base-selector">
@@ -706,72 +766,192 @@
 
 
                 <!-- ==============================================
-                     CONVERSIONS
+                     CONVERSION PANEL
                 =============================================== -->
 
                 <section class="conversion-panel">
 
                     <div class="conversion-row">
 
-                        <span>HEX</span>
+                        <span>
+                            HEX
+                        </span>
 
                         <strong id="conversionHEX">
-                            0000000000000000
+                            0
                         </strong>
+
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('HEX')"
+                        >
+                            Copy
+                        </button>
 
                     </div>
 
 
                     <div class="conversion-row">
 
-                        <span>DEC</span>
+                        <span>
+                            DEC
+                        </span>
 
                         <strong id="conversionDEC">
                             0
                         </strong>
 
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('DEC')"
+                        >
+                            Copy
+                        </button>
+
                     </div>
 
 
                     <div class="conversion-row">
 
-                        <span>OCT</span>
+                        <span>
+                            OCT
+                        </span>
 
                         <strong id="conversionOCT">
-                            0000000000000000000000
+                            0
                         </strong>
+
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('OCT')"
+                        >
+                            Copy
+                        </button>
 
                     </div>
 
 
                     <div class="conversion-row">
 
-                        <span>BIN</span>
+                        <span>
+                            BIN
+                        </span>
 
                         <strong id="conversionBIN">
-                            00000000
+                            0
                         </strong>
+
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('BIN')"
+                        >
+                            Copy
+                        </button>
 
                     </div>
 
 
                     <div class="conversion-row secondary-conversion">
 
-                        <span>SDEC</span>
+                        <span>
+                            SDEC
+                        </span>
 
                         <strong id="conversionSignedDEC">
                             0
                         </strong>
 
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('SDEC')"
+                        >
+                            Copy
+                        </button>
+
                     </div>
 
 
                     <div class="conversion-row secondary-conversion">
 
-                        <span>UDEC</span>
+                        <span>
+                            UDEC
+                        </span>
 
                         <strong id="conversionUnsignedDEC">
                             0
+                        </strong>
+
+                        <button
+                            class="copy-base-button"
+                            type="button"
+                            onclick="copyProgrammerValue('UDEC')"
+                        >
+                            Copy
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ==============================================
+                     WORD INFORMATION
+                =============================================== -->
+
+                <section class="word-info-panel">
+
+                    <div>
+
+                        <span>
+                            Word
+                        </span>
+
+                        <strong id="wordInfoWidth">
+                            64-bit
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Interpretation
+                        </span>
+
+                        <strong id="wordInfoSigned">
+                            Unsigned
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Overflow
+                        </span>
+
+                        <strong>
+                            Wrap
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Engine
+                        </span>
+
+                        <strong>
+                            C++
                         </strong>
 
                     </div>
@@ -794,7 +974,7 @@
                             </h2>
 
                             <span>
-                                Click a bit to toggle it
+                                Click any bit to toggle it
                             </span>
 
                         </div>
@@ -811,7 +991,7 @@
 
 
                 <!-- ==============================================
-                     OPERATIONS
+                     PROGRAMMER OPERATIONS
                 =============================================== -->
 
                 <section class="programmer-operation-grid">
@@ -934,7 +1114,7 @@
 
 
                 <!-- ==============================================
-                     NUMBER KEYPAD
+                     PROGRAMMER KEYPAD
                 =============================================== -->
 
                 <section class="programmer-keypad">
@@ -972,7 +1152,230 @@
 
                 </section>
 
+
+                <!-- ==============================================
+                     PROGRAMMER HISTORY
+                =============================================== -->
+
+                <section class="history-section">
+
+                    <div class="history-header">
+
+                        <div>
+
+                            <h2>
+                                Programmer History
+                            </h2>
+
+                            <span id="programmerHistoryCount">
+                                0 operations
+                            </span>
+
+                        </div>
+
+
+                        <div class="history-actions">
+
+                            <button
+                                id="toggleProgrammerHistoryButton"
+                                class="history-control-button"
+                                type="button"
+                                onclick="toggleProgrammerHistory()"
+                            >
+                                Collapse
+                            </button>
+
+
+                            <button
+                                class="history-control-button"
+                                type="button"
+                                onclick="clearProgrammerHistory()"
+                            >
+                                Clear
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="programmerHistoryList"
+                        class="history-list"
+                    ></div>
+
+                </section>
+
             </div>
+
+
+            <!-- ==================================================
+                 ARCHITECTURE
+            =================================================== -->
+
+            <section class="architecture-section">
+
+                <div class="section-heading">
+
+                    <h2>
+                        Architecture
+                    </h2>
+
+                    <span>
+                        Full-stack C++
+                    </span>
+
+                </div>
+
+
+                <div class="architecture-flow">
+
+                    <div class="architecture-node">
+
+                        <strong>
+                            Browser
+                        </strong>
+
+                        <span>
+                            HTML / CSS / JavaScript
+                        </span>
+
+                    </div>
+
+
+                    <div class="architecture-arrow">
+                        →
+                    </div>
+
+
+                    <div class="architecture-node">
+
+                        <strong>
+                            REST API
+                        </strong>
+
+                        <span>
+                            JSON over HTTP
+                        </span>
+
+                    </div>
+
+
+                    <div class="architecture-arrow">
+                        →
+                    </div>
+
+
+                    <div class="architecture-node">
+
+                        <strong>
+                            Drogon
+                        </strong>
+
+                        <span>
+                            C++ Web Server
+                        </span>
+
+                    </div>
+
+
+                    <div class="architecture-arrow">
+                        →
+                    </div>
+
+
+                    <div class="architecture-node">
+
+                        <strong>
+                            C++ Engines
+                        </strong>
+
+                        <span>
+                            Scientific + Programmer
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ==================================================
+                 API INFORMATION
+            =================================================== -->
+
+            <section class="api-section">
+
+                <div class="section-heading">
+
+                    <h2>
+                        API
+                    </h2>
+
+                    <span>
+                        Version 9
+                    </span>
+
+                </div>
+
+
+                <div class="api-grid">
+
+                    <div class="api-route">
+
+                        <span class="api-method get">
+                            GET
+                        </span>
+
+                        <code>
+                            /health
+                        </code>
+
+                    </div>
+
+
+                    <div class="api-route">
+
+                        <span class="api-method get">
+                            GET
+                        </span>
+
+                        <code>
+                            /api/info
+                        </code>
+
+                    </div>
+
+
+                    <div class="api-route">
+
+                        <span class="api-method post">
+                            POST
+                        </span>
+
+                        <code>
+                            /api/evaluate
+                        </code>
+
+                    </div>
+
+
+                    <div class="api-route">
+
+                        <span class="api-method post">
+                            POST
+                        </span>
+
+                        <code>
+                            /api/programmer
+                        </code>
+
+                    </div>
+
+                </div>
+
+            </section>
 
 
             <!-- ==================================================
@@ -987,7 +1390,7 @@
 
 
                 <p>
-                    A full-stack calculator powered by C++, a custom scientific expression parser, and an advanced width-aware programmer engine running through Drogon.
+                    A full-stack scientific and programmer calculator powered by C++, a custom expression parser, a width-aware bitwise engine, Drogon, Docker and automated GitHub Actions testing.
                 </p>
 
 
@@ -999,11 +1402,17 @@
                     <span>Docker</span>
                     <span>REST API</span>
                     <span>GitHub Actions</span>
+                    <span>JavaScript</span>
+                    <span>Responsive UI</span>
 
                 </div>
 
             </section>
 
+
+            <!-- ==================================================
+                 FOOTER
+            =================================================== -->
 
             <footer class="calculator-footer">
 
@@ -1013,7 +1422,7 @@
 
 
                 <span class="version">
-                    v8.0
+                    v9.0
                 </span>
 
             </footer>
