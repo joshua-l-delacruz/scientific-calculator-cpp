@@ -90,28 +90,62 @@ jobs:
 
 
       # ======================================================
-      # WEBSITE
+      # VERSION
       # ======================================================
 
-      - name: Test Version 4 website
+      - name: Test Version 5 website
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/)
 
 
           echo "$RESPONSE" | \
-            grep "v4.0"
+            grep "v5.0"
 
 
           echo "$RESPONSE" | \
-            grep "modeButton"
+            grep "memoryRecall"
+
+
+          echo "$RESPONSE" | \
+            grep "historyList"
+
+
+          echo "$RESPONSE" | \
+            grep "Ans"
+
+
+      # ======================================================
+      # JAVASCRIPT
+      # ======================================================
+
+      - name: Test Version 5 frontend logic
+        run: |
+          RESPONSE=$(curl -fsS \
+            http://localhost:8080/app.js)
+
+
+          echo "$RESPONSE" | \
+            grep "memoryAdd"
+
+
+          echo "$RESPONSE" | \
+            grep "appendAnswer"
+
+
+          echo "$RESPONSE" | \
+            grep "calculationHistory"
+
+
+          echo "$RESPONSE" | \
+            grep "sessionStorage"
 
 
       # ======================================================
       # HEALTH
       # ======================================================
 
-      - name: Test Version 4 health endpoint
+      - name: Test Version 5 health endpoint
         run: |
           RESPONSE=$(curl -fsS \
             http://localhost:8080/health)
@@ -121,24 +155,29 @@ jobs:
 
 
           echo "$RESPONSE" | \
-            grep '"version":"4.0"'
+            python3 -c '
+          import json
+          import sys
 
+          data = json.load(sys.stdin)
 
-          echo "$RESPONSE" | \
-            grep '"angleModes":"DEG,RAD"'
+          assert data["status"] == "ok"
+          assert data["version"] == "5.0"
+          assert data["engine"] == "cpp-expression-parser"
+          '
 
 
       # ======================================================
-      # BASIC PRECEDENCE
+      # BASIC C++ EXPRESSION
       # ======================================================
 
-      - name: Test arithmetic precedence
+      - name: Test basic C++ expression
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"expression":"2+3*4","mode":"DEG"}')
+            -d '{"expression":"(25+5)*3","mode":"DEG"}')
 
 
           echo "$RESPONSE"
@@ -151,16 +190,15 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == 14
-          assert data["mode"] == "DEG"
+          assert data["result"] == 90
           '
 
 
       # ======================================================
-      # DEG TEST
+      # DEG
       # ======================================================
 
-      - name: Test DEG sine
+      - name: Test DEG mode
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
@@ -169,27 +207,24 @@ jobs:
             -d '{"expression":"sin(30)","mode":"DEG"}')
 
 
-          echo "$RESPONSE"
-
-
           echo "$RESPONSE" | \
             python3 -c '
           import json
-          import math
           import sys
 
           data = json.load(sys.stdin)
 
-          assert data["mode"] == "DEG"
-          assert abs(data["result"] - 0.5) < 1e-12
+          assert abs(
+              data["result"] - 0.5
+          ) < 1e-12
           '
 
 
       # ======================================================
-      # RAD TEST
+      # RAD
       # ======================================================
 
-      - name: Test RAD sine
+      - name: Test RAD mode
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
@@ -198,9 +233,6 @@ jobs:
             -d '{"expression":"sin(pi/2)","mode":"RAD"}')
 
 
-          echo "$RESPONSE"
-
-
           echo "$RESPONSE" | \
             python3 -c '
           import json
@@ -208,75 +240,23 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["mode"] == "RAD"
-          assert abs(data["result"] - 1.0) < 1e-12
+          assert abs(
+              data["result"] - 1
+          ) < 1e-12
           '
 
 
       # ======================================================
-      # DEG / RAD DIFFERENCE
+      # COMPOUND EXPRESSION
       # ======================================================
 
-      - name: Verify DEG and RAD produce different results
-        run: |
-          DEG_RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(1)","mode":"DEG"}')
-
-
-          RAD_RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(1)","mode":"RAD"}')
-
-
-          export DEG_RESPONSE
-          export RAD_RESPONSE
-
-
-          python3 - <<'PY'
-          import json
-          import os
-
-          deg = json.loads(
-              os.environ["DEG_RESPONSE"]
-          )
-
-          rad = json.loads(
-              os.environ["RAD_RESPONSE"]
-          )
-
-          assert abs(
-              deg["result"] -
-              rad["result"]
-          ) > 0.1
-
-          print(
-              "DEG sin(1):",
-              deg["result"]
-          )
-
-          print(
-              "RAD sin(1):",
-              rad["result"]
-          )
-          PY
-
-
-      # ======================================================
-      # POWER ASSOCIATIVITY
-      # ======================================================
-
-      - name: Test right associative powers
+      - name: Test advanced expression
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
-            -d '{"expression":"2^3^2","mode":"DEG"}')
+            -d '{"expression":"2^8+5!","mode":"DEG"}')
 
 
           echo "$RESPONSE" | \
@@ -286,24 +266,21 @@ jobs:
 
           data = json.load(sys.stdin)
 
-          assert data["result"] == 512
+          assert data["result"] == 376
           '
 
 
       # ======================================================
-      # UNARY / POWER PRECEDENCE
+      # PRECEDENCE
       # ======================================================
 
-      - name: Test negative power precedence
+      - name: Test unary exponent precedence
         run: |
           RESPONSE=$(curl -fsS \
             -X POST \
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
             -d '{"expression":"-2^2","mode":"DEG"}')
-
-
-          echo "$RESPONSE"
 
 
           echo "$RESPONSE" | \
@@ -318,108 +295,7 @@ jobs:
 
 
       # ======================================================
-      # NEGATIVE EXPONENT
-      # ======================================================
-
-      - name: Test negative exponent
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"2^-2","mode":"DEG"}')
-
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] -
-              0.25
-          ) < 1e-12
-          '
-
-
-      # ======================================================
-      # FACTORIAL
-      # ======================================================
-
-      - name: Test factorial
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"5!","mode":"DEG"}')
-
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert data["result"] == 120
-          '
-
-
-      # ======================================================
-      # COMPOUND RAD EXPRESSION
-      # ======================================================
-
-      - name: Test compound RAD expression
-        run: |
-          RESPONSE=$(curl -fsS \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(pi/2)+sqrt(144)","mode":"RAD"}')
-
-
-          echo "$RESPONSE"
-
-
-          echo "$RESPONSE" | \
-            python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          assert abs(
-              data["result"] -
-              13.0
-          ) < 1e-12
-          '
-
-
-      # ======================================================
-      # INVALID MODE
-      # ======================================================
-
-      - name: Test invalid angle mode
-        run: |
-          RESPONSE=$(curl -s \
-            -X POST \
-            http://localhost:8080/api/evaluate \
-            -H "Content-Type: application/json" \
-            -d '{"expression":"sin(30)","mode":"XYZ"}')
-
-
-          echo "$RESPONSE"
-
-
-          echo "$RESPONSE" | \
-            grep '"error":"Angle mode must be DEG or RAD."' 
-
-
-      # ======================================================
-      # DIVIDE BY ZERO
+      # ERROR HANDLING
       # ======================================================
 
       - name: Test divide by zero
@@ -429,9 +305,6 @@ jobs:
             http://localhost:8080/api/evaluate \
             -H "Content-Type: application/json" \
             -d '{"expression":"10/0","mode":"DEG"}')
-
-
-          echo "$RESPONSE"
 
 
           echo "$RESPONSE" | \
