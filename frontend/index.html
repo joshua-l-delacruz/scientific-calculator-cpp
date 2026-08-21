@@ -12,7 +12,7 @@
 
     <meta
         name="description"
-        content="Scientific calculator powered by a C++ expression parser with DEG and RAD modes."
+        content="C++ scientific calculator with expression parsing, memory, history, DEG and RAD modes."
     >
 
     <title>
@@ -55,8 +55,6 @@
                 class="mode-button"
                 type="button"
                 onclick="toggleAngleMode()"
-                aria-label="Switch angle mode"
-                title="Switch between degrees and radians"
             >
                 DEG
             </button>
@@ -74,6 +72,11 @@
         >
 
             <div class="display-meta">
+
+                <span
+                    id="memoryIndicator"
+                    class="memory-indicator"
+                ></span>
 
                 <span
                     id="displayMode"
@@ -111,7 +114,63 @@
 
 
         <!-- ==================================================
-             EXPRESSION CONTROLS
+             MEMORY
+        =================================================== -->
+
+        <section
+            class="memory-grid"
+            aria-label="Calculator memory controls"
+        >
+
+            <button
+                class="memory-button"
+                type="button"
+                onclick="memoryClear()"
+            >
+                MC
+            </button>
+
+
+            <button
+                class="memory-button"
+                type="button"
+                onclick="memoryRecall()"
+            >
+                MR
+            </button>
+
+
+            <button
+                class="memory-button"
+                type="button"
+                onclick="memoryAdd()"
+            >
+                M+
+            </button>
+
+
+            <button
+                class="memory-button"
+                type="button"
+                onclick="memorySubtract()"
+            >
+                M−
+            </button>
+
+
+            <button
+                class="memory-button ans-button"
+                type="button"
+                onclick="appendAnswer()"
+            >
+                Ans
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             PARENTHESES / CONSTANTS
         =================================================== -->
 
         <section class="expression-controls">
@@ -420,7 +479,7 @@
 
 
         <!-- ==================================================
-             EXPRESSION INPUT
+             EXPRESSION
         =================================================== -->
 
         <section class="raw-expression-section">
@@ -454,6 +513,53 @@
 
 
         <!-- ==================================================
+             HISTORY
+        =================================================== -->
+
+        <section class="history-section">
+
+            <div class="history-header">
+
+                <div>
+
+                    <h2>
+                        History
+                    </h2>
+
+                    <span id="historyCount">
+                        0 calculations
+                    </span>
+
+                </div>
+
+
+                <button
+                    id="clearHistoryButton"
+                    class="clear-history-button"
+                    type="button"
+                    onclick="clearHistory()"
+                >
+                    Clear
+                </button>
+
+            </div>
+
+
+            <div
+                id="historyList"
+                class="history-list"
+            >
+
+                <div class="history-empty">
+                    No calculations yet.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
              FOOTER
         =================================================== -->
 
@@ -464,7 +570,7 @@
             </span>
 
             <span class="version">
-                v4.0
+                v5.0
             </span>
 
         </footer>
