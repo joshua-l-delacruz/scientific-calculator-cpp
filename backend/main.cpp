@@ -1,15 +1,12 @@
 #include <drogon/drogon.h>
 
 #include <algorithm>
-#include <bitset>
 #include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <iomanip>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -173,7 +170,7 @@ int getServerPort()
     {
         std::cerr
             << "Invalid PORT environment variable. "
-            << "Using 8080."
+            << "Using port 8080."
             << std::endl;
 
 
@@ -244,7 +241,7 @@ double factorial(
 
 
 // ============================================================
-// SCIENTIFIC EXPRESSION PARSER
+// SCIENTIFIC PARSER
 // ============================================================
 
 class ExpressionParser
@@ -729,17 +726,13 @@ private:
         }
 
 
-        const std::string numberText =
-            expression.substr(
-                start,
-                position - start
-            );
-
-
         try
         {
             return std::stod(
-                numberText
+                expression.substr(
+                    start,
+                    position - start
+                )
             );
         }
 
@@ -803,18 +796,12 @@ private:
         double value
     ) const
     {
-        if (
-            angleMode ==
+        return angleMode ==
             AngleMode::RAD
-        )
-        {
-            return value;
-        }
-
-
-        return value *
-            PI /
-            180.0;
+                ? value
+                : value *
+                    PI /
+                    180.0;
     }
 
 
@@ -936,7 +923,7 @@ private:
 
 
 // ============================================================
-// PROGRAMMER MODE HELPERS
+// PROGRAMMER HELPERS
 // ============================================================
 
 int programmerBaseFromName(
@@ -986,6 +973,56 @@ int programmerBaseFromName(
 }
 
 
+unsigned int parseBitWidth(
+    unsigned int width
+)
+{
+    if (
+        width != 8 &&
+        width != 16 &&
+        width != 32 &&
+        width != 64
+    )
+    {
+        throw std::runtime_error(
+            "Bit width must be 8, 16, 32 or 64."
+        );
+    }
+
+
+    return width;
+}
+
+
+uint64_t maskForWidth(
+    unsigned int width
+)
+{
+    if (width == 64)
+    {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+
+    return (
+        uint64_t{1} <<
+        width
+    ) - 1;
+}
+
+
+uint64_t signBitForWidth(
+    unsigned int width
+)
+{
+    return uint64_t{1} <<
+        (
+            width -
+            1
+        );
+}
+
+
 std::string normalizeIntegerInput(
     std::string text
 )
@@ -996,7 +1033,9 @@ std::string normalizeIntegerInput(
             text.end(),
             [](unsigned char character)
             {
-                return std::isspace(character);
+                return std::isspace(
+                    character
+                );
             }
         ),
         text.end()
@@ -1020,9 +1059,11 @@ std::string normalizeIntegerInput(
 }
 
 
-uint64_t parseUnsignedInteger(
+uint64_t parseProgrammerValue(
     std::string text,
-    int base
+    int base,
+    unsigned int width,
+    bool signedMode
 )
 {
     text =
@@ -1039,9 +1080,129 @@ uint64_t parseUnsignedInteger(
     }
 
 
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    // ========================================================
+    // SIGNED DECIMAL INPUT
+    // ========================================================
+
+    if (
+        signedMode &&
+        base == 10
+    )
+    {
+        try
+        {
+            std::size_t consumed =
+                0;
+
+
+            const long long value =
+                std::stoll(
+                    text,
+                    &consumed,
+                    10
+                );
+
+
+            if (
+                consumed !=
+                text.length()
+            )
+            {
+                throw std::runtime_error(
+                    "Invalid signed decimal value."
+                );
+            }
+
+
+            if (width < 64)
+            {
+                const long long minimum =
+                    -(
+                        static_cast<long long>(
+                            uint64_t{1} <<
+                            (
+                                width -
+                                1
+                            )
+                        )
+                    );
+
+
+                const long long maximum =
+                    static_cast<long long>(
+                        (
+                            uint64_t{1} <<
+                            (
+                                width -
+                                1
+                            )
+                        ) -
+                        1
+                    );
+
+
+                if (
+                    value < minimum ||
+                    value > maximum
+                )
+                {
+                    throw std::runtime_error(
+                        "Signed decimal value is outside the selected bit width."
+                    );
+                }
+            }
+
+
+            return
+                static_cast<uint64_t>(
+                    value
+                ) &
+                mask;
+        }
+
+        catch (
+            const std::invalid_argument &
+        )
+        {
+            throw std::runtime_error(
+                "Invalid signed decimal value."
+            );
+        }
+
+        catch (
+            const std::out_of_range &
+        )
+        {
+            throw std::runtime_error(
+                "Signed decimal value is outside the selected bit width."
+            );
+        }
+    }
+
+
+    if (
+        !text.empty() &&
+        text[0] == '-'
+    )
+    {
+        throw std::runtime_error(
+            "Negative values require Signed DEC mode."
+        );
+    }
+
+
     if (
         base == 16 &&
-        text.rfind("0X", 0) == 0
+        text.rfind(
+            "0X",
+            0
+        ) == 0
     )
     {
         text =
@@ -1051,7 +1212,10 @@ uint64_t parseUnsignedInteger(
 
     if (
         base == 2 &&
-        text.rfind("0B", 0) == 0
+        text.rfind(
+            "0B",
+            0
+        ) == 0
     )
     {
         text =
@@ -1067,12 +1231,12 @@ uint64_t parseUnsignedInteger(
     }
 
 
-    std::size_t consumed =
-        0;
-
-
     try
     {
+        std::size_t consumed =
+            0;
+
+
         const unsigned long long value =
             std::stoull(
                 text,
@@ -1088,6 +1252,19 @@ uint64_t parseUnsignedInteger(
         {
             throw std::runtime_error(
                 "Invalid digit for the selected number base."
+            );
+        }
+
+
+        if (
+            static_cast<uint64_t>(
+                value
+            ) >
+            mask
+        )
+        {
+            throw std::runtime_error(
+                "Value exceeds the selected bit width."
             );
         }
 
@@ -1111,7 +1288,7 @@ uint64_t parseUnsignedInteger(
     )
     {
         throw std::runtime_error(
-            "Value exceeds the 64-bit unsigned integer range."
+            "Value exceeds the selected bit width."
         );
     }
 }
@@ -1119,23 +1296,10 @@ uint64_t parseUnsignedInteger(
 
 std::string unsignedToBase(
     uint64_t value,
-    int base
+    int base,
+    unsigned int minimumDigits = 1
 )
 {
-    if (base == 10)
-    {
-        return std::to_string(
-            value
-        );
-    }
-
-
-    if (value == 0)
-    {
-        return "0";
-    }
-
-
     const char digits[] =
         "0123456789ABCDEF";
 
@@ -1143,18 +1307,34 @@ std::string unsignedToBase(
     std::string result;
 
 
-    while (value > 0)
+    do
     {
         result.push_back(
             digits[
                 value %
-                static_cast<uint64_t>(base)
+                static_cast<uint64_t>(
+                    base
+                )
             ]
         );
 
 
         value /=
-            static_cast<uint64_t>(base);
+            static_cast<uint64_t>(
+                base
+            );
+    }
+    while (value > 0);
+
+
+    while (
+        result.length() <
+        minimumDigits
+    )
+    {
+        result.push_back(
+            '0'
+        );
     }
 
 
@@ -1168,43 +1348,367 @@ std::string unsignedToBase(
 }
 
 
-Json::Value programmerResultJson(
-    uint64_t result
+std::string signedDecimalString(
+    uint64_t raw,
+    unsigned int width
 )
 {
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    raw &=
+        mask;
+
+
+    const uint64_t signBit =
+        signBitForWidth(
+            width
+        );
+
+
+    if (
+        (
+            raw &
+            signBit
+        ) == 0
+    )
+    {
+        return std::to_string(
+            raw
+        );
+    }
+
+
+    uint64_t magnitude;
+
+
+    if (width == 64)
+    {
+        magnitude =
+            (
+                ~raw
+            ) +
+            1;
+    }
+
+    else
+    {
+        const uint64_t modulus =
+            uint64_t{1} <<
+            width;
+
+
+        magnitude =
+            modulus -
+            raw;
+    }
+
+
+    return "-" +
+        std::to_string(
+            magnitude
+        );
+}
+
+
+uint64_t arithmeticShiftRight(
+    uint64_t value,
+    unsigned int shift,
+    unsigned int width
+)
+{
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    value &=
+        mask;
+
+
+    if (shift == 0)
+    {
+        return value;
+    }
+
+
+    const bool negative =
+        (
+            value &
+            signBitForWidth(
+                width
+            )
+        ) != 0;
+
+
+    uint64_t result =
+        value >>
+        shift;
+
+
+    if (negative)
+    {
+        if (width == 64)
+        {
+            const uint64_t fillMask =
+                std::numeric_limits<uint64_t>::max()
+                <<
+                (
+                    64 -
+                    shift
+                );
+
+
+            result |=
+                fillMask;
+        }
+
+        else
+        {
+            const uint64_t fillMask =
+                (
+                    mask ^
+                    (
+                        (
+                            uint64_t{1} <<
+                            (
+                                width -
+                                shift
+                            )
+                        ) -
+                        1
+                    )
+                );
+
+
+            result |=
+                fillMask;
+        }
+    }
+
+
+    return result &
+        mask;
+}
+
+
+uint64_t rotateLeft(
+    uint64_t value,
+    unsigned int amount,
+    unsigned int width
+)
+{
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    value &=
+        mask;
+
+
+    amount %=
+        width;
+
+
+    if (amount == 0)
+    {
+        return value;
+    }
+
+
+    if (width == 64)
+    {
+        return
+            (
+                value <<
+                amount
+            ) |
+            (
+                value >>
+                (
+                    64 -
+                    amount
+                )
+            );
+    }
+
+
+    return
+        (
+            (
+                value <<
+                amount
+            ) |
+            (
+                value >>
+                (
+                    width -
+                    amount
+                )
+            )
+        ) &
+        mask;
+}
+
+
+uint64_t rotateRight(
+    uint64_t value,
+    unsigned int amount,
+    unsigned int width
+)
+{
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    value &=
+        mask;
+
+
+    amount %=
+        width;
+
+
+    if (amount == 0)
+    {
+        return value;
+    }
+
+
+    if (width == 64)
+    {
+        return
+            (
+                value >>
+                amount
+            ) |
+            (
+                value <<
+                (
+                    64 -
+                    amount
+                )
+            );
+    }
+
+
+    return
+        (
+            (
+                value >>
+                amount
+            ) |
+            (
+                value <<
+                (
+                    width -
+                    amount
+                )
+            )
+        ) &
+        mask;
+}
+
+
+Json::Value programmerResultJson(
+    uint64_t result,
+    unsigned int width,
+    bool signedMode
+)
+{
+    const uint64_t mask =
+        maskForWidth(
+            width
+        );
+
+
+    result &=
+        mask;
+
+
+    const unsigned int hexDigits =
+        width /
+        4;
+
+
+    const unsigned int octDigits =
+        (
+            width +
+            2
+        ) /
+        3;
+
+
     Json::Value json;
 
 
-    json["result"] =
-        std::to_string(result);
+    json["raw"] =
+        std::to_string(
+            result
+        );
 
 
     json["bin"] =
         unsignedToBase(
             result,
-            2
+            2,
+            width
         );
 
 
     json["oct"] =
         unsignedToBase(
             result,
-            8
-        );
-
-
-    json["dec"] =
-        unsignedToBase(
-            result,
-            10
+            8,
+            octDigits
         );
 
 
     json["hex"] =
         unsignedToBase(
             result,
-            16
+            16,
+            hexDigits
         );
+
+
+    json["unsignedDec"] =
+        std::to_string(
+            result
+        );
+
+
+    json["signedDec"] =
+        signedDecimalString(
+            result,
+            width
+        );
+
+
+    json["dec"] =
+        signedMode
+            ? json["signedDec"]
+            : json["unsignedDec"];
+
+
+    json["width"] =
+        width;
+
+
+    json["signed"] =
+        signedMode;
+
+
+    json["overflowPolicy"] =
+        "wrap-to-selected-width";
 
 
     return json;
@@ -1318,7 +1822,7 @@ int main()
 
 
             json["version"] =
-                "7.0";
+                "8.0";
 
 
             json["engine"] =
@@ -1329,8 +1833,20 @@ int main()
                 true;
 
 
-            json["programmerIntegerSize"] =
-                "64-bit unsigned";
+            json["programmerWidths"] =
+                "8,16,32,64";
+
+
+            json["signedProgrammerMode"] =
+                true;
+
+
+            json["rotateOperations"] =
+                "ROL,ROR";
+
+
+            json["interactiveBits"] =
+                true;
 
 
             json["angleModes"] =
@@ -1626,11 +2142,57 @@ int main()
                     );
 
 
+                unsigned int width =
+                    64;
+
+
+                if (
+                    json->isMember(
+                        "width"
+                    )
+                )
+                {
+                    width =
+                        (*json)["width"]
+                            .asUInt();
+                }
+
+
+                width =
+                    parseBitWidth(
+                        width
+                    );
+
+
+                bool signedMode =
+                    false;
+
+
+                if (
+                    json->isMember(
+                        "signed"
+                    )
+                )
+                {
+                    signedMode =
+                        (*json)["signed"]
+                            .asBool();
+                }
+
+
+                const uint64_t mask =
+                    maskForWidth(
+                        width
+                    );
+
+
                 const uint64_t left =
-                    parseUnsignedInteger(
+                    parseProgrammerValue(
                         (*json)["left"]
                             .asString(),
-                        base
+                        base,
+                        width,
+                        signedMode
                     );
 
 
@@ -1638,17 +2200,71 @@ int main()
                     left;
 
 
-                if (operation == "CONVERT")
+                if (
+                    operation ==
+                    "CONVERT"
+                )
                 {
                     result =
                         left;
                 }
 
-                else if (operation == "NOT")
+
+                else if (
+                    operation ==
+                    "NOT"
+                )
                 {
                     result =
-                        ~left;
+                        (
+                            ~left
+                        ) &
+                        mask;
                 }
+
+
+                else if (
+                    operation ==
+                    "TOGGLE"
+                )
+                {
+                    if (
+                        !json->isMember(
+                            "right"
+                        )
+                    )
+                    {
+                        throw std::runtime_error(
+                            "TOGGLE requires a bit index."
+                        );
+                    }
+
+
+                    const unsigned int index =
+                        static_cast<unsigned int>(
+                            std::stoul(
+                                (*json)["right"]
+                                    .asString()
+                            )
+                        );
+
+
+                    if (index >= width)
+                    {
+                        throw std::runtime_error(
+                            "Bit index is outside the selected width."
+                        );
+                    }
+
+
+                    result =
+                        left ^
+                        (
+                            uint64_t{1} <<
+                            index
+                        );
+                }
+
 
                 else
                 {
@@ -1664,78 +2280,175 @@ int main()
                     }
 
 
-                    const uint64_t right =
-                        parseUnsignedInteger(
-                            (*json)["right"]
-                                .asString(),
-                            base
-                        );
-
-
-                    if (operation == "AND")
+                    if (
+                        operation == "SHL" ||
+                        operation == "SHR" ||
+                        operation == "ROL" ||
+                        operation == "ROR"
+                    )
                     {
-                        result =
-                            left & right;
-                    }
-
-                    else if (operation == "OR")
-                    {
-                        result =
-                            left | right;
-                    }
-
-                    else if (operation == "XOR")
-                    {
-                        result =
-                            left ^ right;
-                    }
-
-                    else if (operation == "SHL")
-                    {
-                        if (right > 63)
-                        {
-                            throw std::runtime_error(
-                                "Shift amount must be between 0 and 63."
+                        const unsigned int amount =
+                            static_cast<unsigned int>(
+                                std::stoul(
+                                    (*json)["right"]
+                                        .asString()
+                                )
                             );
+
+
+                        if (
+                            operation == "SHL"
+                        )
+                        {
+                            if (amount >= width)
+                            {
+                                result =
+                                    0;
+                            }
+
+                            else
+                            {
+                                result =
+                                    (
+                                        left <<
+                                        amount
+                                    ) &
+                                    mask;
+                            }
                         }
 
 
-                        result =
-                            left <<
-                            static_cast<unsigned int>(
-                                right
-                            );
-                    }
-
-                    else if (operation == "SHR")
-                    {
-                        if (right > 63)
+                        else if (
+                            operation == "SHR"
+                        )
                         {
-                            throw std::runtime_error(
-                                "Shift amount must be between 0 and 63."
-                            );
+                            if (amount >= width)
+                            {
+                                if (
+                                    signedMode &&
+                                    (
+                                        left &
+                                        signBitForWidth(
+                                            width
+                                        )
+                                    )
+                                )
+                                {
+                                    result =
+                                        mask;
+                                }
+
+                                else
+                                {
+                                    result =
+                                        0;
+                                }
+                            }
+
+                            else if (signedMode)
+                            {
+                                result =
+                                    arithmeticShiftRight(
+                                        left,
+                                        amount,
+                                        width
+                                    );
+                            }
+
+                            else
+                            {
+                                result =
+                                    left >>
+                                    amount;
+                            }
                         }
 
 
-                        result =
-                            left >>
-                            static_cast<unsigned int>(
-                                right
-                            );
+                        else if (
+                            operation == "ROL"
+                        )
+                        {
+                            result =
+                                rotateLeft(
+                                    left,
+                                    amount,
+                                    width
+                                );
+                        }
+
+
+                        else
+                        {
+                            result =
+                                rotateRight(
+                                    left,
+                                    amount,
+                                    width
+                                );
+                        }
                     }
+
 
                     else
                     {
-                        throw std::runtime_error(
-                            "Unsupported programmer operation."
-                        );
+                        const uint64_t right =
+                            parseProgrammerValue(
+                                (*json)["right"]
+                                    .asString(),
+                                base,
+                                width,
+                                signedMode
+                            );
+
+
+                        if (
+                            operation ==
+                            "AND"
+                        )
+                        {
+                            result =
+                                left &
+                                right;
+                        }
+
+
+                        else if (
+                            operation ==
+                            "OR"
+                        )
+                        {
+                            result =
+                                left |
+                                right;
+                        }
+
+
+                        else if (
+                            operation ==
+                            "XOR"
+                        )
+                        {
+                            result =
+                                left ^
+                                right;
+                        }
+
+
+                        else
+                        {
+                            throw std::runtime_error(
+                                "Unsupported programmer operation."
+                            );
+                        }
                     }
                 }
 
 
                 Json::Value responseJson =
                     programmerResultJson(
-                        result
+                        result,
+                        width,
+                        signedMode
                     );
 
 
@@ -1782,12 +2495,12 @@ int main()
 
 
     std::cout
-        << "C++ Scientific Calculator v7.0"
+        << "C++ Calculator v8.0"
         << std::endl;
 
 
     std::cout
-        << "Scientific + Programmer modes enabled"
+        << "Advanced programmer mode enabled"
         << std::endl;
 
 
