@@ -2,9 +2,33 @@ const API_URL =
     "/api/evaluate";
 
 
+// ============================================================
+// STATE
+// ============================================================
+
 let lastResult =
     null;
 
+
+let angleMode =
+    sessionStorage.getItem(
+        "scientificCalculatorAngleMode"
+    ) || "DEG";
+
+
+if (
+    angleMode !== "DEG" &&
+    angleMode !== "RAD"
+)
+{
+    angleMode =
+        "DEG";
+}
+
+
+// ============================================================
+// DOM
+// ============================================================
 
 const display =
     document.getElementById(
@@ -30,8 +54,26 @@ const expressionInput =
     );
 
 
+const modeButton =
+    document.getElementById(
+        "modeButton"
+    );
+
+
+const displayMode =
+    document.getElementById(
+        "displayMode"
+    );
+
+
+const expressionModeLabel =
+    document.getElementById(
+        "expressionModeLabel"
+    );
+
+
 // ============================================================
-// HELPERS
+// ERROR
 // ============================================================
 
 function clearError()
@@ -48,21 +90,103 @@ function showError(message)
 }
 
 
+// ============================================================
+// ANGLE MODE
+// ============================================================
+
+function updateAngleModeInterface()
+{
+    modeButton.textContent =
+        angleMode;
+
+
+    displayMode.textContent =
+        angleMode;
+
+
+    if (angleMode === "RAD")
+    {
+        modeButton.classList.add(
+            "rad"
+        );
+
+
+        expressionModeLabel.textContent =
+            "Trigonometry: Radians";
+    }
+
+    else
+    {
+        modeButton.classList.remove(
+            "rad"
+        );
+
+
+        expressionModeLabel.textContent =
+            "Trigonometry: Degrees";
+    }
+}
+
+
+function toggleAngleMode()
+{
+    clearError();
+
+
+    angleMode =
+        angleMode === "DEG"
+            ? "RAD"
+            : "DEG";
+
+
+    sessionStorage.setItem(
+        "scientificCalculatorAngleMode",
+        angleMode
+    );
+
+
+    updateAngleModeInterface();
+
+
+    if (
+        expressionInput.value.trim().length >
+        0
+    )
+    {
+        updatePreview();
+    }
+
+
+    expressionInput.focus();
+}
+
+
+// ============================================================
+// PREVIEW
+// ============================================================
+
 function updatePreview()
 {
     const expression =
         expressionInput.value;
 
 
-    preview.textContent =
-        expression.length > 0
-            ? expression
-            : "Ready";
+    if (expression.length > 0)
+    {
+        preview.textContent =
+            `${expression} [${angleMode}]`;
+    }
+
+    else
+    {
+        preview.textContent =
+            "Ready";
+    }
 }
 
 
 // ============================================================
-// APPEND
+// APPEND TOKENS
 // ============================================================
 
 function appendToken(token)
@@ -105,10 +229,6 @@ function appendOperator(operator)
 }
 
 
-// ============================================================
-// CONSTANT
-// ============================================================
-
 function appendConstant(constant)
 {
     appendToken(
@@ -117,21 +237,14 @@ function appendConstant(constant)
 }
 
 
-// ============================================================
-// FUNCTION
-// ============================================================
-
 function appendFunction(functionName)
 {
     appendToken(
-        functionName + "("
+        functionName +
+        "("
     );
 }
 
-
-// ============================================================
-// POWER SHORTCUTS
-// ============================================================
 
 function appendSquare()
 {
@@ -148,10 +261,6 @@ function appendCube()
     );
 }
 
-
-// ============================================================
-// FACTORIAL
-// ============================================================
 
 function appendFactorial()
 {
@@ -180,6 +289,7 @@ function toggleSignExpression()
             "-"
         );
 
+
         return;
     }
 
@@ -191,6 +301,9 @@ function toggleSignExpression()
 
 
     updatePreview();
+
+
+    expressionInput.focus();
 }
 
 
@@ -220,6 +333,9 @@ function backspace()
 
 
     updatePreview();
+
+
+    expressionInput.focus();
 }
 
 
@@ -246,11 +362,14 @@ function clearCalculator()
 
 
     clearError();
+
+
+    expressionInput.focus();
 }
 
 
 // ============================================================
-// BUSY
+// BUSY STATE
 // ============================================================
 
 function setBusyState(isBusy)
@@ -266,6 +385,10 @@ function setBusyState(isBusy)
                     isBusy;
             }
         );
+
+
+    modeButton.disabled =
+        isBusy;
 
 
     expressionInput.disabled =
@@ -286,11 +409,15 @@ async function evaluateExpression()
         expressionInput.value.trim();
 
 
-    if (expression.length === 0)
+    if (
+        expression.length ===
+        0
+    )
     {
         showError(
             "Enter an expression."
         );
+
 
         return;
     }
@@ -320,7 +447,10 @@ async function evaluateExpression()
                         JSON.stringify(
                             {
                                 expression:
-                                    expression
+                                    expression,
+
+                                mode:
+                                    angleMode
                             }
                         )
                 }
@@ -367,8 +497,7 @@ async function evaluateExpression()
 
 
         preview.textContent =
-            expression +
-            " =";
+            `${expression} [${data.mode}] =`;
     }
 
     catch (error)
@@ -391,7 +520,7 @@ async function evaluateExpression()
 
 
 // ============================================================
-// FORMAT NUMBER
+// NUMBER FORMATTING
 // ============================================================
 
 function formatNumber(number)
@@ -429,7 +558,7 @@ function formatNumber(number)
 
 
 // ============================================================
-// TEXT INPUT SYNC
+// INPUT SYNCHRONIZATION
 // ============================================================
 
 expressionInput.addEventListener(
@@ -439,13 +568,14 @@ expressionInput.addEventListener(
     {
         clearError();
 
+
         updatePreview();
     }
 );
 
 
 // ============================================================
-// KEYBOARD
+// KEYBOARD — EXPRESSION FIELD
 // ============================================================
 
 expressionInput.addEventListener(
@@ -453,21 +583,32 @@ expressionInput.addEventListener(
 
     async function(event)
     {
-        if (event.key === "Enter")
+        if (
+            event.key ===
+            "Enter"
+        )
         {
             event.preventDefault();
+
 
             await evaluateExpression();
         }
 
 
-        else if (event.key === "Escape")
+        else if (
+            event.key ===
+            "Escape"
+        )
         {
             clearCalculator();
         }
     }
 );
 
+
+// ============================================================
+// KEYBOARD — GLOBAL
+// ============================================================
 
 document.addEventListener(
     "keydown",
@@ -492,6 +633,7 @@ document.addEventListener(
                 event.key
             );
 
+
             return;
         }
 
@@ -511,39 +653,57 @@ document.addEventListener(
                 event.key
             );
 
+
             return;
         }
 
 
-        if (event.key === ".")
+        if (
+            event.key ===
+            "."
+        )
         {
             appendDecimal();
 
+
             return;
         }
 
 
-        if (event.key === "Enter")
+        if (
+            event.key ===
+            "Enter"
+        )
         {
             event.preventDefault();
+
 
             await evaluateExpression();
 
+
             return;
         }
 
 
-        if (event.key === "Backspace")
+        if (
+            event.key ===
+            "Backspace"
+        )
         {
             event.preventDefault();
 
+
             backspace();
+
 
             return;
         }
 
 
-        if (event.key === "Escape")
+        if (
+            event.key ===
+            "Escape"
+        )
         {
             clearCalculator();
         }
@@ -554,6 +714,8 @@ document.addEventListener(
 // ============================================================
 // INITIALIZE
 // ============================================================
+
+updateAngleModeInterface();
 
 updatePreview();
 
