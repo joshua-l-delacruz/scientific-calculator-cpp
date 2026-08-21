@@ -1,42 +1,64 @@
 :root {
     --bg-main: #020617;
     --bg-secondary: #07101f;
+
     --panel: #111827;
     --panel-2: #0f172a;
+
     --display: #020617;
+
     --button: #1e293b;
     --button-alt: #152033;
+
     --border: #263349;
+
     --text: #f8fafc;
     --muted: #94a3b8;
     --subtle: #64748b;
+
     --accent: #38bdf8;
+
     --operator: #2563eb;
     --operator-dark: #1d4ed8;
+
     --purple: #c4b5fd;
+
     --warning: #fbbf24;
     --danger: #f87171;
+
+    --success: #34d399;
 }
 
 
 html[data-theme="light"] {
     --bg-main: #eaf1f8;
     --bg-secondary: #f8fafc;
+
     --panel: #ffffff;
     --panel-2: #f1f5f9;
+
     --display: #f8fafc;
+
     --button: #e2e8f0;
     --button-alt: #dbeafe;
+
     --border: #cbd5e1;
+
     --text: #0f172a;
     --muted: #475569;
     --subtle: #64748b;
+
     --accent: #0284c7;
+
     --operator: #2563eb;
     --operator-dark: #1d4ed8;
+
     --purple: #7c3aed;
+
     --warning: #b45309;
     --danger: #dc2626;
+
+    --success: #047857;
 }
 
 
@@ -85,10 +107,43 @@ button {
 }
 
 
+button {
+    transition:
+        transform 0.08s ease,
+        filter 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+
+button:hover:not(:disabled) {
+    filter: brightness(1.12);
+}
+
+
+button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+
+button:focus-visible,
+input:focus-visible {
+    outline:
+        2px solid
+        var(--accent);
+
+    outline-offset: 2px;
+}
+
+
 .hidden {
     display: none !important;
 }
 
+
+/* ============================================================
+   APP
+============================================================ */
 
 .app-shell {
     width: 100%;
@@ -96,12 +151,14 @@ button {
     display: flex;
     justify-content: center;
 
-    padding: 50px 24px;
+    padding:
+        48px
+        22px;
 }
 
 
 .calculator {
-    width: 620px;
+    width: 640px;
     max-width: 100%;
 
     padding: 24px;
@@ -120,7 +177,9 @@ button {
         );
 
     box-shadow:
-        0 30px 80px
+        0
+        30px
+        80px
         rgba(0, 0, 0, 0.3);
 }
 
@@ -143,7 +202,9 @@ button {
 .title-group h1 {
     margin: 0;
 
-    font-size: 25px;
+    font-size: 26px;
+
+    letter-spacing: -0.02em;
 }
 
 
@@ -220,7 +281,7 @@ button {
 
 
 .calculator-mode-button {
-    min-height: 40px;
+    min-height: 42px;
 
     border: none;
 
@@ -254,7 +315,10 @@ button {
     flex-direction: column;
     justify-content: flex-end;
 
-    padding: 18px 20px 20px;
+    padding:
+        18px
+        20px
+        20px;
 
     border:
         1px solid
@@ -303,23 +367,28 @@ button {
     color: var(--subtle);
 
     font-size: 14px;
+
+    overflow-wrap: anywhere;
 }
 
 
 .display-value {
     text-align: right;
 
-    font-size: clamp(
-        32px,
-        9vw,
-        44px
-    );
+    font-size:
+        clamp(
+            32px,
+            9vw,
+            44px
+        );
 
     font-weight: 700;
 
     overflow-x: auto;
 
     white-space: nowrap;
+
+    scrollbar-width: thin;
 }
 
 
@@ -440,7 +509,7 @@ button {
             var(--operator-dark)
         );
 
-    color: white;
+    color: #ffffff;
 }
 
 
@@ -489,7 +558,7 @@ button {
             #0284c7
         );
 
-    color: white;
+    color: #ffffff;
 }
 
 
@@ -505,6 +574,8 @@ button {
 .expression-label-row {
     display: flex;
     justify-content: space-between;
+
+    gap: 10px;
 
     margin-bottom: 7px;
 }
@@ -527,7 +598,9 @@ button {
 .expression-input {
     width: 100%;
 
-    padding: 12px 14px;
+    padding:
+        12px
+        14px;
 
     border:
         1px solid
@@ -544,11 +617,8 @@ button {
     font-family:
         "Courier New",
         monospace;
-}
 
-
-.expression-input:focus {
-    border-color: var(--accent);
+    font-size: 14px;
 }
 
 
@@ -564,6 +634,10 @@ button {
 .secondary-action,
 .history-control-button {
     min-height: 35px;
+
+    padding:
+        0
+        10px;
 
     border:
         1px solid
@@ -590,7 +664,9 @@ button {
 
 .history-section,
 .about-section,
-.bit-editor-section {
+.bit-editor-section,
+.architecture-section,
+.api-section {
     margin-top: 18px;
 
     padding: 15px;
@@ -604,10 +680,13 @@ button {
 
 
 .history-header,
-.bit-editor-header {
+.bit-editor-header,
+.section-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    gap: 10px;
 
     margin-bottom: 12px;
 }
@@ -615,7 +694,8 @@ button {
 
 .history-header h2,
 .about-section h2,
-.bit-editor-header h2 {
+.bit-editor-header h2,
+.section-heading h2 {
     margin: 0;
 
     font-size: 14px;
@@ -623,7 +703,8 @@ button {
 
 
 .history-header span,
-.bit-editor-header span {
+.bit-editor-header span,
+.section-heading span {
     color: var(--subtle);
 
     font-size: 10px;
@@ -638,7 +719,7 @@ button {
 
 
 .history-list {
-    max-height: 240px;
+    max-height: 260px;
 
     overflow-y: auto;
 
@@ -646,6 +727,8 @@ button {
     flex-direction: column;
 
     gap: 7px;
+
+    scrollbar-width: thin;
 }
 
 
@@ -660,6 +743,8 @@ button {
     text-align: center;
 
     color: var(--subtle);
+
+    font-size: 12px;
 }
 
 
@@ -691,13 +776,20 @@ button {
 
     color: var(--muted);
 
-    font-family: monospace;
+    font-family:
+        "Courier New",
+        monospace;
+
+    overflow-wrap: anywhere;
 }
 
 
 .history-result-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+
+    gap: 10px;
 }
 
 
@@ -710,6 +802,8 @@ button {
     color: var(--accent);
 
     font-size: 10px;
+
+    white-space: nowrap;
 }
 
 
@@ -812,9 +906,11 @@ button {
 ============================================================ */
 
 .programmer-display {
-    min-height: 145px;
+    min-height: 160px;
 
-    padding: 18px 20px;
+    padding:
+        18px
+        20px;
 
     border:
         1px solid
@@ -829,6 +925,8 @@ button {
 .programmer-display-header {
     display: flex;
     justify-content: space-between;
+
+    gap: 10px;
 
     color: var(--subtle);
 
@@ -846,18 +944,22 @@ button {
 .programmer-expression {
     min-height: 28px;
 
-    margin-top: 15px;
+    margin-top: 14px;
 
     text-align: right;
 
     color: var(--muted);
 
-    font-family: monospace;
+    font-family:
+        "Courier New",
+        monospace;
+
+    overflow-wrap: anywhere;
 }
 
 
 .programmer-main-value {
-    margin-top: 10px;
+    margin-top: 8px;
 
     text-align: right;
 
@@ -872,6 +974,17 @@ button {
     overflow-x: auto;
 
     white-space: nowrap;
+}
+
+
+.programmer-operation-state {
+    margin-top: 8px;
+
+    text-align: right;
+
+    color: var(--subtle);
+
+    font-size: 10px;
 }
 
 
@@ -938,12 +1051,17 @@ button {
     display: grid;
 
     grid-template-columns:
-        60px
-        1fr;
+        50px
+        minmax(0, 1fr)
+        46px;
 
     gap: 10px;
 
-    padding: 9px 12px;
+    align-items: center;
+
+    padding:
+        8px
+        10px;
 
     border-bottom:
         1px solid
@@ -978,6 +1096,29 @@ button {
 }
 
 
+.copy-base-button {
+    min-height: 26px;
+
+    padding:
+        0
+        5px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    background: var(--panel-2);
+
+    color: var(--muted);
+
+    font-size: 9px;
+}
+
+
 .secondary-conversion {
     background:
         rgba(56, 189, 248, 0.03);
@@ -985,7 +1126,60 @@ button {
 
 
 /* ============================================================
-   BIT GRID
+   WORD INFO
+============================================================ */
+
+.word-info-panel {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 7px;
+
+    margin-bottom: 12px;
+}
+
+
+.word-info-panel > div {
+    padding:
+        9px
+        7px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 9px;
+
+    background: var(--panel-2);
+
+    text-align: center;
+}
+
+
+.word-info-panel span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: var(--subtle);
+
+    font-size: 9px;
+}
+
+
+.word-info-panel strong {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   BIT EDITOR
 ============================================================ */
 
 .bit-grid {
@@ -1027,7 +1221,12 @@ button {
     color: #7dd3fc;
 
     border-color:
-        rgba(56, 189, 248, 0.35);
+        rgba(
+            56,
+            189,
+            248,
+            0.4
+        );
 }
 
 
@@ -1103,7 +1302,7 @@ button {
 
 
 /* ============================================================
-   HEX
+   HEX KEYS
 ============================================================ */
 
 .hex-keypad {
@@ -1181,7 +1380,7 @@ button {
             #0284c7
         ) !important;
 
-    color: white !important;
+    color: #ffffff !important;
 }
 
 
@@ -1194,23 +1393,152 @@ button {
 
 
 /* ============================================================
-   HOVER
+   ARCHITECTURE
 ============================================================ */
 
-button {
-    transition:
-        transform 0.08s ease,
-        filter 0.15s ease;
+.architecture-flow {
+    display: flex;
+    align-items: stretch;
+
+    gap: 6px;
 }
 
 
-button:hover:not(:disabled) {
-    filter: brightness(1.12);
+.architecture-node {
+    flex: 1;
+
+    min-width: 0;
+
+    padding:
+        12px
+        7px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 10px;
+
+    background: var(--panel-2);
+
+    text-align: center;
 }
 
 
-button:active:not(:disabled) {
-    transform: scale(0.97);
+.architecture-node strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: var(--accent);
+
+    font-size: 11px;
+}
+
+
+.architecture-node span {
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 9px;
+
+    line-height: 1.4;
+}
+
+
+.architecture-arrow {
+    display: flex;
+    align-items: center;
+
+    color: var(--subtle);
+}
+
+
+/* ============================================================
+   API
+============================================================ */
+
+.api-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 7px;
+}
+
+
+.api-route {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding:
+        9px
+        10px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 9px;
+
+    background: var(--panel-2);
+}
+
+
+.api-route code {
+    color: var(--text);
+
+    font-size: 11px;
+
+    overflow-wrap: anywhere;
+}
+
+
+.api-method {
+    min-width: 34px;
+
+    padding:
+        3px
+        5px;
+
+    border-radius: 5px;
+
+    text-align: center;
+
+    font-size: 8px;
+
+    font-weight: 900;
+}
+
+
+.api-method.get {
+    background:
+        rgba(
+            52,
+            211,
+            153,
+            0.13
+        );
+
+    color: var(--success);
+}
+
+
+.api-method.post {
+    background:
+        rgba(
+            56,
+            189,
+            248,
+            0.13
+        );
+
+    color: var(--accent);
 }
 
 
@@ -1223,7 +1551,7 @@ button:active:not(:disabled) {
 
     font-size: 12px;
 
-    line-height: 1.6;
+    line-height: 1.65;
 }
 
 
@@ -1236,7 +1564,9 @@ button:active:not(:disabled) {
 
 
 .tech-stack span {
-    padding: 5px 8px;
+    padding:
+        5px
+        8px;
 
     border-radius: 7px;
 
@@ -1250,11 +1580,16 @@ button:active:not(:disabled) {
 }
 
 
+/* ============================================================
+   FOOTER
+============================================================ */
+
 .calculator-footer {
     margin-top: 20px;
 
     display: flex;
     justify-content: center;
+    align-items: center;
 
     gap: 8px;
 
@@ -1265,7 +1600,9 @@ button:active:not(:disabled) {
 
 
 .version {
-    padding: 3px 6px;
+    padding:
+        3px
+        6px;
 
     border-radius: 6px;
 
@@ -1320,11 +1657,84 @@ button:active:not(:disabled) {
     }
 
 
+    .word-info-panel {
+        grid-template-columns:
+            1fr
+            1fr;
+    }
+
+
     .bit-grid {
         grid-template-columns:
-            repeat(8, minmax(28px, 1fr));
+            repeat(
+                8,
+                minmax(
+                    34px,
+                    1fr
+                )
+            );
 
         overflow-x: auto;
+
+        padding-bottom: 4px;
+    }
+
+
+    .architecture-flow {
+        flex-direction: column;
+    }
+
+
+    .architecture-arrow {
+        justify-content: center;
+
+        transform: rotate(90deg);
+    }
+
+
+    .api-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+}
+
+
+@media (max-width: 420px) {
+
+    .calculator-header {
+        align-items: center;
+    }
+
+
+    .title-group h1 {
+        font-size: 18px;
+    }
+
+
+    .conversion-row {
+        grid-template-columns:
+            42px
+            minmax(0, 1fr)
+            42px;
+    }
+
+
+    .copy-base-button {
+        font-size: 8px;
+    }
+
+
+    .programmer-operation-grid {
+        gap: 6px;
+    }
+
+
+    .programmer-operation,
+    .programmer-control {
+        min-height: 44px;
+
+        font-size: 12px;
     }
 
 }
