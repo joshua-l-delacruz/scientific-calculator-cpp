@@ -1,10 +1,19 @@
 #include <drogon/drogon.h>
+
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
 #include <string>
 
 using namespace drogon;
 
-constexpr double PI = 3.14159265358979323846;
+constexpr double PI =
+    3.14159265358979323846;
+
+
+// ============================================================
+// JSON RESPONSE HELPER
+// ============================================================
 
 HttpResponsePtr jsonResponse(
     const Json::Value &json,
@@ -33,11 +42,140 @@ HttpResponsePtr jsonResponse(
     return response;
 }
 
+
+// ============================================================
+// ERROR RESPONSE HELPER
+// ============================================================
+
+HttpResponsePtr errorResponse(
+    const std::string &message,
+    HttpStatusCode status = k400BadRequest)
+{
+    Json::Value json;
+
+    json["error"] =
+        message;
+
+    return jsonResponse(
+        json,
+        status
+    );
+}
+
+
+// ============================================================
+// SERVER PORT
+// ============================================================
+
+int getServerPort()
+{
+    const char *portEnvironment =
+        std::getenv("PORT");
+
+    if (portEnvironment == nullptr)
+    {
+        return 8080;
+    }
+
+    try
+    {
+        return std::stoi(
+            portEnvironment
+        );
+    }
+    catch (...)
+    {
+        std::cerr
+            << "Invalid PORT environment variable. "
+            << "Using 8080 instead."
+            << std::endl;
+
+        return 8080;
+    }
+}
+
+
+// ============================================================
+// MAIN APPLICATION
+// ============================================================
+
 int main()
 {
-    // =====================================
-    // Health Check Endpoint
-    // =====================================
+    // --------------------------------------------------------
+    // FRONTEND
+    // --------------------------------------------------------
+
+    app().registerHandler(
+        "/",
+
+        [](const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            auto response =
+                HttpResponse::newFileResponse(
+                    "/app/frontend/index.html"
+                );
+
+            callback(response);
+        },
+
+        {
+            Get
+        }
+    );
+
+
+    app().registerHandler(
+        "/style.css",
+
+        [](const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            auto response =
+                HttpResponse::newFileResponse(
+                    "/app/frontend/style.css"
+                );
+
+            response->setContentTypeCode(
+                CT_TEXT_CSS
+            );
+
+            callback(response);
+        },
+
+        {
+            Get
+        }
+    );
+
+
+    app().registerHandler(
+        "/app.js",
+
+        [](const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback)
+        {
+            auto response =
+                HttpResponse::newFileResponse(
+                    "/app/frontend/app.js"
+                );
+
+            response->setContentTypeCode(
+                CT_APPLICATION_JAVASCRIPT
+            );
+
+            callback(response);
+        },
+
+        {
+            Get
+        }
+    );
+
+
+    // --------------------------------------------------------
+    // HEALTH CHECK
+    // --------------------------------------------------------
 
     app().registerHandler(
         "/health",
@@ -53,8 +191,13 @@ int main()
             responseJson["service"] =
                 "scientific-calculator-cpp";
 
+            responseJson["version"] =
+                "1.1";
+
             callback(
-                jsonResponse(responseJson)
+                jsonResponse(
+                    responseJson
+                )
             );
         },
 
@@ -63,9 +206,10 @@ int main()
         }
     );
 
-    // =====================================
-    // Calculator API
-    // =====================================
+
+    // --------------------------------------------------------
+    // CALCULATOR API
+    // --------------------------------------------------------
 
     app().registerHandler(
         "/api/calculate",
@@ -73,7 +217,10 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            // Handle browser CORS preflight
+            // ------------------------------------------------
+            // CORS PREFLIGHT
+            // ------------------------------------------------
+
             if (req->method() == Options)
             {
                 Json::Value responseJson;
@@ -82,48 +229,45 @@ int main()
                     "ok";
 
                 callback(
-                    jsonResponse(responseJson)
+                    jsonResponse(
+                        responseJson
+                    )
                 );
 
                 return;
             }
+
+
+            // ------------------------------------------------
+            // PARSE JSON
+            // ------------------------------------------------
 
             auto json =
                 req->getJsonObject();
 
             if (!json)
             {
-                Json::Value error;
-
-                error["error"] =
-                    "Invalid JSON request.";
-
                 callback(
-                    jsonResponse(
-                        error,
-                        k400BadRequest
+                    errorResponse(
+                        "Invalid JSON request."
                     )
                 );
 
                 return;
             }
+
 
             if (!json->isMember("operation"))
             {
-                Json::Value error;
-
-                error["error"] =
-                    "Missing operation.";
-
                 callback(
-                    jsonResponse(
-                        error,
-                        k400BadRequest
+                    errorResponse(
+                        "Missing operation."
                     )
                 );
 
                 return;
             }
+
 
             std::string operation =
                 (*json)["operation"].asString();
@@ -131,9 +275,10 @@ int main()
             double result =
                 0.0;
 
-            // =====================================
-            // Binary Operations
-            // =====================================
+
+            // =================================================
+            // BINARY OPERATIONS
+            // =================================================
 
             if (
                 operation == "add" ||
@@ -147,20 +292,15 @@ int main()
                     !json->isMember("right")
                 )
                 {
-                    Json::Value error;
-
-                    error["error"] =
-                        "Missing left or right value.";
-
                     callback(
-                        jsonResponse(
-                            error,
-                            k400BadRequest
+                        errorResponse(
+                            "Missing left or right value."
                         )
                     );
 
                     return;
                 }
+
 
                 double left =
                     (*json)["left"].asDouble();
@@ -168,11 +308,13 @@ int main()
                 double right =
                     (*json)["right"].asDouble();
 
+
                 if (operation == "add")
                 {
                     result =
                         left + right;
                 }
+
 
                 else if (operation == "subtract")
                 {
@@ -180,25 +322,21 @@ int main()
                         left - right;
                 }
 
+
                 else if (operation == "multiply")
                 {
                     result =
                         left * right;
                 }
 
+
                 else if (operation == "divide")
                 {
                     if (right == 0.0)
                     {
-                        Json::Value error;
-
-                        error["error"] =
-                            "Cannot divide by zero.";
-
                         callback(
-                            jsonResponse(
-                                error,
-                                k400BadRequest
+                            errorResponse(
+                                "Cannot divide by zero."
                             )
                         );
 
@@ -210,45 +348,40 @@ int main()
                 }
             }
 
-            // =====================================
-            // Unary / Scientific Operations
-            // =====================================
+
+            // =================================================
+            // SCIENTIFIC / UNARY OPERATIONS
+            // =================================================
 
             else
             {
                 if (!json->isMember("value"))
                 {
-                    Json::Value error;
-
-                    error["error"] =
-                        "Missing value.";
-
                     callback(
-                        jsonResponse(
-                            error,
-                            k400BadRequest
+                        errorResponse(
+                            "Missing value."
                         )
                     );
 
                     return;
                 }
 
+
                 double value =
                     (*json)["value"].asDouble();
 
+
+                // ---------------------------------------------
+                // SQUARE ROOT
+                // ---------------------------------------------
+
                 if (operation == "sqrt")
                 {
-                    if (value < 0)
+                    if (value < 0.0)
                     {
-                        Json::Value error;
-
-                        error["error"] =
-                            "Square root requires a non-negative number.";
-
                         callback(
-                            jsonResponse(
-                                error,
-                                k400BadRequest
+                            errorResponse(
+                                "Square root requires a non-negative number."
                             )
                         );
 
@@ -259,6 +392,11 @@ int main()
                         std::sqrt(value);
                 }
 
+
+                // ---------------------------------------------
+                // SINE
+                // ---------------------------------------------
+
                 else if (operation == "sin")
                 {
                     double radians =
@@ -267,6 +405,11 @@ int main()
                     result =
                         std::sin(radians);
                 }
+
+
+                // ---------------------------------------------
+                // COSINE
+                // ---------------------------------------------
 
                 else if (operation == "cos")
                 {
@@ -277,28 +420,49 @@ int main()
                         std::cos(radians);
                 }
 
+
+                // ---------------------------------------------
+                // TANGENT
+                // ---------------------------------------------
+
                 else if (operation == "tan")
                 {
                     double radians =
                         value * PI / 180.0;
 
+                    double cosine =
+                        std::cos(radians);
+
+                    if (
+                        std::abs(cosine) <
+                        1e-12
+                    )
+                    {
+                        callback(
+                            errorResponse(
+                                "Tangent is undefined for this angle."
+                            )
+                        );
+
+                        return;
+                    }
+
                     result =
                         std::tan(radians);
                 }
 
+
+                // ---------------------------------------------
+                // BASE-10 LOG
+                // ---------------------------------------------
+
                 else if (operation == "log")
                 {
-                    if (value <= 0)
+                    if (value <= 0.0)
                     {
-                        Json::Value error;
-
-                        error["error"] =
-                            "Logarithm requires a positive number.";
-
                         callback(
-                            jsonResponse(
-                                error,
-                                k400BadRequest
+                            errorResponse(
+                                "Logarithm requires a positive number."
                             )
                         );
 
@@ -309,19 +473,18 @@ int main()
                         std::log10(value);
                 }
 
+
+                // ---------------------------------------------
+                // NATURAL LOG
+                // ---------------------------------------------
+
                 else if (operation == "ln")
                 {
-                    if (value <= 0)
+                    if (value <= 0.0)
                     {
-                        Json::Value error;
-
-                        error["error"] =
-                            "Natural logarithm requires a positive number.";
-
                         callback(
-                            jsonResponse(
-                                error,
-                                k400BadRequest
+                            errorResponse(
+                                "Natural logarithm requires a positive number."
                             )
                         );
 
@@ -332,23 +495,27 @@ int main()
                         std::log(value);
                 }
 
+
+                // ---------------------------------------------
+                // NEGATE
+                // ---------------------------------------------
+
                 else if (operation == "negate")
                 {
                     result =
                         -value;
                 }
 
+
+                // ---------------------------------------------
+                // UNKNOWN OPERATION
+                // ---------------------------------------------
+
                 else
                 {
-                    Json::Value error;
-
-                    error["error"] =
-                        "Unsupported calculator operation.";
-
                     callback(
-                        jsonResponse(
-                            error,
-                            k400BadRequest
+                        errorResponse(
+                            "Unsupported calculator operation."
                         )
                     );
 
@@ -356,9 +523,26 @@ int main()
                 }
             }
 
-            // =====================================
-            // Successful Response
-            // =====================================
+
+            // =================================================
+            // RESULT VALIDATION
+            // =================================================
+
+            if (!std::isfinite(result))
+            {
+                callback(
+                    errorResponse(
+                        "The calculation produced an invalid result."
+                    )
+                );
+
+                return;
+            }
+
+
+            // =================================================
+            // SUCCESSFUL RESPONSE
+            // =================================================
 
             Json::Value responseJson;
 
@@ -369,7 +553,9 @@ int main()
                 result;
 
             callback(
-                jsonResponse(responseJson)
+                jsonResponse(
+                    responseJson
+                )
             );
         },
 
@@ -379,16 +565,32 @@ int main()
         }
     );
 
-    // =====================================
-    // Start Drogon Server
-    // =====================================
+
+    // =========================================================
+    // SERVER CONFIGURATION
+    // =========================================================
+
+    const int port =
+        getServerPort();
+
+    std::cout
+        << "Starting C++ Scientific Calculator"
+        << std::endl;
+
+    std::cout
+        << "Listening on port "
+        << port
+        << std::endl;
+
 
     app()
         .addListener(
             "0.0.0.0",
-            8080
+            port
         )
+        .setThreadNum(2)
         .run();
+
 
     return 0;
 }
