@@ -239,7 +239,7 @@ double factorial(
 
 
 // ============================================================
-// EXPRESSION PARSER
+// C++ EXPRESSION PARSER
 // ============================================================
 
 class ExpressionParser
@@ -336,7 +336,7 @@ private:
 
 
     // ========================================================
-    // CHARACTER MATCH
+    // MATCH
     // ========================================================
 
     bool match(
@@ -360,6 +360,54 @@ private:
 
 
         return false;
+    }
+
+
+    // ========================================================
+    // IMPLICIT MULTIPLICATION CHECK
+    //
+    // Examples:
+    //
+    // 2pi
+    // 2(5+3)
+    // (2+3)(4+5)
+    // 3sin(30)
+    // 2sqrt(25)
+    // (-100)50
+    // ========================================================
+
+    bool startsImplicitFactor()
+    {
+        skipWhitespace();
+
+
+        if (
+            position >=
+            expression.length()
+        )
+        {
+            return false;
+        }
+
+
+        const char character =
+            expression[position];
+
+
+        return (
+            character == '(' ||
+            character == '.' ||
+            std::isdigit(
+                static_cast<unsigned char>(
+                    character
+                )
+            ) ||
+            std::isalpha(
+                static_cast<unsigned char>(
+                    character
+                )
+            )
+        );
     }
 
 
@@ -403,7 +451,9 @@ private:
     // ========================================================
     // TERM
     //
-    // * /
+    // *
+    // /
+    // implicit multiplication
     // ========================================================
 
     double parseTerm()
@@ -441,6 +491,14 @@ private:
                     divisor;
             }
 
+            else if (
+                startsImplicitFactor()
+            )
+            {
+                value *=
+                    parseUnary();
+            }
+
             else
             {
                 break;
@@ -454,6 +512,8 @@ private:
 
     // ========================================================
     // UNARY
+    //
+    // -2^2 = -4
     // ========================================================
 
     double parseUnary()
@@ -476,6 +536,10 @@ private:
 
     // ========================================================
     // POWER
+    //
+    // Right associative:
+    //
+    // 2^3^2 = 512
     // ========================================================
 
     double parsePower()
@@ -678,6 +742,10 @@ private:
             false;
 
 
+        bool digitFound =
+            false;
+
+
         while (
             position <
             expression.length()
@@ -695,6 +763,9 @@ private:
                 )
             )
             {
+                digitFound =
+                    true;
+
                 ++position;
 
                 continue;
@@ -719,13 +790,10 @@ private:
         }
 
 
-        if (
-            start ==
-            position
-        )
+        if (!digitFound)
         {
             throw std::runtime_error(
-                "Expected number."
+                "Invalid number."
             );
         }
 
@@ -805,7 +873,7 @@ private:
 
 
     // ========================================================
-    // ANGLE CONVERSION
+    // ANGLE
     // ========================================================
 
     double toRadians(
@@ -1063,11 +1131,15 @@ int main()
 
 
             json["version"] =
-                "5.0";
+                "5.1";
 
 
             json["engine"] =
                 "cpp-expression-parser";
+
+
+            json["implicitMultiplication"] =
+                true;
 
 
             json["angleModes"] =
@@ -1088,7 +1160,7 @@ int main()
 
 
     // ========================================================
-    // EXPRESSION API
+    // EVALUATE
     // ========================================================
 
     app().registerHandler(
@@ -1274,12 +1346,12 @@ int main()
 
 
     std::cout
-        << "C++ Scientific Calculator v5.0"
+        << "C++ Scientific Calculator v5.1"
         << std::endl;
 
 
     std::cout
-        << "Memory and history frontend enabled"
+        << "Implicit multiplication enabled"
         << std::endl;
 
 
