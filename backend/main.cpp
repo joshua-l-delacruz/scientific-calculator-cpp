@@ -1,11 +1,13 @@
 #include <drogon/drogon.h>
 
-#include <cmath>
+#include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 using namespace drogon;
 
@@ -22,32 +24,98 @@ constexpr double EULER_E =
 
 
 // ============================================================
+// ANGLE MODE
+// ============================================================
+
+enum class AngleMode
+{
+    DEG,
+    RAD
+};
+
+
+std::string angleModeToString(
+    AngleMode mode
+)
+{
+    return mode == AngleMode::RAD
+        ? "RAD"
+        : "DEG";
+}
+
+
+AngleMode parseAngleMode(
+    std::string mode
+)
+{
+    std::transform(
+        mode.begin(),
+        mode.end(),
+        mode.begin(),
+        [](unsigned char character)
+        {
+            return static_cast<char>(
+                std::toupper(character)
+            );
+        }
+    );
+
+
+    if (mode == "RAD")
+    {
+        return AngleMode::RAD;
+    }
+
+
+    if (mode == "DEG")
+    {
+        return AngleMode::DEG;
+    }
+
+
+    throw std::runtime_error(
+        "Angle mode must be DEG or RAD."
+    );
+}
+
+
+// ============================================================
 // JSON HELPERS
 // ============================================================
 
 HttpResponsePtr jsonResponse(
     const Json::Value &json,
-    HttpStatusCode status = k200OK)
+    HttpStatusCode status = k200OK
+)
 {
     auto response =
-        HttpResponse::newHttpJsonResponse(json);
+        HttpResponse::newHttpJsonResponse(
+            json
+        );
 
-    response->setStatusCode(status);
+
+    response->setStatusCode(
+        status
+    );
+
 
     response->addHeader(
         "Access-Control-Allow-Origin",
         "*"
     );
 
+
     response->addHeader(
         "Access-Control-Allow-Headers",
         "Content-Type"
     );
 
+
     response->addHeader(
         "Access-Control-Allow-Methods",
         "GET, POST, OPTIONS"
     );
+
 
     return response;
 }
@@ -55,12 +123,14 @@ HttpResponsePtr jsonResponse(
 
 HttpResponsePtr errorResponse(
     const std::string &message,
-    HttpStatusCode status = k400BadRequest)
+    HttpStatusCode status = k400BadRequest
+)
 {
     Json::Value json;
 
     json["error"] =
         message;
+
 
     return jsonResponse(
         json,
@@ -70,18 +140,22 @@ HttpResponsePtr errorResponse(
 
 
 // ============================================================
-// PORT
+// SERVER PORT
 // ============================================================
 
 int getServerPort()
 {
     const char *portEnvironment =
-        std::getenv("PORT");
+        std::getenv(
+            "PORT"
+        );
+
 
     if (portEnvironment == nullptr)
     {
         return 8080;
     }
+
 
     try
     {
@@ -97,6 +171,7 @@ int getServerPort()
             << "Using port 8080."
             << std::endl;
 
+
         return 8080;
     }
 }
@@ -106,7 +181,9 @@ int getServerPort()
 // FACTORIAL
 // ============================================================
 
-double factorial(double value)
+double factorial(
+    double value
+)
 {
     if (value < 0.0)
     {
@@ -117,7 +194,9 @@ double factorial(double value)
 
 
     const double rounded =
-        std::round(value);
+        std::round(
+            value
+        );
 
 
     if (
@@ -160,7 +239,7 @@ double factorial(double value)
 
 
 // ============================================================
-// C++ EXPRESSION PARSER
+// EXPRESSION PARSER
 // ============================================================
 
 class ExpressionParser
@@ -172,14 +251,22 @@ private:
     std::size_t position =
         0;
 
+    AngleMode angleMode =
+        AngleMode::DEG;
+
 
 public:
 
-    explicit ExpressionParser(
-        std::string input
+    ExpressionParser(
+        std::string input,
+        AngleMode mode
     )
-        : expression(
+        :
+        expression(
             std::move(input)
+        ),
+        angleMode(
+            mode
         )
     {
     }
@@ -205,7 +292,9 @@ public:
         {
             throw std::runtime_error(
                 "Unexpected character near position " +
-                std::to_string(position + 1) +
+                std::to_string(
+                    position + 1
+                ) +
                 "."
             );
         }
@@ -233,7 +322,7 @@ private:
     {
         while (
             position <
-            expression.length() &&
+                expression.length() &&
             std::isspace(
                 static_cast<unsigned char>(
                     expression[position]
@@ -247,19 +336,21 @@ private:
 
 
     // ========================================================
-    // CHARACTER MATCH
+    // MATCH CHARACTER
     // ========================================================
 
-    bool match(char character)
+    bool match(
+        char character
+    )
     {
         skipWhitespace();
 
 
         if (
             position <
-            expression.length() &&
+                expression.length() &&
             expression[position] ==
-            character
+                character
         )
         {
             ++position;
@@ -275,9 +366,7 @@ private:
     // ========================================================
     // EXPRESSION
     //
-    // Handles:
-    // +
-    // -
+    // + and -
     // ========================================================
 
     double parseExpression()
@@ -314,15 +403,13 @@ private:
     // ========================================================
     // TERM
     //
-    // Handles:
-    // *
-    // /
+    // * and /
     // ========================================================
 
     double parseTerm()
     {
         double value =
-            parsePower();
+            parseUnary();
 
 
         while (true)
@@ -330,13 +417,13 @@ private:
             if (match('*'))
             {
                 value *=
-                    parsePower();
+                    parseUnary();
             }
 
             else if (match('/'))
             {
                 const double divisor =
-                    parsePower();
+                    parseUnary();
 
 
                 if (
@@ -366,30 +453,52 @@ private:
 
 
     // ========================================================
-    // POWER
+    // UNARY
     //
-    // Handles:
-    // ^
+    // +5
+    // -5
+    //
+    // Deliberately below exponentiation precedence:
+    //
+    // -2^2 = -(2^2) = -4
+    // ========================================================
+
+    double parseUnary()
+    {
+        if (match('+'))
+        {
+            return parseUnary();
+        }
+
+
+        if (match('-'))
+        {
+            return -parseUnary();
+        }
+
+
+        return parsePower();
+    }
+
+
+    // ========================================================
+    // POWER
     //
     // Right associative:
     //
-    // 2^3^2
-    //
-    // becomes:
-    //
-    // 2^(3^2)
+    // 2^3^2 = 2^(3^2)
     // ========================================================
 
     double parsePower()
     {
         double base =
-            parseUnary();
+            parsePostfix();
 
 
         if (match('^'))
         {
             const double exponent =
-                parsePower();
+                parseUnary();
 
 
             base =
@@ -413,39 +522,9 @@ private:
 
 
     // ========================================================
-    // UNARY
-    //
-    // Handles:
-    // +5
-    // -5
-    // ========================================================
-
-    double parseUnary()
-    {
-        if (match('+'))
-        {
-            return parseUnary();
-        }
-
-
-        if (match('-'))
-        {
-            return -parseUnary();
-        }
-
-
-        return parsePostfix();
-    }
-
-
-    // ========================================================
     // POSTFIX
     //
-    // Handles:
-    // !
-    //
-    // Example:
-    // 5!
+    // Factorial
     // ========================================================
 
     double parsePostfix()
@@ -457,7 +536,9 @@ private:
         while (match('!'))
         {
             value =
-                factorial(value);
+                factorial(
+                    value
+                );
         }
 
 
@@ -467,12 +548,6 @@ private:
 
     // ========================================================
     // PRIMARY
-    //
-    // Handles:
-    // numbers
-    // constants
-    // parentheses
-    // functions
     // ========================================================
 
     double parsePrimary()
@@ -546,29 +621,17 @@ private:
                 parseIdentifier();
 
 
-            // ------------------------------------------------
-            // CONSTANT PI
-            // ------------------------------------------------
-
             if (identifier == "pi")
             {
                 return PI;
             }
 
 
-            // ------------------------------------------------
-            // CONSTANT E
-            // ------------------------------------------------
-
             if (identifier == "e")
             {
                 return EULER_E;
             }
 
-
-            // ------------------------------------------------
-            // FUNCTION REQUIRES (
-            // ------------------------------------------------
 
             if (!match('('))
             {
@@ -603,7 +666,9 @@ private:
 
         throw std::runtime_error(
             "Unexpected character near position " +
-            std::to_string(position + 1) +
+            std::to_string(
+                position + 1
+            ) +
             "."
         );
     }
@@ -716,7 +781,7 @@ private:
 
         while (
             position <
-            expression.length() &&
+                expression.length() &&
             std::isalpha(
                 static_cast<unsigned char>(
                     expression[position]
@@ -735,17 +800,17 @@ private:
             );
 
 
-        for (char &character : identifier)
-        {
-            character =
-                static_cast<char>(
-                    std::tolower(
-                        static_cast<unsigned char>(
-                            character
-                        )
-                    )
+        std::transform(
+            identifier.begin(),
+            identifier.end(),
+            identifier.begin(),
+            [](unsigned char character)
+            {
+                return static_cast<char>(
+                    std::tolower(character)
                 );
-        }
+            }
+        );
 
 
         return identifier;
@@ -753,9 +818,30 @@ private:
 
 
     // ========================================================
+    // ANGLE CONVERSION
+    // ========================================================
+
+    double toRadians(
+        double value
+    ) const
+    {
+        if (
+            angleMode ==
+            AngleMode::RAD
+        )
+        {
+            return value;
+        }
+
+
+        return value *
+            PI /
+            180.0;
+    }
+
+
+    // ========================================================
     // FUNCTIONS
-    //
-    // DEG MODE
     // ========================================================
 
     double evaluateFunction(
@@ -782,9 +868,9 @@ private:
         if (name == "sin")
         {
             return std::sin(
-                value *
-                PI /
-                180.0
+                toRadians(
+                    value
+                )
             );
         }
 
@@ -792,9 +878,9 @@ private:
         if (name == "cos")
         {
             return std::cos(
-                value *
-                PI /
-                180.0
+                toRadians(
+                    value
+                )
             );
         }
 
@@ -802,9 +888,9 @@ private:
         if (name == "tan")
         {
             const double radians =
-                value *
-                PI /
-                180.0;
+                toRadians(
+                    value
+                );
 
 
             const double cosine =
@@ -886,7 +972,7 @@ private:
 int main()
 {
     // ========================================================
-    // FRONTEND
+    // FRONTEND ROUTES
     // ========================================================
 
     app().registerHandler(
@@ -900,7 +986,10 @@ int main()
                     "/app/frontend/index.html"
                 );
 
-            callback(response);
+
+            callback(
+                response
+            );
         },
 
         {
@@ -920,11 +1009,15 @@ int main()
                     "/app/frontend/style.css"
                 );
 
+
             response->setContentTypeCode(
                 CT_TEXT_CSS
             );
 
-            callback(response);
+
+            callback(
+                response
+            );
         },
 
         {
@@ -944,11 +1037,15 @@ int main()
                     "/app/frontend/app.js"
                 );
 
+
             response->setContentTypeCode(
                 CT_TEXT_JAVASCRIPT
             );
 
-            callback(response);
+
+            callback(
+                response
+            );
         },
 
         {
@@ -969,17 +1066,25 @@ int main()
         {
             Json::Value json;
 
+
             json["status"] =
                 "ok";
+
 
             json["service"] =
                 "scientific-calculator-cpp";
 
+
             json["version"] =
-                "3.0";
+                "4.0";
+
 
             json["engine"] =
                 "cpp-expression-parser";
+
+
+            json["angleModes"] =
+                "DEG,RAD";
 
 
             callback(
@@ -996,7 +1101,7 @@ int main()
 
 
     // ========================================================
-    // EXPRESSION API
+    // EVALUATE EXPRESSION
     // ========================================================
 
     app().registerHandler(
@@ -1005,12 +1110,21 @@ int main()
         [](const HttpRequestPtr &req,
            std::function<void(const HttpResponsePtr &)> &&callback)
         {
-            if (req->method() == Options)
+            // ------------------------------------------------
+            // CORS
+            // ------------------------------------------------
+
+            if (
+                req->method() ==
+                Options
+            )
             {
                 Json::Value json;
 
+
                 json["status"] =
                     "ok";
+
 
                 callback(
                     jsonResponse(
@@ -1018,9 +1132,14 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
+
+            // ------------------------------------------------
+            // BODY
+            // ------------------------------------------------
 
             auto json =
                 req->getJsonObject();
@@ -1034,11 +1153,16 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
 
-            if (!json->isMember("expression"))
+            if (
+                !json->isMember(
+                    "expression"
+                )
+            )
             {
                 callback(
                     errorResponse(
@@ -1046,12 +1170,14 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
 
             const std::string input =
-                (*json)["expression"].asString();
+                (*json)["expression"]
+                    .asString();
 
 
             if (input.empty())
@@ -1062,11 +1188,15 @@ int main()
                     )
                 );
 
+
                 return;
             }
 
 
-            if (input.length() > 500)
+            if (
+                input.length() >
+                500
+            )
             {
                 callback(
                     errorResponse(
@@ -1074,14 +1204,45 @@ int main()
                     )
                 );
 
+
                 return;
+            }
+
+
+            // ------------------------------------------------
+            // MODE
+            //
+            // DEG remains the default for backwards
+            // compatibility.
+            // ------------------------------------------------
+
+            std::string requestedMode =
+                "DEG";
+
+
+            if (
+                json->isMember(
+                    "mode"
+                )
+            )
+            {
+                requestedMode =
+                    (*json)["mode"]
+                        .asString();
             }
 
 
             try
             {
+                const AngleMode mode =
+                    parseAngleMode(
+                        requestedMode
+                    );
+
+
                 ExpressionParser parser(
-                    input
+                    input,
+                    mode
                 );
 
 
@@ -1091,8 +1252,16 @@ int main()
 
                 Json::Value responseJson;
 
+
                 responseJson["expression"] =
                     input;
+
+
+                responseJson["mode"] =
+                    angleModeToString(
+                        mode
+                    );
+
 
                 responseJson["result"] =
                     result;
@@ -1133,12 +1302,14 @@ int main()
 
 
     std::cout
-        << "C++ Scientific Calculator v3.0"
+        << "C++ Scientific Calculator v4.0"
         << std::endl;
 
+
     std::cout
-        << "Expression parser enabled"
+        << "DEG / RAD support enabled"
         << std::endl;
+
 
     std::cout
         << "Listening on port "
