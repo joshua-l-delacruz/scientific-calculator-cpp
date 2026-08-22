@@ -3699,6 +3699,136 @@ document.addEventListener(
 
 
 // ============================================================
+// CSP-SAFE BUTTON ACTIONS
+// ============================================================
+
+const buttonActions = {
+    appendAnswer,
+    appendConstant,
+    appendCube,
+    appendDecimal,
+    appendFactorial,
+    appendFunction,
+    appendNumber,
+    appendOperator,
+    appendProgrammerDigit,
+    appendSquare,
+    appendToken,
+    backspace,
+    chooseProgrammerOperation,
+    clearCalculator,
+    clearHistory,
+    clearProgrammer,
+    clearProgrammerHistory,
+    copyExpression,
+    copyProgrammerValue,
+    copyResult,
+    evaluateExpression,
+    executeProgrammerOperation,
+    memoryAdd,
+    memoryClear,
+    memoryRecall,
+    memorySubtract,
+    performProgrammerNot,
+    programmerBackspace,
+    programmerToggleSign,
+    setProgrammerBase,
+    setProgrammerSigned,
+    setProgrammerWidth,
+    switchCalculatorMode,
+    toggleAngleMode,
+    toggleHistory,
+    toggleProgrammerHistory,
+    toggleSignExpression,
+    toggleTheme
+};
+
+
+function parseButtonArgument(rawArgument)
+{
+    const argument = rawArgument.trim();
+
+
+    if (argument === "")
+    {
+        return [];
+    }
+
+
+    if (
+        argument.startsWith("'") &&
+        argument.endsWith("'")
+    )
+    {
+        return [
+            argument.slice(1, -1)
+        ];
+    }
+
+
+    if (argument === "true" || argument === "false")
+    {
+        return [
+            argument === "true"
+        ];
+    }
+
+
+    if (/^-?\d+$/.test(argument))
+    {
+        return [
+            Number(argument)
+        ];
+    }
+
+
+    throw new Error(
+        "Unsupported calculator button argument."
+    );
+}
+
+
+document.addEventListener(
+    "click",
+
+    event =>
+    {
+        const button =
+            event.target.closest(
+                "[data-action]"
+            );
+
+
+        if (!button)
+        {
+            return;
+        }
+
+
+        const match =
+            button.dataset.action.match(
+                /^([A-Za-z][A-Za-z0-9]*)\((.*)\)$/
+            );
+
+
+        if (!match || !buttonActions[match[1]])
+        {
+            throw new Error(
+                "Unsupported calculator button action."
+            );
+        }
+
+
+        buttonActions[match[1]](
+            ...parseButtonArgument(
+                match[2]
+            )
+        );
+    }
+);
+
+
+// ============================================================
 // INITIALIZATION
 // ============================================================
 
