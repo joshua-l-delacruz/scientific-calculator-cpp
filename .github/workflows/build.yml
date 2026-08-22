@@ -814,6 +814,41 @@ jobs:
           echo "$JS" | grep "programmerOperationState"
 
 
+      - name: Test strict browser security policy
+        run: |
+          HEADERS=$(curl -fsS \
+            -D - \
+            -o /dev/null \
+            http://localhost:8080/)
+
+          echo "$HEADERS"
+
+          echo "$HEADERS" | grep -i \
+            "^content-security-policy:.*script-src 'self'.*style-src 'self'"
+          echo "$HEADERS" | grep -i \
+            "^strict-transport-security: max-age=63072000; includeSubDomains; preload"
+          echo "$HEADERS" | grep -i \
+            "^referrer-policy: no-referrer"
+          echo "$HEADERS" | grep -i \
+            "^permissions-policy:"
+          echo "$HEADERS" | grep -i \
+            "^x-content-type-options: nosniff"
+          echo "$HEADERS" | grep -i \
+            "^x-frame-options: DENY"
+
+          ! echo "$HEADERS" | grep -i \
+            "content-security-policy:.*unsafe-inline"
+
+          HTML=$(curl -fsS \
+            http://localhost:8080/)
+
+          ! echo "$HTML" | grep -Eiq \
+            '<style| style=| on[a-z]+='
+
+          echo "$HTML" | grep -q \
+            'src="/app.js?v=10.2"'
+
+
       # ========================================================
       # LOGS
       # ========================================================
