@@ -2137,6 +2137,59 @@ Json::Value buildApiInfo()
 
 int main()
 {
+    // Apply the same browser security baseline to the homepage, static assets,
+    // API responses and errors. Keeping this in one post-handling hook prevents
+    // individual routes from accidentally omitting a header.
+    app().registerPostHandlingAdvice(
+        [](const HttpRequestPtr &,
+           const HttpResponsePtr &response)
+        {
+            response->addHeader(
+                "Content-Security-Policy",
+                "default-src 'self'; base-uri 'self'; object-src 'none'; "
+                "frame-ancestors 'none'; form-action 'self'; "
+                "script-src 'self'; style-src 'self'; "
+                "img-src 'self' data:; font-src 'self'; "
+                "connect-src 'self'; frame-src 'none'; worker-src 'self'; "
+                "manifest-src 'self'; upgrade-insecure-requests"
+            );
+            response->addHeader(
+                "Strict-Transport-Security",
+                "max-age=63072000; includeSubDomains; preload"
+            );
+            response->addHeader(
+                "Referrer-Policy",
+                "no-referrer"
+            );
+            response->addHeader(
+                "Permissions-Policy",
+                "accelerometer=(), autoplay=(), camera=(), geolocation=(), "
+                "gyroscope=(), magnetometer=(), microphone=(), payment=(), "
+                "usb=()"
+            );
+            response->addHeader(
+                "X-Content-Type-Options",
+                "nosniff"
+            );
+            response->addHeader(
+                "X-Frame-Options",
+                "DENY"
+            );
+            response->addHeader(
+                "Cross-Origin-Opener-Policy",
+                "same-origin"
+            );
+            response->addHeader(
+                "Cross-Origin-Resource-Policy",
+                "same-origin"
+            );
+            response->addHeader(
+                "X-Permitted-Cross-Domain-Policies",
+                "none"
+            );
+        }
+    );
+
     // ========================================================
     // STATIC FRONTEND
     // ========================================================
