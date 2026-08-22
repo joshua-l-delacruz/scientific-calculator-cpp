@@ -63,7 +63,7 @@
                         id="themeButton"
                         class="small-header-button"
                         type="button"
-                        onclick="toggleTheme()"
+                        data-action="toggleTheme()"
                         aria-label="Toggle light and dark theme"
                         title="Toggle theme"
                     >
@@ -75,7 +75,7 @@
                         id="modeButton"
                         class="mode-button"
                         type="button"
-                        onclick="toggleAngleMode()"
+                        data-action="toggleAngleMode()"
                         aria-label="Switch between degree and radian mode"
                         title="Switch angle mode"
                     >
@@ -100,7 +100,7 @@
                     id="scientificModeButton"
                     class="calculator-mode-button active"
                     type="button"
-                    onclick="switchCalculatorMode('scientific')"
+                    data-action="switchCalculatorMode('scientific')"
                 >
                     Scientific
                 </button>
@@ -110,7 +110,7 @@
                     id="programmerModeButton"
                     class="calculator-mode-button"
                     type="button"
-                    onclick="switchCalculatorMode('programmer')"
+                    data-action="switchCalculatorMode('programmer')"
                 >
                     Programmer
                 </button>
@@ -193,7 +193,7 @@
                     <button
                         class="memory-button"
                         type="button"
-                        onclick="memoryClear()"
+                        data-action="memoryClear()"
                     >
                         MC
                     </button>
@@ -202,7 +202,7 @@
                     <button
                         class="memory-button"
                         type="button"
-                        onclick="memoryRecall()"
+                        data-action="memoryRecall()"
                     >
                         MR
                     </button>
@@ -211,7 +211,7 @@
                     <button
                         class="memory-button"
                         type="button"
-                        onclick="memoryAdd()"
+                        data-action="memoryAdd()"
                     >
                         M+
                     </button>
@@ -220,7 +220,7 @@
                     <button
                         class="memory-button"
                         type="button"
-                        onclick="memorySubtract()"
+                        data-action="memorySubtract()"
                     >
                         M−
                     </button>
@@ -229,7 +229,7 @@
                     <button
                         class="memory-button ans-button"
                         type="button"
-                        onclick="appendAnswer()"
+                        data-action="appendAnswer()"
                     >
                         Ans
                     </button>
@@ -246,7 +246,7 @@
                     <button
                         class="button expression-button"
                         type="button"
-                        onclick="appendToken('(')"
+                        data-action="appendToken('(')"
                     >
                         (
                     </button>
@@ -255,7 +255,7 @@
                     <button
                         class="button expression-button"
                         type="button"
-                        onclick="appendToken(')')"
+                        data-action="appendToken(')')"
                     >
                         )
                     </button>
@@ -264,7 +264,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendConstant('pi')"
+                        data-action="appendConstant('pi')"
                     >
                         π
                     </button>
@@ -273,7 +273,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendConstant('e')"
+                        data-action="appendConstant('e')"
                     >
                         e
                     </button>
@@ -290,7 +290,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('sin')"
+                        data-action="appendFunction('sin')"
                     >
                         sin
                     </button>
@@ -299,7 +299,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('cos')"
+                        data-action="appendFunction('cos')"
                     >
                         cos
                     </button>
@@ -308,7 +308,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('tan')"
+                        data-action="appendFunction('tan')"
                     >
                         tan
                     </button>
@@ -317,7 +317,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('log')"
+                        data-action="appendFunction('log')"
                     >
                         log
                     </button>
@@ -326,7 +326,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('ln')"
+                        data-action="appendFunction('ln')"
                     >
                         ln
                     </button>
@@ -335,7 +335,7 @@
                     <button
                         class="button scientific"
                         type="button"
-                        onclick="appendFunction('sqrt')"
+                        data-action="appendFunction('sqrt')"
                     >
                         √
                     </button>
@@ -344,7 +344,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendSquare()"
+                        data-action="appendSquare()"
                     >
                         x²
                     </button>
@@ -353,7 +353,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendCube()"
+                        data-action="appendCube()"
                     >
                         x³
                     </button>
@@ -362,7 +362,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendToken('^')"
+                        data-action="appendToken('^')"
                     >
                         xʸ
                     </button>
@@ -371,7 +371,7 @@
                     <button
                         class="button advanced"
                         type="button"
-                        onclick="appendFactorial()"
+                        data-action="appendFactorial()"
                     >
                         x!
                     </button>
@@ -380,7 +380,7 @@
                     <button
                         class="button control"
                         type="button"
-                        onclick="toggleSignExpression()"
+                        data-action="toggleSignExpression()"
                     >
                         +/−
                     </button>
@@ -389,7 +389,7 @@
                     <button
                         class="button danger"
                         type="button"
-                        onclick="clearCalculator()"
+                        data-action="clearCalculator()"
                     >
                         C
                     </button>
@@ -403,32 +403,32 @@
 
                 <section class="keypad">
 
-                    <button class="button number" type="button" onclick="appendNumber('7')">7</button>
-                    <button class="button number" type="button" onclick="appendNumber('8')">8</button>
-                    <button class="button number" type="button" onclick="appendNumber('9')">9</button>
-                    <button class="button operator" type="button" onclick="appendOperator('/')">÷</button>
+                    <button class="button number" type="button" data-action="appendNumber('7')">7</button>
+                    <button class="button number" type="button" data-action="appendNumber('8')">8</button>
+                    <button class="button number" type="button" data-action="appendNumber('9')">9</button>
+                    <button class="button operator" type="button" data-action="appendOperator('/')">÷</button>
 
-                    <button class="button number" type="button" onclick="appendNumber('4')">4</button>
-                    <button class="button number" type="button" onclick="appendNumber('5')">5</button>
-                    <button class="button number" type="button" onclick="appendNumber('6')">6</button>
-                    <button class="button operator" type="button" onclick="appendOperator('*')">×</button>
+                    <button class="button number" type="button" data-action="appendNumber('4')">4</button>
+                    <button class="button number" type="button" data-action="appendNumber('5')">5</button>
+                    <button class="button number" type="button" data-action="appendNumber('6')">6</button>
+                    <button class="button operator" type="button" data-action="appendOperator('*')">×</button>
 
-                    <button class="button number" type="button" onclick="appendNumber('1')">1</button>
-                    <button class="button number" type="button" onclick="appendNumber('2')">2</button>
-                    <button class="button number" type="button" onclick="appendNumber('3')">3</button>
-                    <button class="button operator" type="button" onclick="appendOperator('-')">−</button>
+                    <button class="button number" type="button" data-action="appendNumber('1')">1</button>
+                    <button class="button number" type="button" data-action="appendNumber('2')">2</button>
+                    <button class="button number" type="button" data-action="appendNumber('3')">3</button>
+                    <button class="button operator" type="button" data-action="appendOperator('-')">−</button>
 
-                    <button class="button number zero" type="button" onclick="appendNumber('0')">0</button>
-                    <button class="button number" type="button" onclick="appendDecimal()">.</button>
-                    <button class="button operator" type="button" onclick="appendOperator('+')">+</button>
+                    <button class="button number zero" type="button" data-action="appendNumber('0')">0</button>
+                    <button class="button number" type="button" data-action="appendDecimal()">.</button>
+                    <button class="button operator" type="button" data-action="appendOperator('+')">+</button>
 
-                    <button class="button backspace" type="button" onclick="backspace()">⌫</button>
+                    <button class="button backspace" type="button" data-action="backspace()">⌫</button>
 
                     <button
                         id="equalsButton"
                         class="button equals"
                         type="button"
-                        onclick="evaluateExpression()"
+                        data-action="evaluateExpression()"
                     >
                         =
                     </button>
@@ -474,7 +474,7 @@
                         <button
                             class="secondary-action"
                             type="button"
-                            onclick="copyExpression()"
+                            data-action="copyExpression()"
                         >
                             Copy expression
                         </button>
@@ -483,7 +483,7 @@
                         <button
                             class="secondary-action"
                             type="button"
-                            onclick="copyResult()"
+                            data-action="copyResult()"
                         >
                             Copy result
                         </button>
@@ -520,7 +520,7 @@
                                 id="toggleHistoryButton"
                                 class="history-control-button"
                                 type="button"
-                                onclick="toggleHistory()"
+                                data-action="toggleHistory()"
                             >
                                 Collapse
                             </button>
@@ -529,7 +529,7 @@
                             <button
                                 class="history-control-button"
                                 type="button"
-                                onclick="clearHistory()"
+                                data-action="clearHistory()"
                             >
                                 Clear
                             </button>
@@ -577,7 +577,7 @@
                                 id="width8"
                                 class="word-size-button"
                                 type="button"
-                                onclick="setProgrammerWidth(8)"
+                                data-action="setProgrammerWidth(8)"
                             >
                                 8
                             </button>
@@ -587,7 +587,7 @@
                                 id="width16"
                                 class="word-size-button"
                                 type="button"
-                                onclick="setProgrammerWidth(16)"
+                                data-action="setProgrammerWidth(16)"
                             >
                                 16
                             </button>
@@ -597,7 +597,7 @@
                                 id="width32"
                                 class="word-size-button"
                                 type="button"
-                                onclick="setProgrammerWidth(32)"
+                                data-action="setProgrammerWidth(32)"
                             >
                                 32
                             </button>
@@ -607,7 +607,7 @@
                                 id="width64"
                                 class="word-size-button active"
                                 type="button"
-                                onclick="setProgrammerWidth(64)"
+                                data-action="setProgrammerWidth(64)"
                             >
                                 64
                             </button>
@@ -630,7 +630,7 @@
                                 id="unsignedButton"
                                 class="signed-button active"
                                 type="button"
-                                onclick="setProgrammerSigned(false)"
+                                data-action="setProgrammerSigned(false)"
                             >
                                 Unsigned
                             </button>
@@ -640,7 +640,7 @@
                                 id="signedButton"
                                 class="signed-button"
                                 type="button"
-                                onclick="setProgrammerSigned(true)"
+                                data-action="setProgrammerSigned(true)"
                             >
                                 Signed
                             </button>
@@ -727,7 +727,7 @@
                         id="baseBIN"
                         class="base-button"
                         type="button"
-                        onclick="setProgrammerBase('BIN')"
+                        data-action="setProgrammerBase('BIN')"
                     >
                         BIN
                     </button>
@@ -737,7 +737,7 @@
                         id="baseOCT"
                         class="base-button"
                         type="button"
-                        onclick="setProgrammerBase('OCT')"
+                        data-action="setProgrammerBase('OCT')"
                     >
                         OCT
                     </button>
@@ -747,7 +747,7 @@
                         id="baseDEC"
                         class="base-button active"
                         type="button"
-                        onclick="setProgrammerBase('DEC')"
+                        data-action="setProgrammerBase('DEC')"
                     >
                         DEC
                     </button>
@@ -757,7 +757,7 @@
                         id="baseHEX"
                         class="base-button"
                         type="button"
-                        onclick="setProgrammerBase('HEX')"
+                        data-action="setProgrammerBase('HEX')"
                     >
                         HEX
                     </button>
@@ -784,7 +784,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('HEX')"
+                            data-action="copyProgrammerValue('HEX')"
                         >
                             Copy
                         </button>
@@ -805,7 +805,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('DEC')"
+                            data-action="copyProgrammerValue('DEC')"
                         >
                             Copy
                         </button>
@@ -826,7 +826,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('OCT')"
+                            data-action="copyProgrammerValue('OCT')"
                         >
                             Copy
                         </button>
@@ -847,7 +847,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('BIN')"
+                            data-action="copyProgrammerValue('BIN')"
                         >
                             Copy
                         </button>
@@ -868,7 +868,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('SDEC')"
+                            data-action="copyProgrammerValue('SDEC')"
                         >
                             Copy
                         </button>
@@ -889,7 +889,7 @@
                         <button
                             class="copy-base-button"
                             type="button"
-                            onclick="copyProgrammerValue('UDEC')"
+                            data-action="copyProgrammerValue('UDEC')"
                         >
                             Copy
                         </button>
@@ -999,7 +999,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="chooseProgrammerOperation('AND')"
+                        data-action="chooseProgrammerOperation('AND')"
                     >
                         AND
                     </button>
@@ -1008,7 +1008,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="chooseProgrammerOperation('OR')"
+                        data-action="chooseProgrammerOperation('OR')"
                     >
                         OR
                     </button>
@@ -1017,7 +1017,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="chooseProgrammerOperation('XOR')"
+                        data-action="chooseProgrammerOperation('XOR')"
                     >
                         XOR
                     </button>
@@ -1026,7 +1026,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="performProgrammerNot()"
+                        data-action="performProgrammerNot()"
                     >
                         NOT
                     </button>
@@ -1035,7 +1035,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="chooseProgrammerOperation('SHL')"
+                        data-action="chooseProgrammerOperation('SHL')"
                     >
                         &lt;&lt;
                     </button>
@@ -1044,7 +1044,7 @@
                     <button
                         class="programmer-operation"
                         type="button"
-                        onclick="chooseProgrammerOperation('SHR')"
+                        data-action="chooseProgrammerOperation('SHR')"
                     >
                         &gt;&gt;
                     </button>
@@ -1053,7 +1053,7 @@
                     <button
                         class="programmer-operation rotate"
                         type="button"
-                        onclick="chooseProgrammerOperation('ROL')"
+                        data-action="chooseProgrammerOperation('ROL')"
                     >
                         ROL
                     </button>
@@ -1062,7 +1062,7 @@
                     <button
                         class="programmer-operation rotate"
                         type="button"
-                        onclick="chooseProgrammerOperation('ROR')"
+                        data-action="chooseProgrammerOperation('ROR')"
                     >
                         ROR
                     </button>
@@ -1071,7 +1071,7 @@
                     <button
                         class="programmer-control"
                         type="button"
-                        onclick="programmerToggleSign()"
+                        data-action="programmerToggleSign()"
                     >
                         +/−
                     </button>
@@ -1080,7 +1080,7 @@
                     <button
                         class="programmer-control"
                         type="button"
-                        onclick="programmerBackspace()"
+                        data-action="programmerBackspace()"
                     >
                         ⌫
                     </button>
@@ -1089,7 +1089,7 @@
                     <button
                         class="programmer-control programmer-clear"
                         type="button"
-                        onclick="clearProgrammer()"
+                        data-action="clearProgrammer()"
                     >
                         C
                     </button>
@@ -1103,12 +1103,12 @@
 
                 <section class="hex-keypad">
 
-                    <button id="hexA" type="button" onclick="appendProgrammerDigit('A')">A</button>
-                    <button id="hexB" type="button" onclick="appendProgrammerDigit('B')">B</button>
-                    <button id="hexC" type="button" onclick="appendProgrammerDigit('C')">C</button>
-                    <button id="hexD" type="button" onclick="appendProgrammerDigit('D')">D</button>
-                    <button id="hexE" type="button" onclick="appendProgrammerDigit('E')">E</button>
-                    <button id="hexF" type="button" onclick="appendProgrammerDigit('F')">F</button>
+                    <button id="hexA" type="button" data-action="appendProgrammerDigit('A')">A</button>
+                    <button id="hexB" type="button" data-action="appendProgrammerDigit('B')">B</button>
+                    <button id="hexC" type="button" data-action="appendProgrammerDigit('C')">C</button>
+                    <button id="hexD" type="button" data-action="appendProgrammerDigit('D')">D</button>
+                    <button id="hexE" type="button" data-action="appendProgrammerDigit('E')">E</button>
+                    <button id="hexF" type="button" data-action="appendProgrammerDigit('F')">F</button>
 
                 </section>
 
@@ -1119,23 +1119,23 @@
 
                 <section class="programmer-keypad">
 
-                    <button id="prog7" type="button" onclick="appendProgrammerDigit('7')">7</button>
-                    <button id="prog8" type="button" onclick="appendProgrammerDigit('8')">8</button>
-                    <button id="prog9" type="button" onclick="appendProgrammerDigit('9')">9</button>
+                    <button id="prog7" type="button" data-action="appendProgrammerDigit('7')">7</button>
+                    <button id="prog8" type="button" data-action="appendProgrammerDigit('8')">8</button>
+                    <button id="prog9" type="button" data-action="appendProgrammerDigit('9')">9</button>
 
-                    <button id="prog4" type="button" onclick="appendProgrammerDigit('4')">4</button>
-                    <button id="prog5" type="button" onclick="appendProgrammerDigit('5')">5</button>
-                    <button id="prog6" type="button" onclick="appendProgrammerDigit('6')">6</button>
+                    <button id="prog4" type="button" data-action="appendProgrammerDigit('4')">4</button>
+                    <button id="prog5" type="button" data-action="appendProgrammerDigit('5')">5</button>
+                    <button id="prog6" type="button" data-action="appendProgrammerDigit('6')">6</button>
 
-                    <button id="prog1" type="button" onclick="appendProgrammerDigit('1')">1</button>
-                    <button id="prog2" type="button" onclick="appendProgrammerDigit('2')">2</button>
-                    <button id="prog3" type="button" onclick="appendProgrammerDigit('3')">3</button>
+                    <button id="prog1" type="button" data-action="appendProgrammerDigit('1')">1</button>
+                    <button id="prog2" type="button" data-action="appendProgrammerDigit('2')">2</button>
+                    <button id="prog3" type="button" data-action="appendProgrammerDigit('3')">3</button>
 
                     <button
                         id="prog0"
                         class="programmer-zero"
                         type="button"
-                        onclick="appendProgrammerDigit('0')"
+                        data-action="appendProgrammerDigit('0')"
                     >
                         0
                     </button>
@@ -1145,7 +1145,7 @@
                         id="programmerEquals"
                         class="programmer-equals"
                         type="button"
-                        onclick="executeProgrammerOperation()"
+                        data-action="executeProgrammerOperation()"
                     >
                         =
                     </button>
@@ -1180,7 +1180,7 @@
                                 id="toggleProgrammerHistoryButton"
                                 class="history-control-button"
                                 type="button"
-                                onclick="toggleProgrammerHistory()"
+                                data-action="toggleProgrammerHistory()"
                             >
                                 Collapse
                             </button>
@@ -1189,7 +1189,7 @@
                             <button
                                 class="history-control-button"
                                 type="button"
-                                onclick="clearProgrammerHistory()"
+                                data-action="clearProgrammerHistory()"
                             >
                                 Clear
                             </button>
