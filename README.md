@@ -8,6 +8,10 @@
 
 A full-stack **scientific and programmer calculator** powered by a real **C++ backend**, a custom mathematical expression parser, a width-aware programmer engine, REST APIs, Docker, and automated CI testing.
 
+![Scientific and programmer calculator](https://raw.githubusercontent.com/joshua-l-delacruz/lab-docs/main/assets/images/cpp-calculator-dashboard.png)
+
+> **At a glance:** Try the live app, inspect the documented REST API, or build the same container verified by CI. All authoritative calculations run in the C++ backend; the browser does not use `eval()`.
+
 ## Live Application
 
 https://scientific-calculator-cpp.onrender.com
@@ -681,6 +685,10 @@ Potential future enhancements:
 **Joshua Dela Cruz**
 
 C++ / IT / Cloud / Cybersecurity learning portfolio project.
+
+# Contributing
+
+Focused bug reports, calculation edge cases, accessibility improvements, and tests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull request.
 
 # License
 
