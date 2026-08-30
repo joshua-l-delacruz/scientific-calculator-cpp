@@ -79,9 +79,13 @@ jobs:
       - name: Test Version 9.1 health
         run: |
           RESPONSE=$(curl -fsS \
+            -D /tmp/calculator-health-headers \
             http://localhost:8080/health)
 
           echo "$RESPONSE"
+
+          grep -Eiq '^x-request-id: calc-[0-9]+-[0-9]+' \
+            /tmp/calculator-health-headers
 
           echo "$RESPONSE" | \
             python3 -c '
@@ -95,6 +99,8 @@ jobs:
           assert data["version"] == "9.1"
           assert data["language"] == "C++"
           assert data["framework"] == "Drogon"
+          assert isinstance(data["uptimeSeconds"], int)
+          assert data["uptimeSeconds"] >= 0
 
           assert data["scientificMode"] is True
           assert data["programmerMode"] is True
