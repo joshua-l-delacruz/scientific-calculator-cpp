@@ -806,6 +806,7 @@ jobs:
           echo "$HTML" | grep "Overflow"
           echo "$HTML" | grep "/api/info"
           echo "$HTML" | grep "/api/programmer"
+          echo "$HTML" | grep 'href="https://joshuadelacruz.solutions/">← Main Portfolio</a>'
 
 
       - name: Test Version 10.2 JavaScript
