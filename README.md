@@ -12,6 +12,16 @@ A full-stack **scientific and programmer calculator** powered by a real **C++ ba
 
 > **At a glance:** Try the live app, inspect the documented REST API, or build the same container verified by CI. All authoritative calculations run in the C++ backend; the browser does not use `eval()`.
 
+## Recruiter quick view
+
+| Area | Evidence |
+| --- | --- |
+| **Problem** | Deliver scientific and fixed-width programmer calculations through one accessible browser interface. |
+| **Hardest engineering** | Custom expression parsing plus signed/unsigned 8-, 16-, 32-, and 64-bit arithmetic, bitwise operations, rotations, and overflow handling. |
+| **Architecture** | Browser UI → REST API → C++17/Drogon engines, packaged with CMake and Docker. |
+| **Verification** | GitHub Actions builds the production container and exercises health, metadata, scientific, programmer, validation, and security behavior. |
+| **Operations** | Health endpoint, per-response request IDs, uptime reporting, branded production URL, and reproducible container deployment. |
+
 ## Live Application
 
 https://calculator.joshuadelacruz.solutions/

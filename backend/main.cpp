@@ -1,7 +1,9 @@
 #include <drogon/drogon.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -29,6 +31,33 @@ constexpr const char *APPLICATION_LANGUAGE =
 
 constexpr const char *APPLICATION_FRAMEWORK =
     "Drogon";
+
+const auto APPLICATION_STARTED_AT =
+    std::chrono::steady_clock::now();
+
+std::atomic<std::uint64_t> REQUEST_SEQUENCE{0};
+
+std::string nextRequestId()
+{
+    const auto milliseconds =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
+    return "calc-" +
+        std::to_string(milliseconds) +
+        "-" +
+        std::to_string(++REQUEST_SEQUENCE);
+}
+
+Json::Int64 applicationUptimeSeconds()
+{
+    return static_cast<Json::Int64>(
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - APPLICATION_STARTED_AT
+        ).count()
+    );
+}
 
 
 // ============================================================
@@ -2187,6 +2216,10 @@ int main()
                 "X-Permitted-Cross-Domain-Policies",
                 "none"
             );
+            response->addHeader(
+                "X-Request-ID",
+                nextRequestId()
+            );
         }
     );
 
@@ -2304,6 +2337,10 @@ int main()
 
             json["framework"] =
                 APPLICATION_FRAMEWORK;
+
+
+            json["uptimeSeconds"] =
+                applicationUptimeSeconds();
 
 
             json["engine"] =

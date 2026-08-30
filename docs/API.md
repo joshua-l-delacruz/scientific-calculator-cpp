@@ -8,7 +8,7 @@ The current backend API version is:
 9.1
 Base URL
 Production:
-https://scientific-calculator-cpp.onrender.com
+https://calculator.joshuadelacruz.solutions
 Local Docker deployment:
 http://localhost:8080
 Endpoints
