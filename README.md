@@ -4,7 +4,7 @@
 [![C++](https://img.shields.io/badge/C%2B%2B-Backend-00599C?logo=cplusplus)](https://isocpp.org/)
 [![Drogon](https://img.shields.io/badge/Drogon-Web%20Framework-blue)](https://github.com/drogonframework/drogon)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Live](https://img.shields.io/badge/Live-Render-46E3B7?logo=render&logoColor=white)](https://scientific-calculator-cpp.onrender.com)
+[![Live](https://img.shields.io/badge/Live-Branded%20Domain-2563EB)](https://calculator.joshuadelacruz.solutions/)
 
 A full-stack **scientific and programmer calculator** powered by a real **C++ backend**, a custom mathematical expression parser, a width-aware programmer engine, REST APIs, Docker, and automated CI testing.
 
@@ -14,7 +14,7 @@ A full-stack **scientific and programmer calculator** powered by a real **C++ ba
 
 ## Live Application
 
-https://scientific-calculator-cpp.onrender.com
+https://calculator.joshuadelacruz.solutions/
 
 ## Current Status
 
@@ -420,7 +420,7 @@ The response includes:
 
 Machine-readable API information is available at:
 
-https://scientific-calculator-cpp.onrender.com/api/info
+https://calculator.joshuadelacruz.solutions/api/info
 
 It describes:
 
