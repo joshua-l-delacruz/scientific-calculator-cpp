@@ -17,6 +17,9 @@ on:
       - main
 
 
+permissions:
+  contents: read
+
 jobs:
 
   build-and-test:
