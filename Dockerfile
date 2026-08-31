@@ -2,7 +2,7 @@
 # STAGE 1 — BUILD
 # ============================================================
 
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:26.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -85,7 +85,7 @@ RUN mkdir build && \
 # STAGE 2 — RUNTIME
 # ============================================================
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 
 ENV DEBIAN_FRONTEND=noninteractive
