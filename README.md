@@ -6,11 +6,17 @@
 
 A full-stack scientific and fixed-width programmer calculator with an authoritative C++17/Drogon backend, a custom expression parser, REST APIs, Docker packaging and automated verification.
 
+**Portfolio role: engineering proof supporting an IAM and cloud-operations profile.**
+
 **[Open the live calculator](https://calculator.joshuadelacruz.solutions/)** · **[API reference](docs/API.md)** · **[Architecture](docs/ARCHITECTURE.md)**
 
 ![Scientific and programmer calculator](https://raw.githubusercontent.com/joshua-l-delacruz/lab-docs/main/assets/images/cpp-calculator-dashboard.png)
 
 > The browser handles presentation and interaction. Scientific parsing, input validation, base conversion and programmer operations run in C++; the frontend does not use JavaScript `eval()`.
+
+## Why this matters
+
+This project demonstrates that my automation and operations work is backed by software-engineering depth, not only scripting or tool configuration. I designed and deployed the complete path from browser interaction to a typed C++ API, implemented custom parsing and fixed-width integer behavior, packaged the service in Docker, and validated the production image through CI. It is supporting engineering evidence; it does not replace the IAM and incident-operations focus of the portfolio.
 
 ## Recruiter quick view
 
